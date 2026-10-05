@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Add item</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--glass:rgba(255,255,255,.86);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--glass:rgba(32,30,27,.86);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d2,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d2{font-size:34px;line-height:1.05;letter-spacing:-.03em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.t2{font-size:18px;line-height:1.25;font-weight:600;letter-spacing:-.01em;margin:0}
+.b1{font-size:16px;line-height:1.45;margin:0}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+button:disabled{opacity:.4;cursor:default}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.94);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 12px 10px var(--shadow)) drop-shadow(0 1px 2px var(--shadow2))}
+.gl{fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.chip{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:500;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line2);white-space:nowrap;flex:none;position:relative;transition:background-color .25s,color .25s,transform .45s cubic-bezier(.34,1.56,.64,1)}
+.chip::before{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-4px}
+.chip.on{background:var(--inv);color:var(--on-inv);box-shadow:none}
+.chip:active{transform:scale(.94)}
+.camb{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#F3EEE8;flex:none}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.btn{height:54px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;font-size:16px;font-weight:600}
+.btn-ink{background:var(--inv);color:var(--on-inv)}
+.btn-accent{background:var(--accent-fill);color:var(--on-accent)}
+.btn-line{box-shadow:inset 0 0 0 1.5px var(--line2)}
+.field{height:48px;border-radius:14px;border:0;outline:0;padding:0 14px;background:var(--tint);font-size:15px;width:100%;min-width:0}
+.scrim{position:absolute;inset:0;background:rgba(12,10,8,.45);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:50;width:100%;border:0}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:-28px;z-index:51;background:var(--surface);color:var(--ink);border-radius:28px 28px 0 0;padding:10px 20px 62px;transform:translateY(110%);transition:transform .6s cubic-bezier(.32,1.18,.5,1);box-shadow:0 -12px 40px var(--shadow2)}
+.sheet.on{transform:translateY(0)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 16px}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--line2);position:relative;transition:background-color .25s;flex:none}
+.sw::after{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.sw.on{background:var(--sec)}
+.sw.on::after{transform:translateX(20px)}
+.guide{fill:none;stroke:#fff;stroke-width:1.6;stroke-dasharray:6 6;vector-effect:non-scaling-stroke;opacity:.9;animation:march 1.4s linear infinite}
+@keyframes march{to{stroke-dashoffset:-24}}
+.bracket{position:absolute;width:26px;height:26px;border-color:#fff;border-style:solid;border-width:0}
+@keyframes flash{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
+.flash{position:absolute;inset:0;background:#fff;z-index:60;pointer-events:none;animation:flash .45s ease-out both}
+.scene{position:absolute;inset:0;transition:opacity 1.1s ease,filter 1.1s ease,transform 1.2s cubic-bezier(.2,.8,.2,1)}
+.scene.gone{opacity:0;filter:blur(10px);transform:scale(1.06)}
+.checker{position:absolute;inset:0;background-color:var(--tint);background-image:conic-gradient(var(--tint2) 25%,transparent 0 50%,var(--tint2) 0 75%,transparent 0);background-size:20px 20px;transition:opacity .7s ease .9s}
+.checker.fade{opacity:0}
+.gwrap{position:absolute;transition:transform .9s cubic-bezier(.34,1.45,.5,1) .4s,filter .8s ease .4s}
+.gwrap.lifted{transform:translateY(-8px) scale(1.02);filter:drop-shadow(0 18px 14px var(--shadow)) drop-shadow(0 2px 3px var(--shadow2))}
+.shimmer{position:absolute;inset:-20%;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.62) 50%,transparent 62%);background-size:260% 100%;animation:sweep 1.25s cubic-bezier(.45,0,.25,1) infinite;mix-blend-mode:soft-light;pointer-events:none}
+.shimmer2{position:absolute;inset:-20%;background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.35) 50%,transparent 56%);background-size:260% 100%;animation:sweep 1.25s cubic-bezier(.45,0,.25,1) infinite;pointer-events:none}
+@keyframes sweep{0%{background-position:120% 0}100%{background-position:-20% 0}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes dots{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.ld i{display:inline-block;width:5px;height:5px;border-radius:3px;background:currentColor;margin-left:3px;animation:dots 1.2s infinite}
+.ld i:nth-child(2){animation-delay:.15s}.ld i:nth-child(3){animation-delay:.3s}
+.photo{position:relative;height:128px;border-radius:16px;overflow:hidden;display:block;width:100%}
+.pick{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:13px;box-shadow:inset 0 0 0 2px #fff;background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.pick.on{background:var(--accent-fill);box-shadow:none;color:var(--on-accent)}
+@keyframes fly{0%{transform:translate(-27px,-273px) scale(3.12)}18%{transform:translate(-27px,-294px) scale(3.3) rotate(-2deg)}70%{transform:translate(0,10px) scale(.9) rotate(5deg)}84%{transform:translate(0,-4px) scale(1.04) rotate(-2deg)}100%{transform:none}}
+.fly{animation:fly 1.35s cubic-bezier(.5,0,.3,1) .3s both;transform-origin:50% 50%}
+@keyframes appear{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:none}}
+.appear{animation:appear .7s cubic-bezier(.34,1.4,.64,1) both}
+@keyframes swing{0%{transform:rotate(0)}25%{transform:rotate(-5deg)}50%{transform:rotate(3.5deg)}75%{transform:rotate(-1.5deg)}100%{transform:rotate(0)}}
+.swing{transform-origin:32px 2px;animation:swing 1.3s ease-out 1.55s both}
+@keyframes ring{0%{transform:scale(.4);opacity:.8}100%{transform:scale(2.4);opacity:0}}
+.ring{position:absolute;width:70px;height:70px;border-radius:35px;border:2px solid var(--accent);animation:ring .8s ease-out 1.55s both;pointer-events:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:{{rootBg}};transition:background-color .5s ease">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<sc-if value="{{isCapture}}" hint-placeholder-val="{{true}}">
+<div style="position:absolute;inset:0;color:#F3EEE8">
+<div style="position:absolute;left:16px;right:16px;top:48px;display:flex;align-items:center;justify-content:space-between;z-index:3">
+<a href="Today.dc.html" class="camb press" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></a>
+<div style="height:40px;border-radius:999px;background:rgba(255,255,255,.12);padding:3px;display:flex">
+<button class="press" onClick="{{modeHanger}}" aria-pressed="{{isHanger}}" style="height:34px;padding:0 14px;border-radius:999px;font-size:13px;font-weight:600;{{hangerStyle}}">Hanger</button>
+<button class="press" onClick="{{modeFlat}}" aria-pressed="{{isFlat}}" style="height:34px;padding:0 14px;border-radius:999px;font-size:13px;font-weight:600;{{flatStyle}}">Flat lay</button>
+</div>
+<button class="camb press" onClick="{{toggleFlash}}" aria-pressed="{{flash}}" aria-label="Flash" style="{{flashStyle}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg></button>
+</div>
+<div style="position:absolute;left:12px;right:12px;top:104px;height:528px;border-radius:30px;overflow:hidden;background:#8E8579">
+<sc-if value="{{isHanger}}" hint-placeholder-val="{{true}}">
+<div style="position:absolute;left:236px;top:-10px;width:140px;height:440px;border-radius:6px;background:#9A9184;box-shadow:inset 0 0 0 3px rgba(255,255,255,.14)"></div>
+<div style="position:absolute;left:0;right:0;bottom:92px;height:8px;background:#776D61"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:92px;background:#62594E"></div>
+<div style="position:absolute;left:175px;top:62px;width:16px;height:16px;border-radius:8px;background:#4E463D"></div>
+<svg viewBox="0 0 60 30" style="position:absolute;left:133px;top:68px;width:100px;height:50px;fill:none;stroke:#3F3832;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<div style="position:absolute;left:63px;top:104px;width:240px;height:288px"><svg viewBox="{{g.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(6px 8px 6px rgba(0,0,0,.28))" aria-hidden="true"><path d="{{g.d}}" fill="{{g.fill}}"></path><path d="{{g.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{g.l}}" stroke="{{g.line}}"></path></svg></div>
+<svg viewBox="0 0 100 120" style="position:absolute;left:48px;top:90px;width:270px;height:324px;overflow:visible" aria-hidden="true"><path class="guide" d="M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z"></path></svg>
+</sc-if>
+<sc-if value="{{isFlat}}" hint-placeholder-val="{{false}}">
+<div style="position:absolute;inset:0;background:#D6CEC1"></div>
+<div style="position:absolute;left:-40px;top:120px;width:460px;height:2px;background:rgba(0,0,0,.06);transform:rotate(-8deg)"></div>
+<div style="position:absolute;left:-40px;top:380px;width:460px;height:2px;background:rgba(0,0,0,.05);transform:rotate(6deg)"></div>
+<div style="position:absolute;left:43px;top:96px;width:280px;height:336px"><svg viewBox="{{g.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))" aria-hidden="true"><path d="{{g.d}}" fill="{{g.fill}}"></path><path d="{{g.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{g.l}}" stroke="{{g.line}}"></path></svg></div>
+<svg viewBox="0 0 100 120" style="position:absolute;left:33px;top:84px;width:300px;height:360px;overflow:visible" aria-hidden="true"><path class="guide" d="M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z"></path></svg>
+</sc-if>
+<span class="bracket" style="left:18px;top:18px;border-left-width:3px;border-top-width:3px;border-radius:10px 0 0 0"></span>
+<span class="bracket" style="right:18px;top:18px;border-right-width:3px;border-top-width:3px;border-radius:0 10px 0 0"></span>
+<span class="bracket" style="left:18px;bottom:18px;border-left-width:3px;border-bottom-width:3px;border-radius:0 0 0 10px"></span>
+<span class="bracket" style="right:18px;bottom:18px;border-right-width:3px;border-bottom-width:3px;border-radius:0 0 10px 0"></span>
+<span style="position:absolute;left:50%;top:22px;transform:translateX(-50%);height:32px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.42);font-size:13px;font-weight:600;display:flex;align-items:center;white-space:nowrap">Fit the piece inside the outline</span>
+</div>
+<p style="position:absolute;left:0;right:0;top:648px;margin:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(243,238,232,.7)">Background removed on device</p>
+<div style="position:absolute;left:28px;right:28px;bottom:58px;display:flex;align-items:center;justify-content:space-between">
+<button class="press" onClick="{{openGallery}}" aria-label="Choose from gallery" style="width:56px;height:56px;position:relative">
+<span style="position:absolute;left:6px;top:0;width:46px;height:52px;border-radius:12px;background:#7C766C;transform:rotate(8deg)"></span>
+<span style="position:absolute;left:2px;top:4px;width:48px;height:52px;border-radius:12px;background:#A9A196;overflow:hidden;box-shadow:0 0 0 2px #0C0B0A"><svg viewBox="0 0 100 120" style="position:absolute;left:8px;top:6px;width:32px;height:40px" aria-hidden="true"><path d="M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z" fill="#B5542E"></path></svg></span>
+</button>
+<button class="press" onClick="{{shoot}}" aria-label="Take photo" style="width:82px;height:82px;border-radius:41px;box-shadow:inset 0 0 0 4px #F3EEE8;display:flex;align-items:center;justify-content:center"><span style="width:64px;height:64px;border-radius:32px;background:#F3EEE8"></span></button>
+<button class="camb press" aria-label="Switch camera" style="width:56px;height:56px;border-radius:28px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"></path></svg></button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isCutout}}" hint-placeholder-val="{{false}}">
+<div style="position:absolute;left:16px;right:16px;top:48px;display:flex;align-items:center;justify-content:space-between">
+<button class="iconbtn press" onClick="{{toCapture}}" aria-label="Retake"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+<p class="t2">New piece</p>
+<span style="min-width:44px;display:flex;justify-content:flex-end"><sc-if value="{{batchOn}}" hint-placeholder-val="{{false}}"><span style="height:28px;padding:0 10px;border-radius:999px;background:var(--tint);font-size:12px;font-weight:700;display:flex;align-items:center">{{batchLabel}}</span></sc-if></span>
+</div>
+<div style="position:absolute;left:24px;right:24px;top:104px;height:416px;border-radius:30px;overflow:hidden;background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)">
+<div class="{{checkerCls}}"></div>
+<div class="{{sceneCls}}" style="background:#8E8579">
+<div style="position:absolute;left:206px;top:-10px;width:120px;height:330px;border-radius:6px;background:#9A9184;box-shadow:inset 0 0 0 3px rgba(255,255,255,.14)"></div>
+<div style="position:absolute;left:0;right:0;bottom:74px;height:7px;background:#776D61"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:74px;background:#62594E"></div>
+<div style="position:absolute;left:163px;top:34px;width:16px;height:16px;border-radius:8px;background:#4E463D"></div>
+</div>
+<div class="{{gwrapCls}}" style="left:61px;top:58px;width:220px;height:264px"><svg viewBox="{{g.vb}}" style="width:100%;height:100%;overflow:visible;display:block" role="img" aria-label="Camel coat cutout"><path d="{{g.d}}" fill="{{g.fill}}"></path><path d="{{g.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{g.l}}" stroke="{{g.line}}"></path></svg></div>
+<sc-if value="{{scanning}}" hint-placeholder-val="{{true}}"><div class="shimmer"></div><div class="shimmer2"></div></sc-if>
+<div style="position:absolute;left:14px;bottom:14px;height:34px;padding:0 14px 0 10px;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;box-shadow:inset 0 0 0 1px var(--line)">
+<sc-if value="{{scanning}}" hint-placeholder-val="{{true}}"><svg class="ic" viewBox="0 0 24 24" style="width:17px;height:17px" aria-hidden="true"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72M14 7l3 3"></path></svg><span class="ld">Lifting it off the background<i></i><i></i><i></i></span></sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{false}}"><span style="width:20px;height:20px;border-radius:10px;background:var(--success);color:var(--bg);display:flex;align-items:center;justify-content:center"><svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px;stroke-width:3" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>Clean cutout · on device</sc-if>
+</div>
+</div>
+<div style="position:absolute;left:24px;right:24px;top:534px">
+<p class="eyebrow">Detected colours</p>
+<div style="display:flex;gap:8px;margin-top:10px;min-height:36px">
+<sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+<sc-for list="{{detected}}" as="c" hint-placeholder-count="2"><span class="chip pop" style="animation-delay:{{c.delay}}ms"><span style="width:18px;height:18px;border-radius:9px;background:{{c.hex}};box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)"></span>{{c.name}}<span class="cap muted">{{c.hex}}</span></span></sc-for>
+</sc-if>
+<sc-if value="{{scanning}}" hint-placeholder-val="{{true}}"><span style="width:120px;height:36px;border-radius:18px;background:var(--tint)"></span><span style="width:96px;height:36px;border-radius:18px;background:var(--tint)"></span></sc-if>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:16px">
+<div style="flex:1;display:flex;align-items:center;justify-content:space-between;height:52px;border-radius:16px;background:var(--tint);padding:0 8px 0 14px"><span class="b2" style="font-weight:600">Keep original</span><button class="{{keepCls}}" role="switch" aria-checked="{{keep}}" aria-label="Keep original photo" onClick="{{toggleKeep}}"></button></div>
+<button class="press" onClick="{{toggleRefine}}" aria-pressed="{{refine}}" style="height:52px;padding:0 16px;border-radius:16px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;{{refineStyle}}"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="m9 11-6 6v3h9l3-3M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg>Refine edges</button>
+</div>
+</div>
+<div style="position:absolute;left:24px;right:24px;bottom:34px">
+<button class="btn btn-ink press" onClick="{{openCat}}" disabled="{{scanning}}" style="width:100%">Continue</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isDetails}}" hint-placeholder-val="{{false}}">
+<main class="noscroll" style="position:absolute;inset:0;overflow-y:auto;padding:104px 20px 130px">
+<div style="display:flex;gap:16px;align-items:center">
+<div style="width:112px;height:136px;flex:none;border-radius:22px;background:var(--tint);padding:12px 10px"><svg viewBox="{{g.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{g.d}}" fill="{{g.fill}}"></path><path d="{{g.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{g.l}}" stroke="{{g.line}}"></path></svg></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+<label class="eyebrow" for="nm">Name</label>
+<input id="nm" value="{{name}}" onChange="{{onName}}" class="fr" style="border:0;outline:0;background:transparent;font-size:26px;line-height:1.1;padding:0;width:100%;min-width:0;border-bottom:1.5px solid var(--line2);padding-bottom:6px">
+<span style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600;color:var(--muted)">Outerwear<svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span style="color:var(--ink)">{{cat}}</span></span>
+</div>
+</div>
+<sc-for list="{{groups}}" as="grp" hint-placeholder-count="5">
+<p class="eyebrow" style="margin:24px 0 10px">{{grp.label}}</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{grp.opts}}" as="o" hint-placeholder-count="4"><button class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}"><sc-if value="{{o.hasSw}}" hint-placeholder-val="{{false}}"><span style="width:16px;height:16px;border-radius:8px;background:{{o.sw}};box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)"></span></sc-if>{{o.label}}</button></sc-for>
+</div>
+</sc-for>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px">
+<label style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Brand</span><input class="field" value="{{brand}}" onChange="{{onBrand}}"></label>
+<label style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Price · USD</span><input class="field" value="{{price}}" onChange="{{onPrice}}" inputmode="decimal"></label>
+<label style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Purchased</span><input class="field" value="Aug 2025"></label>
+<label style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Store</span><input class="field" value="Online"></label>
+</div>
+<label style="display:flex;flex-direction:column;gap:8px;margin-top:14px"><span class="eyebrow">Care notes</span><textarea class="field" style="height:76px;padding:12px 14px;resize:none;line-height:1.4">Dry clean only. Steam, don’t iron.</textarea></label>
+<p class="eyebrow" style="margin:24px 0 10px">Tags</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><span class="chip on">investment</span><span class="chip on">winter staple</span><button class="chip" style="color:var(--accent-text)">+ Add tag</button></div>
+</main>
+<div style="position:absolute;left:0;right:0;top:0;height:100px;background:var(--bg)"></div>
+<div style="position:absolute;left:16px;right:16px;top:48px;display:flex;align-items:center;justify-content:space-between">
+<button class="iconbtn press" onClick="{{toCutout}}" aria-label="Back"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+<p class="t2">Details</p>
+<span style="width:44px"></span>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 32px;background:var(--bg);box-shadow:0 -1px 0 var(--line)">
+<button class="btn btn-accent press" onClick="{{save}}" style="width:100%">Save to wardrobe</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isSaved}}" hint-placeholder-val="{{false}}">
+<div class="appear" style="position:absolute;left:24px;right:24px;top:118px;animation-delay:1.5s">
+<p class="eyebrow" style="color:var(--success)">Saved</p>
+<h1 class="d2" style="margin-top:8px">Hung on the rail.</h1>
+<p class="b1 muted" style="margin-top:10px">{{name}} is in your Home wardrobe. We filed it under Outerwear and tagged it for autumn and winter.</p>
+</div>
+<div style="position:absolute;left:20px;top:420px;width:350px;height:214px;border-radius:28px;background:var(--tint)">
+<p class="eyebrow" style="position:absolute;left:18px;top:16px">Home · Hanging rail</p>
+<div style="position:absolute;left:0;right:0;top:52px;height:3px;background:var(--rail)"></div>
+</div>
+<sc-for list="{{railMini}}" as="it" hint-placeholder-count="4">
+<div class="swing" style="position:absolute;left:{{it.x}}px;top:470px;width:64px;height:96px">
+<svg viewBox="0 0 60 30" style="position:absolute;left:10px;top:0;width:44px;height:22px;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<div style="position:absolute;left:0;top:15px;width:64px;height:77px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div>
+</div>
+</sc-for>
+<span class="ring" style="left:187px;top:488px"></span>
+<svg class="pop" viewBox="0 0 60 30" style="position:absolute;left:200px;top:470px;width:44px;height:22px;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation-delay:1.45s" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<div class="fly" style="position:absolute;left:190px;top:485px;width:64px;height:77px;z-index:5"><svg viewBox="{{g.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" role="img" aria-label="{{name}}"><path d="{{g.d}}" fill="{{g.fill}}"></path><path d="{{g.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{g.l}}" stroke="{{g.line}}"></path></svg></div>
+<div class="appear" style="position:absolute;left:20px;right:20px;bottom:34px;display:flex;gap:10px;animation-delay:1.7s">
+<button class="btn btn-line press" onClick="{{again}}" style="flex:1">Add another</button>
+<a href="Closet.dc.html" class="btn btn-ink press" style="flex:1">View wardrobe</a>
+</div>
+</sc-if>
+
+<sc-if value="{{flashOn}}" hint-placeholder-val="{{false}}"><div class="flash"></div></sc-if>
+
+<button class="scrim {{galCls}}" aria-label="Close" onClick="{{closeGallery}}"></button>
+<div class="sheet {{galCls}}" role="dialog" aria-label="Choose photos">
+<div class="grab"></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between"><h3 class="d3">Recent photos</h3><span class="cap muted" style="font-weight:600">Select several</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px">
+<sc-for list="{{photos}}" as="p" hint-placeholder-count="6">
+<button class="photo press" onClick="{{p.pick}}" aria-pressed="{{p.on}}" aria-label="{{p.label}}" style="background:{{p.bg}}">
+<div style="position:absolute;left:18px;top:16px;width:68px;height:{{p.h}}px"><svg viewBox="{{p.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(2px 4px 3px rgba(0,0,0,.25))" aria-hidden="true"><path d="{{p.d}}" fill="{{p.fill}}"></path><path d="{{p.d2}}" fill="{{p.f2}}"></path><path class="gl" d="{{p.l}}" stroke="{{p.line}}"></path></svg></div>
+<span class="{{p.cls}}">{{p.num}}</span>
+</button>
+</sc-for>
+</div>
+<button class="btn btn-accent press" onClick="{{useGallery}}" disabled="{{noPicks}}" style="width:100%;margin-top:16px">{{galLabel}}</button>
+</div>
+
+<button class="scrim {{catCls}}" aria-label="Close" onClick="{{closeCat}}"></button>
+<div class="sheet {{catCls}}" role="dialog" aria-label="What is it?">
+<div class="grab"></div>
+<h3 class="d3">What did we capture?</h3>
+<p class="b2 muted" style="margin-top:6px">Looks like outerwear. Pick the closest match and we’ll file it on the rail.</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px">
+<sc-for list="{{catOpts}}" as="o" hint-placeholder-count="6"><button class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+</div>
+<button class="btn btn-ink press" onClick="{{toDetails}}" style="width:100%;margin-top:20px">Continue with {{cat}}</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"startStep":{"editor":"enum","options":["capture","cutout","details","saved"],"default":"capture","section":"Flow"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      theme: null, step: props.startStep || 'capture', mode: 'hanger', flash: false, flashOn: false, gallery: false, picks: [], batch: 0,
+      phase: 'scan', keep: false, refine: false, catOpen: false, cat: 'Coat',
+      sel: { colors: { Camel: true, Chocolate: true }, pattern: 'Solid', material: { Wool: true, Cashmere: true }, seasons: { Autumn: true, Winter: true }, occasions: { Work: true, Evening: true }, size: '38' },
+      name: 'Camel wool coat', brand: 'Maison Lune', price: '390'
+    };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.modeHanger = () => this.setState({ mode: 'hanger' });
+    this.modeFlat = () => this.setState({ mode: 'flat' });
+    this.toggleFlash = () => this.setState({ flash: !this.state.flash });
+    this.openGallery = () => this.setState({ gallery: true });
+    this.closeGallery = () => this.setState({ gallery: false });
+    this.shoot = () => { this.setState({ flashOn: true }); clearTimeout(this.ft); this.ft = setTimeout(() => { this.setState({ flashOn: false, batch: 0 }); this.goCutout(); }, 380); };
+    this.useGallery = () => { var n = this.state.picks.length; if (!n) return; this.setState({ gallery: false, batch: n }); this.goCutout(); };
+    this.toCapture = () => { clearTimeout(this.pt); this.setState({ step: 'capture' }); };
+    this.toCutout = () => this.setState({ step: 'cutout' });
+    this.toggleKeep = () => this.setState({ keep: !this.state.keep });
+    this.toggleRefine = () => this.setState({ refine: !this.state.refine });
+    this.openCat = () => { if (this.state.phase === 'done') this.setState({ catOpen: true }); };
+    this.closeCat = () => this.setState({ catOpen: false });
+    this.toDetails = () => this.setState({ catOpen: false, step: 'details' });
+    this.onName = (e) => this.setState({ name: e.target.value });
+    this.onBrand = (e) => this.setState({ brand: e.target.value });
+    this.onPrice = (e) => this.setState({ price: e.target.value });
+    this.save = () => this.setState({ step: 'saved' });
+    this.again = () => this.setState({ step: 'capture', picks: [], batch: 0, phase: 'scan', keep: false, refine: false });
+  }
+  goCutout() { clearTimeout(this.pt); this.setState({ step: 'cutout', phase: 'scan' }); this.pt = setTimeout(() => this.setState({ phase: 'done' }), 2600); }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+    if (this.state.step === 'cutout') this.goCutout();
+  }
+  componentWillUnmount() { clearTimeout(this.pt); clearTimeout(this.ft); try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) {
+    if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' });
+    if (pp.startStep !== this.props.startStep) { if (this.props.startStep === 'cutout') this.goCutout(); else this.setState({ step: this.props.startStep || 'capture' }); }
+  }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76M7 86L18 86M82 86L93 86' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102M33 10L41 32L50 26M67 10L59 32L50 26M23 93L77 93M29 62L40 62M60 62L71 62' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      knit: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L84 18Q90 22 90 30L95 94Q95 98 91 98L85 98Q82 98 82 94L75 46L75 108Q75 112 71 112L29 112Q25 112 25 108L25 46L18 94Q18 98 15 98L9 98Q5 98 5 94L10 30Q10 22 16 18Z', l: 'M42 6Q50 16 58 6M25 102L75 102M7 88L18 88M82 88L93 88M40 34L40 96M50 30L50 96M60 34L60 96' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22M50 50L46 112' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M38 40Q38 22 50 22Q62 22 62 40M12 56L88 56' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().coat;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark(), step = st.step;
+    var chipsOf = function (key, opts, multi, swatches) {
+      return opts.map(function (o) {
+        var cur = st.sel[key], on = multi ? !!cur[o] : cur === o;
+        return { label: o, on: on, cls: on ? 'chip on' : 'chip', hasSw: !!swatches, sw: swatches ? swatches[o] : '',
+          pick: function () { var s = Object.assign({}, self.state.sel); if (multi) { var m = Object.assign({}, s[key]); m[o] = !m[o]; s[key] = m; } else { s[key] = o; } self.setState({ sel: s }); } };
+      });
+    };
+    var SW = { Camel: '#B98B5E', Chocolate: '#5A3C2B', Ecru: '#E8DDC8', Black: '#1D1C1B' };
+    var groups = [
+      { label: 'Colours', opts: chipsOf('colors', ['Camel', 'Chocolate', 'Ecru', 'Black'], true, SW) },
+      { label: 'Pattern', opts: chipsOf('pattern', ['Solid', 'Stripe', 'Check', 'Herringbone', 'Print'], false) },
+      { label: 'Material', opts: chipsOf('material', ['Wool', 'Cashmere', 'Cotton', 'Linen', 'Silk', 'Leather'], true) },
+      { label: 'Seasons', opts: chipsOf('seasons', ['Spring', 'Summer', 'Autumn', 'Winter'], true) },
+      { label: 'Occasions', opts: chipsOf('occasions', ['Work', 'Weekend', 'Evening', 'Travel'], true) },
+      { label: 'Size', opts: chipsOf('size', ['34', '36', '38', '40', '42'], false) }
+    ];
+    var PH = [['coat', '#B98B5E', '#8E8579', 82, 'Camel coat'], ['dress', '#B5542E', '#A9A196', 82, 'Rust dress'], ['knit', '#F0E8D8', '#7C766C', 82, 'Cream knit'], ['sneaker', '#F5F3EE', '#B4AA9C', 46, 'White sneakers'], ['shirt', '#A8C2D8', '#958B7F', 82, 'Sky shirt'], ['tote', '#B98B5E', '#C2B8AA', 75, 'Camel tote']];
+    var photos = PH.map(function (p, i) {
+      var k = st.picks.indexOf(i), on = k >= 0;
+      return self.piece(p[0], p[1], { bg: p[2], h: p[3], label: 'Photo of ' + p[4], on: on, num: on ? String(k + 1) : '', cls: on ? 'pick on' : 'pick',
+        pick: function () { var a = self.state.picks.slice(), j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); self.setState({ picks: a }); } });
+    });
+    var catOpts = ['Coat', 'Jacket', 'Blazer', 'Trench', 'Dress', 'Other'].map(function (c) { var on = st.cat === c; return { label: c, on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setState({ cat: c }); } }; });
+    var scanning = st.phase === 'scan', done = !scanning;
+    var on = 'background:#F3EEE8;color:#1C1A17', off = 'color:#F3EEE8';
+    return {
+      themeClass: dark ? 'dark' : '', rootBg: step === 'capture' ? '#0C0B0A' : 'var(--bg)',
+      isCapture: step === 'capture', isCutout: step === 'cutout', isDetails: step === 'details', isSaved: step === 'saved',
+      g: this.piece('coat', '#B98B5E'),
+      isHanger: st.mode === 'hanger', isFlat: st.mode === 'flat', modeHanger: this.modeHanger, modeFlat: this.modeFlat,
+      hangerStyle: st.mode === 'hanger' ? on : off, flatStyle: st.mode === 'flat' ? on : off,
+      flash: st.flash, toggleFlash: this.toggleFlash, flashStyle: st.flash ? 'background:#F2C14E;color:#1C1A17' : '',
+      shoot: this.shoot, flashOn: st.flashOn,
+      openGallery: this.openGallery, closeGallery: this.closeGallery, galCls: st.gallery ? 'on' : '', photos: photos, useGallery: this.useGallery,
+      noPicks: st.picks.length === 0, galLabel: st.picks.length ? 'Add ' + st.picks.length + (st.picks.length === 1 ? ' piece' : ' pieces') : 'Select photos',
+      batchOn: st.batch > 1, batchLabel: '1 of ' + st.batch,
+      toCapture: this.toCapture, toCutout: this.toCutout,
+      scanning: scanning, done: done,
+      sceneCls: 'scene' + (done && !st.keep ? ' gone' : ''), checkerCls: 'checker' + (done && !st.keep ? ' fade' : ''), gwrapCls: 'gwrap' + (done ? ' lifted' : ''),
+      detected: [{ name: 'Camel', hex: '#B98B5E', delay: 0 }, { name: 'Chocolate', hex: '#5A3C2B', delay: 120 }],
+      keep: st.keep, keepCls: st.keep ? 'sw on' : 'sw', toggleKeep: this.toggleKeep,
+      refine: st.refine, toggleRefine: this.toggleRefine, refineStyle: st.refine ? 'background:var(--inv);color:var(--on-inv)' : 'background:var(--tint)',
+      openCat: this.openCat, closeCat: this.closeCat, catCls: st.catOpen ? 'on' : '', catOpts: catOpts, cat: st.cat, toDetails: this.toDetails,
+      groups: groups, name: st.name, onName: this.onName, brand: st.brand, onBrand: this.onBrand, price: st.price, onPrice: this.onPrice,
+      save: this.save, again: this.again,
+      railMini: [this.piece('jacket', '#26354E', { x: 38 }), this.piece('shirt', '#E8DDC8', { x: 114 }), this.piece('dress', '#B5542E', { x: 266 })]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Closet, elevation direction</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--sec:#2F4B3A;--sec-soft:#DFE8E1;--warning:#8A5A12;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--wood:#E8DFD3;--glass:rgba(255,255,255,.86);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--sec:#8DB89C;--sec-soft:#1E2B22;--warning:#E2B565;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--wood:#2B2723;--glass:rgba(32,30,27,.86);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d1,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d1{font-size:40px;line-height:1.02;letter-spacing:-.035em}
+.fr{letter-spacing:-.02em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.95);transition-duration:.12s}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 6px 6px var(--shadow)) drop-shadow(0 1px 1px var(--shadow2))}
+.gl{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hanger{fill:none;stroke:var(--faint);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.seg{display:flex;align-items:center;justify-content:center;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted);height:36px}
+.seg.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px var(--shadow2)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
+.tab.on{color:var(--ink)}
+.tab.on::after{content:'';position:absolute;bottom:1px;width:4px;height:4px;border-radius:2px;background:var(--accent)}
+.stage{position:absolute;left:0;top:0;width:390px;height:844px;transform-origin:0 0;transition:transform .85s cubic-bezier(.34,1.18,.4,1)}
+.zone{position:absolute;border-radius:16px;background:var(--wood);transition:opacity .5s ease,box-shadow .3s;overflow:hidden}
+.zone:hover{box-shadow:inset 0 0 0 2px var(--accent)}
+.zone.dim{opacity:.22}
+.zone.focus{box-shadow:inset 0 0 0 2px var(--accent)}
+.pc{position:absolute}
+.tag{display:inline-flex;align-items:center;gap:4px;height:18px;padding:0 7px;border-radius:999px;background:var(--surface);box-shadow:0 2px 6px var(--shadow2);font-size:9px;font-weight:700;white-space:nowrap}
+.tag i{width:5px;height:5px;border-radius:3px;display:block}
+.cap-card{position:absolute;left:16px;right:16px;bottom:104px;border-radius:24px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);padding:14px 14px 14px 18px;display:flex;align-items:center;gap:12px;z-index:30;transition:transform .55s cubic-bezier(.34,1.4,.5,1),opacity .3s}
+.hdr{transition:opacity .4s ease}
+.hdr.hide{opacity:0;pointer-events:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg)">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<div class="hdr {{hdrCls}}" style="position:absolute;left:0;right:0;top:48px;z-index:5">
+<div style="padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:44px">
+<span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)">Home wardrobe<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span>
+<a href="AddItem.dc.html" class="iconbtn press" aria-label="Add item"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+</div>
+<div style="padding:0 20px;display:flex;align-items:baseline;gap:10px"><h1 class="d1">Wardrobe</h1><span class="fr muted" style="font-size:22px">28</span></div>
+<nav aria-label="Wardrobe view" style="margin:12px 20px 0;height:44px;border-radius:999px;background:var(--tint);padding:4px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+<span class="seg on" aria-current="page">Closet</span><a href="Grid.dc.html" class="seg">Grid</a><a href="Grid.dc.html" class="seg">Outfits</a>
+</nav>
+</div>
+
+<div class="stage" style="transform:{{stageT}}">
+<div style="position:absolute;left:20px;top:244px;width:350px;height:6px;border-radius:3px;background:var(--rail);opacity:.6"></div>
+<button class="{{zAcc.cls}}" onClick="{{zAcc.pick}}" aria-label="Accessories tray, 6 pieces" style="left:20px;top:200px;width:350px;height:44px;border-radius:14px 14px 4px 4px">
+<sc-for list="{{acc}}" as="it" hint-placeholder-count="5"><div class="pc" style="left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</button>
+<div style="position:absolute;left:14px;top:256px;width:362px;height:482px;border-radius:26px;background:var(--tint);box-shadow:inset 0 0 0 1px var(--line),0 24px 50px var(--shadow2)"></div>
+
+<button class="{{zRail.cls}}" onClick="{{zRail.pick}}" aria-label="Hanging rail, 10 pieces, 3 out" style="left:22px;top:264px;width:218px;height:290px">
+<div style="position:absolute;left:8px;right:8px;top:18px;height:3px;border-radius:2px;background:var(--rail)"></div>
+<sc-for list="{{rail}}" as="it" hint-placeholder-count="8">
+<div class="pc" style="left:{{it.x}}px;top:14px;width:52px;height:96px">
+<svg class="hanger" viewBox="0 0 60 30" style="position:absolute;left:10px;top:0;width:32px;height:16px" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<sc-if value="{{it.inn}}" hint-placeholder-val="{{true}}"><div style="position:absolute;left:0;top:10px;width:52px;height:62px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-if>
+<sc-if value="{{it.out}}" hint-placeholder-val="{{false}}"><span class="tag" style="position:absolute;left:50%;top:22px;transform:translateX(-50%)"><i style="background:{{it.dot}}"></i>{{it.tag}}</span></sc-if>
+</div>
+</sc-for>
+<sc-for list="{{rail2}}" as="it" hint-placeholder-count="4">
+<div class="pc" style="left:{{it.x}}px;top:150px;width:52px;height:96px">
+<svg class="hanger" viewBox="0 0 60 30" style="position:absolute;left:10px;top:0;width:32px;height:16px" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<div style="position:absolute;left:0;top:10px;width:52px;height:62px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div>
+</div>
+</sc-for>
+<div style="position:absolute;left:8px;right:8px;top:154px;height:3px;border-radius:2px;background:var(--rail)"></div>
+</button>
+
+<button class="{{zShelf.cls}}" onClick="{{zShelf.pick}}" aria-label="Shelves, 8 pieces" style="left:246px;top:264px;width:122px;height:290px;background:transparent">
+<sc-for list="{{shelves}}" as="sh" hint-placeholder-count="3">
+<div style="position:absolute;left:0;right:0;top:{{sh.y}}px;height:90px;border-radius:14px;background:var(--wood);overflow:hidden">
+<sc-for list="{{sh.items}}" as="it" hint-placeholder-count="2"><div class="pc" style="left:{{it.x}}px;top:{{it.y}}px;width:72px;height:50px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<div style="position:absolute;left:0;right:0;bottom:0;height:7px;background:var(--tint2)"></div>
+</div>
+</sc-for>
+</button>
+
+<button class="{{zDrawer.cls}}" onClick="{{zDrawer.pick}}" aria-label="Drawers, 45 pieces" style="left:22px;top:562px;width:346px;height:80px;background:transparent">
+<sc-for list="{{drawers}}" as="dr" hint-placeholder-count="3">
+<span style="position:absolute;left:{{dr.x}}px;top:0;width:110px;height:80px;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line),0 4px 10px var(--shadow2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+<span style="width:34px;height:5px;border-radius:3px;background:var(--line2)"></span>
+<span class="cap" style="font-weight:700">{{dr.name}}</span>
+<span class="cap muted" style="font-size:11px">{{dr.n}}</span>
+</span>
+</sc-for>
+</button>
+
+<button class="{{zShoes.cls}}" onClick="{{zShoes.pick}}" aria-label="Shoe rack, 4 pairs, 1 out" style="left:22px;top:650px;width:346px;height:80px">
+<sc-for list="{{shoes}}" as="it" hint-placeholder-count="4">
+<div class="pc" style="left:{{it.x}}px;top:12px;width:78px;height:52px">
+<sc-if value="{{it.inn}}" hint-placeholder-val="{{true}}"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></sc-if>
+<sc-if value="{{it.out}}" hint-placeholder-val="{{false}}"><span class="tag" style="position:absolute;left:50%;top:18px;transform:translateX(-50%)"><i style="background:{{it.dot}}"></i>{{it.tag}}</span></sc-if>
+</div>
+</sc-for>
+<div style="position:absolute;left:10px;right:10px;bottom:12px;height:3px;border-radius:2px;background:var(--rail)"></div>
+</button>
+</div>
+
+<div class="cap-card" style="transform:{{capT}}">
+<div style="flex:1;min-width:0">
+<p class="eyebrow">{{capEyebrow}}</p>
+<p class="fr" style="font-size:22px;line-height:1.15;margin-top:4px">{{capTitle}}</p>
+<p class="cap muted" style="margin-top:3px;font-weight:600">{{capMeta}}</p>
+</div>
+<sc-if value="{{zoomed}}" hint-placeholder-val="{{false}}">
+<button class="iconbtn press" onClick="{{zoomOut}}" aria-label="Back to the whole closet"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></button>
+<a href="Closet.dc.html" class="press" style="height:44px;padding:0 16px;border-radius:999px;background:var(--inv);color:var(--on-inv);display:flex;align-items:center;font-size:14px;font-weight:600">Open</a>
+</sc-if>
+</div>
+
+<nav aria-label="Main" style="position:absolute;left:16px;right:16px;bottom:20px;height:70px;border-radius:30px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 4px;z-index:40">
+<a href="Today.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><span>Today</span></a>
+<a href="ClosetB.dc.html" class="tab press on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1 2 2v1.5l8.4 6.2a1.4 1.4 0 0 1-.8 2.5H4.4a1.4 1.4 0 0 1-.8-2.5L12 9"></path></svg><span>Wardrobe</span></a>
+<a href="AddItem.dc.html" aria-label="Add item" class="press" style="justify-self:center;width:62px;height:62px;border-radius:31px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;margin-top:-34px;box-shadow:0 12px 24px rgba(226,85,63,.42),0 0 0 6px var(--bg)"><svg class="ic" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a href="Planner.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3"></rect><path d="M8 2.5v4M16 2.5v4M3 10h18"></path></svg><span>Planner</span></a>
+<a href="Me.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Me</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, zone: null };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.zoomOut = () => this.setState({ zone: null });
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', F = '0 0 100 70', S = '0 0 120 80', A = '0 0 100 110';
+    var FD = 'M8 20Q8 10 18 10L82 10Q92 10 92 20L92 58Q92 64 86 64L14 64Q8 64 8 58Z';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44' },
+      folded: { vb: F, d: FD, l: 'M38 10Q50 22 62 10M8 52L92 52' },
+      foldedK: { vb: F, d: FD, l: 'M38 10Q50 22 62 10M8 54L92 54M44 24L44 50M56 24L56 50' },
+      foldedJ: { vb: F, d: FD, l: 'M8 22L92 22M50 22L50 64' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M20 54Q58 56 88 46' },
+      boot: { vb: S, d: 'M30 6L62 6Q64 6 64 8L64 46Q66 50 72 52Q100 58 106 66L106 68L28 68L28 8Q28 6 30 6Z', d2: 'M26 68L108 68Q108 76 100 76L30 76Q26 76 26 72Z', f2: '#2B2521', l: 'M40 8Q44 28 40 48M56 8Q52 28 56 48' },
+      loafer: { vb: S, d: 'M10 56Q10 46 20 44Q40 40 56 44Q80 48 98 52Q112 55 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 71 106 71L14 71Q8 71 8 66Z', f2: '#2B2521', l: 'M52 46Q68 43 80 50' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M12 56L88 56' },
+      crossbody: { vb: A, d: 'M20 56Q20 48 28 48L72 48Q80 48 80 56L80 92Q80 98 74 98L26 98Q20 98 20 92Z', l: 'M22 52Q50 -4 78 52' },
+      belt: { vb: A, d: 'M50 20A34 34 0 1 1 49.9 20ZM50 33A21 21 0 1 0 50.1 33Z', l: 'M42 14L58 14L58 27L42 27Z' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50' },
+      necklace: { vb: A, d: 'M45 74Q50 66 55 74L55 82Q50 90 45 82Z', l: 'M20 14Q24 64 50 70Q76 64 80 14' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().shirt;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark();
+    var Z = {
+      acc: { r: [20, 200, 350, 44], eyebrow: 'Accessories tray', title: 'Bags, belts & jewellery', meta: '6 pieces · 1 lent to Jo' },
+      rail: { r: [22, 264, 218, 290], eyebrow: 'Hanging rail', title: 'Shirts, dresses & coats', meta: '10 pieces · 3 out' },
+      shelf: { r: [246, 264, 122, 290], eyebrow: 'Shelves', title: 'Knitwear, tees & denim', meta: '8 pieces · 2 out' },
+      drawer: { r: [22, 562, 346, 80], eyebrow: 'Drawers', title: 'Underwear, socks & active', meta: '45 pieces in 3 drawers' },
+      shoes: { r: [22, 650, 346, 80], eyebrow: 'Shoe rack', title: 'Four pairs', meta: '4 pairs · 1 worn today' }
+    };
+    var zone = st.zone, stageT = 'none';
+    if (zone) {
+      var r = Z[zone].r, cx = r[0] + r[2] / 2, cy = r[1] + r[3] / 2;
+      var s = Math.min(350 / r[2], 470 / r[3], 2.6);
+      stageT = 'translate(' + (195 - cx * s).toFixed(1) + 'px,' + (400 - cy * s).toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
+    }
+    var mkZone = function (k) { return { cls: 'zone press' + (zone && zone !== k ? ' dim' : '') + (zone === k ? ' focus' : ''), pick: function () { self.setState({ zone: self.state.zone === k ? null : k }); } }; };
+    var TAG = { worn: ['Worn', 'var(--warning)'], lent: ['Lent', 'var(--accent)'], dry: ['Cleaner', 'var(--faint)'] };
+    var R = [['coat', '#B98B5E'], ['jacket', '#26354E'], ['shirt', '#E8DDC8'], ['shirt', '#A8C2D8', 'worn'], ['dress', '#B5542E'], ['dress', '#1D1C1B', 'lent'], ['jacket', '#6B6B3A']];
+    var rail = R.map(function (x, i) { var t = TAG[x[2]]; return self.piece(x[0], x[1], { x: 6 + i * 26, inn: !t, out: !!t, tag: t ? t[0] : '', dot: t ? t[1] : '' }); });
+    var rail2 = [['jacket', '#4E6B8B'], ['shirt', '#E3B3A3'], ['coat', '#B8AD9E']].map(function (x, i) { return self.piece(x[0], x[1], { x: 6 + i * 34 }); });
+    var shelves = [
+      { y: 0, items: [self.piece('foldedK', '#F0E8D8', { x: 24, y: 34 }), self.piece('foldedK', '#3B3936', { x: 26, y: 20 }), self.piece('foldedK', '#6E2A35', { x: 22, y: 6 })] },
+      { y: 100, items: [self.piece('folded', '#1D1C1B', { x: 24, y: 34 }), self.piece('folded', '#F5F3EE', { x: 26, y: 20 })] },
+      { y: 200, items: [self.piece('foldedJ', '#1D1C1B', { x: 24, y: 34 }), self.piece('foldedJ', '#B8AD9E', { x: 26, y: 20 }), self.piece('foldedJ', '#2F405E', { x: 22, y: 6 })] }
+    ];
+    var shoes = [['sneaker', '#F5F3EE'], ['boot', '#5A3C2B'], ['loafer', '#1D1C1B'], ['sneaker', '#A3B196', 'worn']].map(function (x, i) { var t = TAG[x[2]]; return self.piece(x[0], x[1], { x: 8 + i * 84, inn: !t, out: !!t, tag: t ? t[0] : '', dot: t ? t[1] : '' }); });
+    var acc = [['hat', '#6B6B3A', 14, -4, 50, 55, -6], ['tote', '#B98B5E', 72, -14, 44, 48, 4], ['crossbody', '#6E2A35', 128, -8, 46, 50, -4], ['belt', '#5A3C2B', 186, 0, 40, 44, 0], ['necklace', '#C9A03B', 236, -2, 40, 44, 6], ['scarf', '#B5542E', 288, -6, 40, 44, -8]].filter(function (x) { return self.lib()[x[0]]; }).map(function (x) { return self.piece(x[0], x[1], { x: x[2], y: x[3], w: x[4], h: x[5], r: x[6] }); });
+    var drawers = [['Underwear', '14 pieces', 0], ['Socks', '22 pairs', 118], ['Activewear', '9 pieces', 236]].map(function (d) { return { name: d[0], n: d[1], x: d[2] }; });
+    var c = zone ? Z[zone] : { eyebrow: '28 pieces · 5 out', title: 'Tap a compartment to step inside', meta: 'Rail · Shelves · Drawers · Shoe rack · Tray' };
+    return {
+      themeClass: dark ? 'dark' : '', stageT: stageT, hdrCls: zone ? 'hide' : '', zoomed: !!zone, zoomOut: this.zoomOut,
+      zAcc: mkZone('acc'), zRail: mkZone('rail'), zShelf: mkZone('shelf'), zDrawer: mkZone('drawer'), zShoes: mkZone('shoes'),
+      rail: rail, rail2: rail2, shelves: shelves, shoes: shoes, acc: acc, drawers: drawers,
+      capEyebrow: c.eyebrow, capTitle: c.title, capMeta: c.meta, capT: 'none'
+    };
+  }
+}
+</script>
+</body>
+</html>

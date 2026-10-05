@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Declutter</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d2,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d2{font-size:34px;line-height:1.05;letter-spacing:-.03em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.92);transition-duration:.12s}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 16px 14px var(--shadow)) drop-shadow(0 2px 3px var(--shadow2))}
+.gl{fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.btn{height:52px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;font-size:16px;font-weight:600}
+.btn-ink{background:var(--inv);color:var(--on-inv)}
+.btn-line{box-shadow:inset 0 0 0 1.5px var(--line2)}
+.card{position:absolute;left:28px;top:186px;width:334px;height:470px;border-radius:30px;background:var(--surface);box-shadow:0 20px 44px var(--shadow2),inset 0 0 0 1px var(--line);overflow:hidden;touch-action:none}
+.card.top{cursor:grab}
+.card.top:active{cursor:grabbing}
+.card.spring{transition:transform .6s cubic-bezier(.34,1.45,.5,1)}
+.card.leave{transition:transform .45s cubic-bezier(.4,0,.6,1),opacity .45s ease}
+.card.back{transition:transform .6s cubic-bezier(.34,1.45,.5,1)}
+.stamp{position:absolute;top:28px;height:44px;padding:0 16px;border-radius:12px;border:3px solid currentColor;font-size:20px;font-weight:700;letter-spacing:.12em;display:flex;align-items:center;background:var(--surface);pointer-events:none}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.act span{border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:0 10px 24px var(--shadow2),inset 0 0 0 1px var(--line)}
+.tally{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:12px;font-weight:600}
+.tally i{width:8px;height:8px;border-radius:4px;display:block}
+@keyframes bump1{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes bump2{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+.bumpA{animation:bump1 .5s cubic-bezier(.34,1.56,.64,1)}
+.bumpB{animation:bump2 .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .65s cubic-bezier(.34,1.56,.64,1) both}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" ref="{{setRoot}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);user-select:none;-webkit-user-select:none">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<div style="position:absolute;left:16px;right:16px;top:48px;display:flex;align-items:center;gap:12px">
+<a href="Me.dc.html" class="iconbtn press" aria-label="Back to Me"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+<div style="flex:1"><h1 class="d2" style="font-size:30px">Declutter</h1><p class="cap muted" style="font-weight:600;margin-top:2px">Unworn for 90+ days · {{progress}}</p></div>
+</div>
+<div style="position:absolute;left:20px;right:20px;top:110px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px">
+<sc-for list="{{segs}}" as="s" hint-placeholder-count="6"><span style="height:4px;border-radius:2px;background:{{s.bg}};transition:background-color .4s"></span></sc-for>
+</div>
+<div style="position:absolute;left:20px;right:20px;top:130px;display:flex;gap:6px;flex-wrap:wrap">
+<sc-for list="{{tallies}}" as="t" hint-placeholder-count="4"><span class="tally {{t.anim}}"><i style="background:{{t.c}}"></i>{{t.label}} {{t.n}}</span></sc-for>
+</div>
+
+<sc-if value="{{active}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{behind}}" as="b" hint-placeholder-count="2">
+<div class="card back" aria-hidden="true" style="transform:translateY({{b.y}}px) scale({{b.s}});opacity:{{b.o}}">
+<div style="height:300px;background:var(--tint);display:flex;align-items:center;justify-content:center"><div style="width:180px;height:216px"><svg viewBox="{{b.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block"><path d="{{b.d}}" fill="{{b.fill}}"></path><path d="{{b.d2}}" fill="{{b.f2}}"></path><path d="{{b.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{b.l}}" stroke="{{b.line}}"></path></svg></div></div>
+</div>
+</sc-for>
+<div class="{{cardCls}}" onPointerDown="{{down}}" role="group" aria-label="{{cur.name}}" style="transform:translate({{dx}}px,{{dy}}px) rotate({{rot}}deg);opacity:{{op}}">
+<div style="height:300px;background:var(--tint);display:flex;align-items:center;justify-content:center;position:relative">
+<div style="width:190px;height:228px"><svg viewBox="{{cur.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block;pointer-events:none" aria-hidden="true"><path d="{{cur.d}}" fill="{{cur.fill}}"></path><path d="{{cur.d2}}" fill="{{cur.f2}}"></path><path d="{{cur.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{cur.l}}" stroke="{{cur.line}}"></path></svg></div>
+<span class="stamp" style="left:20px;color:var(--success);transform:rotate(-12deg);opacity:{{keepO}}">KEEP</span>
+<span class="stamp" style="right:20px;color:var(--accent-text);transform:rotate(12deg);opacity:{{donO}}">DONATE</span>
+<span class="stamp" style="left:50%;top:auto;bottom:20px;margin-left:-44px;color:var(--warning);opacity:{{sellO}}">SELL</span>
+</div>
+<div style="padding:18px 20px">
+<p class="eyebrow">{{cur.cat}}</p>
+<h2 class="d3" style="margin-top:6px">{{cur.name}}</h2>
+<p class="b2" style="margin-top:8px"><span style="font-weight:600">Last worn {{cur.last}}</span> <span class="muted">· {{cur.ago}}</span></p>
+<p class="b2 muted" style="margin-top:2px">Worn {{cur.wears}}× · {{cur.cpw}} per wear</p>
+</div>
+</div>
+
+<div style="position:absolute;left:24px;right:24px;bottom:42px;display:flex;align-items:flex-end;justify-content:space-between">
+<button class="act press" onClick="{{donate}}" aria-label="Donate"><span style="width:64px;height:64px;color:var(--accent-text)"><svg class="ic" viewBox="0 0 24 24" style="width:26px;height:26px" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 11 5 12 8c1-3 2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></svg></span>Donate</button>
+<button class="act press" onClick="{{sell}}" aria-label="Sell"><span style="width:54px;height:54px;color:var(--warning)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle><path d="M6 12h.01M18 12h.01"></path></svg></span>Sell</button>
+<button class="act press" onClick="{{later}}" aria-label="Decide later"><span style="width:54px;height:54px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>Later</button>
+<button class="act press" onClick="{{keep}}" aria-label="Keep"><span style="width:64px;height:64px;background:var(--sec);color:var(--on-sec);box-shadow:0 10px 24px var(--shadow2)"><svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:currentColor;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></span>Keep</button>
+</div>
+</sc-if>
+
+<sc-if value="{{finished}}" hint-placeholder-val="{{false}}">
+<div class="pop" style="position:absolute;left:24px;right:24px;top:186px;border-radius:30px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:26px 22px">
+<p class="eyebrow" style="color:var(--success)">All sorted</p>
+<h2 class="d2" style="margin-top:8px">Six decisions,<br>one lighter closet.</h2>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:22px">
+<sc-for list="{{tallies}}" as="t" hint-placeholder-count="4"><div style="border-radius:16px;background:var(--tint);padding:12px 8px;text-align:center"><span class="fr" style="display:block;font-size:28px;line-height:1">{{t.n}}</span><span class="cap muted" style="font-weight:600">{{t.label}}</span></div></sc-for>
+</div>
+<p class="eyebrow" style="margin-top:22px">Donate bag</p>
+<div style="display:flex;gap:6px;margin-top:10px;min-height:56px">
+<sc-for list="{{bag}}" as="it" hint-placeholder-count="2"><span style="width:52px;height:56px;border-radius:14px;background:var(--tint);padding:6px"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></span></sc-for>
+<sc-if value="{{bagEmpty}}" hint-placeholder-val="{{false}}"><p class="b2 muted">Nothing to donate this round.</p></sc-if>
+</div>
+<p class="b2 muted" style="margin-top:18px">Kept pieces get a nudge on Today next week so they don’t end up back here.</p>
+</div>
+<div style="position:absolute;left:24px;right:24px;bottom:42px;display:flex;gap:10px">
+<button class="btn btn-line press" onClick="{{restart}}" style="flex:1">Start over</button>
+<a href="Me.dc.html" class="btn btn-ink press" style="flex:1">Done</a>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, idx: 0, dx: 0, dy: 0, dragging: false, leaving: null, decisions: [], last: null };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.setRoot = (el) => { this.rootEl = el; };
+    this.down = (e) => { if (this.state.leaving || (e.button !== undefined && e.button !== 0)) return; this.drag = { x: e.clientX, y: e.clientY }; this.setState({ dragging: true }); };
+    this.onMove = (e) => { if (!this.drag) return; var s = this.scale(); this.setState({ dx: (e.clientX - this.drag.x) / s, dy: (e.clientY - this.drag.y) / s }); };
+    this.onUp = () => {
+      if (!this.drag) return; this.drag = null;
+      var dx = this.state.dx, dy = this.state.dy;
+      if (dx > 100) this.decide('keep'); else if (dx < -100) this.decide('donate'); else if (dy < -110) this.decide('sell');
+      else this.setState({ dragging: false, dx: 0, dy: 0 });
+    };
+    this.keep = () => this.decide('keep');
+    this.donate = () => this.decide('donate');
+    this.sell = () => this.decide('sell');
+    this.later = () => this.decide('later');
+    this.restart = () => this.setState({ idx: 0, decisions: [], dx: 0, dy: 0, leaving: null, last: null });
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { clearTimeout(this.lt); try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  scale() { var r = this.rootEl ? this.rootEl.getBoundingClientRect() : null; return r && r.width ? r.width / 390 : 1; }
+  decide(kind) {
+    if (this.state.leaving || this.state.idx >= this.queue().length) return;
+    this.drag = null;
+    this.setState({ leaving: kind, dragging: false });
+    clearTimeout(this.lt);
+    this.lt = setTimeout(() => {
+      this.setState({ idx: this.state.idx + 1, decisions: this.state.decisions.concat([kind]), leaving: null, dx: 0, dy: 0, last: kind, fresh: true });
+      this.ft = setTimeout(() => this.setState({ fresh: false }), 50);
+    }, 430);
+  }
+  queue() {
+    return [
+      ['knit', '#6E2A35', 'Burgundy cardigan', 'Knitwear', '3 Jun', '124 days ago', 2, '$47.50'],
+      ['shirt', '#E3B3A3', 'Blush silk blouse', 'Tops', '2 Jul', '95 days ago', 4, '$30'],
+      ['skirt', '#6B6B3A', 'Olive midi skirt', 'Bottoms', '7 Apr', '181 days ago', 1, '$85'],
+      ['knit', '#C9A03B', 'Mustard crewneck', 'Knitwear', '8 Mar', '211 days ago', 3, '$23'],
+      ['sneaker', '#B8AD9E', 'Stone canvas sneakers', 'Shoes', '18 May', '140 days ago', 6, '$11'],
+      ['hat', '#5A3C2B', 'Brown felt hat', 'Accessories', '28 Apr', '160 days ago', 2, '$34']
+    ];
+  }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      knit: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L84 18Q90 22 90 30L95 94Q95 98 91 98L85 98Q82 98 82 94L75 46L75 108Q75 112 71 112L29 112Q25 112 25 108L25 46L18 94Q18 98 15 98L9 98Q5 98 5 94L10 30Q10 22 16 18Z', l: 'M42 6Q50 16 58 6M25 102L75 102M32 103L32 111M40 103L40 111M48 103L48 111M56 103L56 111M64 103L64 111M7 88L18 88M82 88L93 88M40 34L40 96M50 30L50 96M60 34L60 96' },
+      skirt: { vb: T, d: 'M32 20L68 20L84 104Q85 108 80 108L20 108Q15 108 16 104Z', l: 'M32 28L68 28M42 28L36 106M58 28L64 106' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#ECE7DE', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50M36 38Q50 34 64 38' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().shirt;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark(), Q = this.queue(), i = st.idx;
+    var active = i < Q.length, q = Q[Math.min(i, Q.length - 1)];
+    var cur = this.piece(q[0], q[1], { name: q[2], cat: q[3], last: q[4], ago: q[5], wears: q[6], cpw: q[7] });
+    var dx = st.dx, dy = st.dy, cls = 'card top';
+    if (st.leaving === 'keep') { dx = 520; dy = st.dy + 40; cls += ' leave'; }
+    else if (st.leaving === 'donate') { dx = -520; dy = st.dy + 40; cls += ' leave'; }
+    else if (st.leaving === 'sell') { dx = st.dx; dy = -900; cls += ' leave'; }
+    else if (st.leaving === 'later') { dx = 0; dy = 700; cls += ' leave'; }
+    else if (!st.dragging && !st.fresh) cls += ' spring';
+    var rot = st.leaving === 'sell' || st.leaving === 'later' ? 0 : dx / 14;
+    var behind = [];
+    for (var k = 2; k >= 1; k--) { var bq = Q[i + k]; if (bq) { var lift = st.leaving ? 1 : Math.min(1, Math.abs(st.dx) / 200); behind.push(this.piece(bq[0], bq[1], { y: (k - lift * 0.9) * 16, s: (1 - (k - lift * 0.9) * 0.05).toFixed(3), o: k === 2 ? 0.6 : 1 })); } }
+    var count = function (k) { return st.decisions.filter(function (d) { return d === k; }).length; };
+    var T = [['keep', 'Keep', 'var(--sec)'], ['donate', 'Donate', 'var(--accent)'], ['sell', 'Sell', 'var(--warning)'], ['later', 'Later', 'var(--faint)']];
+    var tallies = T.map(function (t) { return { label: t[1], n: count(t[0]), c: t[2], anim: st.last === t[0] && st.decisions.length ? (st.decisions.length % 2 ? 'bumpA' : 'bumpB') : '' }; });
+    var segs = Q.map(function (x, j) { return { bg: j < st.decisions.length ? 'var(--ink)' : (j === i ? 'var(--accent)' : 'var(--line2)') }; });
+    var bag = Q.filter(function (x, j) { return st.decisions[j] === 'donate'; }).map(function (x) { return self.piece(x[0], x[1]); });
+    var clamp = function (v) { return Math.max(0, Math.min(1, v)).toFixed(2); };
+    return {
+      themeClass: dark ? 'dark' : '', setRoot: this.setRoot, onMove: this.onMove, onUp: this.onUp, down: this.down,
+      active: active, finished: !active, cur: cur, behind: behind,
+      cardCls: cls, dx: dx.toFixed(1), dy: dy.toFixed(1), rot: rot.toFixed(2), op: st.leaving ? 0 : 1,
+      keepO: clamp(st.dx / 100), donO: clamp(-st.dx / 100), sellO: clamp(-st.dy / 110),
+      keep: this.keep, donate: this.donate, sell: this.sell, later: this.later, restart: this.restart,
+      tallies: tallies, segs: segs, progress: active ? (i + 1) + ' of ' + Q.length + ' · 5 more next week' : 'done for now',
+      bag: bag, bagEmpty: bag.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

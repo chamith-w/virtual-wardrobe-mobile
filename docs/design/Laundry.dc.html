@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Laundry and lent items</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--glass:rgba(255,255,255,.86);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--glass:rgba(32,30,27,.86);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d2,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d2{font-size:34px;line-height:1.05;letter-spacing:-.03em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+button:disabled{opacity:.4;cursor:default}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.94);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 10px 9px var(--shadow)) drop-shadow(0 1px 2px var(--shadow2))}
+.gl{fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.btn{height:52px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;font-size:16px;font-weight:600}
+.btn-ink{background:var(--inv);color:var(--on-inv)}
+.btn-accent{background:var(--accent-fill);color:var(--on-accent)}
+.btn-line{box-shadow:inset 0 0 0 1.5px var(--line2)}
+.seg{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted);height:36px;transition:background-color .3s,color .3s}
+.seg.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px var(--shadow2)}
+.seg b{font-weight:700;font-size:11px;min-width:18px;height:18px;border-radius:9px;background:var(--tint2);display:inline-flex;align-items:center;justify-content:center;padding:0 5px;color:var(--ink)}
+.worn{flex:none;width:86px;height:104px;position:relative;cursor:grab;touch-action:none}
+.worn.lifting{opacity:.2}
+.basket{position:absolute;left:62px;top:380px;width:266px;height:236px;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.basket.hot{transform:scale(1.07)}
+.basket .glow{position:absolute;left:10px;right:10px;bottom:-6px;height:30px;border-radius:50%;background:var(--sec);opacity:0;filter:blur(14px);transition:opacity .3s}
+.basket.hot .glow{opacity:.5}
+@keyframes bumpA{0%{transform:scale(1)}25%{transform:scale(1.08,.92)}50%{transform:scale(.97,1.05)}75%{transform:scale(1.02,.99)}100%{transform:scale(1)}}
+@keyframes bumpB{0%{transform:scale(1)}25%{transform:scale(1.08,.92)}50%{transform:scale(.97,1.05)}75%{transform:scale(1.02,.99)}100%{transform:scale(1)}}
+.bumpA{animation:bumpA .7s cubic-bezier(.3,1.4,.5,1)}
+.bumpB{animation:bumpB .7s cubic-bezier(.3,1.4,.5,1)}
+.pilei{position:absolute}
+@keyframes dropIn{0%{transform:translateY(-150px) scale(.9) rotate(-14deg);opacity:0}55%{transform:translateY(10px) scale(1.02);opacity:1}75%{transform:translateY(-8px)}90%{transform:translateY(3px)}100%{transform:none;opacity:1}}
+.dropIn{animation:dropIn .9s cubic-bezier(.3,.7,.4,1) both}
+@keyframes flyout{0%{transform:none;opacity:1}30%{transform:translateY(-70px) rotate(-6deg);opacity:1}100%{transform:translate(150px,-430px) scale(.25) rotate(18deg);opacity:0}}
+.flyout{animation:flyout 1s cubic-bezier(.5,0,.3,1) both}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .6s cubic-bezier(.34,1.56,.64,1) both}
+.lcard{border-radius:24px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:12px;display:flex;flex-direction:column;gap:12px;transition:opacity .4s ease,transform .5s cubic-bezier(.34,1.3,.5,1)}
+.lcard.leaving{opacity:0;transform:translateX(60px) scale(.95)}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--line2);position:relative;transition:background-color .25s;flex:none}
+.sw::after{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.sw.on{background:var(--sec)}
+.sw.on::after{transform:translateX(20px)}
+.toast{position:absolute;left:50%;top:52px;z-index:70;transform:translate(-50%,-160%);opacity:0;transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;background:var(--inv);color:var(--on-inv);border-radius:999px;padding:10px 16px 10px 12px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 12px 28px var(--shadow);pointer-events:none}
+.toast.on{transform:translate(-50%,0);opacity:1}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" ref="{{setRoot}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onLeave}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);user-select:none;-webkit-user-select:none">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<div style="position:absolute;left:16px;right:16px;top:48px;display:flex;align-items:center;gap:12px">
+<a href="Me.dc.html" class="iconbtn press" aria-label="Back to Me"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+<h1 class="d2" style="font-size:30px">Laundry &amp; lent</h1>
+</div>
+<nav aria-label="Section" style="position:absolute;left:20px;right:20px;top:108px;height:44px;border-radius:999px;background:var(--tint);padding:4px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+<button class="{{tLaundry}}" onClick="{{goLaundry}}">Laundry <b>{{pileN}}</b></button>
+<button class="{{tLent}}" onClick="{{goLent}}">Lent <b>{{lentN}}</b></button>
+<button class="{{tDry}}" onClick="{{goDry}}">Cleaner <b>{{dryN}}</b></button>
+</nav>
+
+<sc-if value="{{isLaundry}}" hint-placeholder-val="{{true}}">
+<section aria-label="Just worn" style="position:absolute;left:16px;right:16px;top:168px;border-radius:24px;background:var(--tint);padding:12px 0 0;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0 14px"><p class="eyebrow">Just worn</p><p class="cap muted" style="font-weight:600">{{wornHint}}</p></div>
+<div class="noscroll" style="display:flex;gap:4px;overflow-x:auto;padding:6px 10px 0;height:118px;align-items:flex-end">
+<sc-for list="{{worn}}" as="it" hint-placeholder-count="3">
+<button class="{{it.cls}}" onPointerDown="{{it.down}}" onClick="{{it.tap}}" aria-label="Send {{it.name}} to the laundry"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block;pointer-events:none" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></button>
+</sc-for>
+<sc-if value="{{noWorn}}" hint-placeholder-val="{{false}}"><p class="b2 muted" style="padding:0 6px 40px">All caught up — nothing waiting.</p></sc-if>
+</div>
+<div style="height:8px;background:var(--tint2)"></div>
+</section>
+
+<div class="{{basketCls}}" ref="{{setBasket}}">
+<div class="glow"></div>
+<sc-for list="{{pile}}" as="it" hint-placeholder-count="5">
+<div class="pilei {{it.anim}}" style="left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;animation-delay:{{it.delay}}ms"><div style="width:100%;height:100%;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></div>
+</sc-for>
+<svg viewBox="0 0 120 100" class="cut" style="position:absolute;left:0;top:28px;width:266px;height:222px;overflow:visible" role="img" aria-label="Laundry basket with {{pileN}} pieces"><path d="M14 40L106 40L96 92Q95 97 90 97L30 97Q25 97 24 92Z" fill="#C8B08C"></path><path d="M18 54L102 54M20 68L100 68M22 82L98 82M36 40L38 97M52 40L53 97M68 40L67 97M84 40L82 97" fill="none" stroke="#A88E69" style="stroke-width:1.2"></path><path d="M6 32Q6 26 12 26L108 26Q114 26 114 32L114 38Q114 42 108 42L12 42Q6 42 6 38Z" fill="#A88E69"></path><path d="M44 31L76 31" stroke="#8C7455" style="stroke-width:3;stroke-linecap:round"></path></svg>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><p class="pop fr" style="position:absolute;left:0;right:0;top:4px;text-align:center;font-size:20px">Basket’s empty</p></sc-if>
+</div>
+
+<div style="position:absolute;left:20px;right:20px;top:632px;text-align:center">
+<p class="b2" style="font-weight:600">{{pileLine}}</p>
+<p class="cap muted" style="margin-top:4px">Auto-laundry: tees after 1 wear · jeans after 4</p>
+</div>
+<div style="position:absolute;left:20px;right:20px;bottom:36px;display:flex;gap:10px">
+<sc-if value="{{hasPile}}" hint-placeholder-val="{{true}}"><button class="btn btn-accent press" onClick="{{washDone}}" disabled="{{washing}}" style="flex:1"><svg class="ic" viewBox="0 0 24 24" style="width:19px;height:19px" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"></path></svg>Wash done</button></sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><a href="Closet.dc.html" class="btn btn-ink press" style="flex:1">Back to the wardrobe</a></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isLent}}" hint-placeholder-val="{{false}}">
+<main class="noscroll" style="position:absolute;left:0;right:0;top:168px;bottom:0;overflow-y:auto;padding:0 20px 40px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{lent}}" as="c" hint-placeholder-count="2">
+<article class="{{c.cls}}">
+<div style="display:flex;gap:14px;align-items:center">
+<div style="width:84px;height:96px;border-radius:18px;background:var(--accent-soft);padding:10px;flex:none"><svg viewBox="{{c.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{c.d}}" fill="{{c.fill}}"></path><path d="{{c.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{c.l}}" stroke="{{c.line}}"></path></svg></div>
+<div style="flex:1;min-width:0">
+<p class="fr" style="font-size:21px;line-height:1.1">{{c.name}}</p>
+<p class="b2" style="margin-top:6px;display:flex;align-items:center;gap:8px"><span class="fr" style="width:26px;height:26px;border-radius:13px;background:var(--inv);color:var(--on-inv);display:inline-flex;align-items:center;justify-content:center;font-size:13px">{{c.initial}}</span><span style="font-weight:600">{{c.who}}</span><span class="muted">· {{c.since}}</span></p>
+<p class="cap" style="margin-top:6px;font-weight:600;color:{{c.ageColor}}">{{c.age}}</p>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:16px;background:var(--tint);padding:8px 8px 8px 14px">
+<span class="b2" style="font-weight:600">Remind me to ask for it back</span>
+<button class="{{c.swCls}}" role="switch" aria-checked="{{c.remind}}" aria-label="Remind me about {{c.name}}" onClick="{{c.toggle}}"></button>
+</div>
+<button class="btn btn-line press" onClick="{{c.ret}}" style="height:46px;font-size:15px">Mark as returned</button>
+</article>
+</sc-for>
+<sc-if value="{{noLent}}" hint-placeholder-val="{{false}}">
+<div class="pop" style="border-radius:28px;background:var(--tint);padding:34px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+<svg viewBox="0 0 24 24" style="width:44px;height:44px;fill:none;stroke:var(--faint);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"></path></svg>
+<p class="fr" style="font-size:22px">Everything’s home</p>
+<p class="b2 muted">Nothing is lent out right now.</p>
+</div>
+</sc-if>
+<button class="press" style="height:56px;border-radius:20px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:var(--accent-text)"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Lend something</button>
+</main>
+</sc-if>
+
+<sc-if value="{{isDry}}" hint-placeholder-val="{{false}}">
+<main style="position:absolute;left:20px;right:20px;top:168px">
+<sc-if value="{{hasDry}}" hint-placeholder-val="{{true}}">
+<article class="lcard">
+<div style="display:flex;gap:14px;align-items:center">
+<div style="width:84px;height:100px;border-radius:18px;background:var(--tint);padding:8px;flex:none"><svg viewBox="{{dry.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{dry.d}}" fill="{{dry.fill}}"></path><path d="{{dry.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{dry.l}}" stroke="{{dry.line}}"></path></svg></div>
+<div style="flex:1"><p class="fr" style="font-size:21px;line-height:1.1">Stone trench</p><p class="b2 muted" style="margin-top:6px">Dropped off Thu 1 Oct</p><p class="cap" style="margin-top:6px;font-weight:600;color:var(--success)">Ready Thu 8 Oct · in 3 days</p></div>
+</div>
+<div style="height:8px;border-radius:4px;background:var(--tint);overflow:hidden"><span style="display:block;width:57%;height:100%;border-radius:4px;background:var(--sec)"></span></div>
+<button class="btn btn-ink press" onClick="{{pickedUp}}" style="height:46px;font-size:15px">Picked up</button>
+</article>
+</sc-if>
+<sc-if value="{{noDry}}" hint-placeholder-val="{{false}}">
+<div class="pop" style="border-radius:28px;background:var(--tint);padding:34px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+<svg viewBox="0 0 60 30" style="width:64px;height:32px;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg>
+<p class="fr" style="font-size:22px">Nothing at the cleaner</p>
+<p class="b2 muted">The trench is back on the rail.</p>
+</div>
+</sc-if>
+</main>
+</sc-if>
+
+<sc-if value="{{dragging}}" hint-placeholder-val="{{false}}">
+<div ref="{{setGhost}}" style="position:absolute;left:0;top:0;width:{{ghost.w}}px;height:{{ghost.h}}px;z-index:60;pointer-events:none"><svg viewBox="{{ghost.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(0 24px 18px var(--shadow))" aria-hidden="true"><path d="{{ghost.d}}" fill="{{ghost.fill}}"></path><path d="{{ghost.d2}}" fill="{{ghost.f2}}"></path><path d="{{ghost.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{ghost.l}}" stroke="{{ghost.line}}"></path></svg></div>
+</sc-if>
+
+<div class="toast {{toastCls}}" role="status" aria-live="polite"><span style="width:22px;height:22px;border-radius:11px;background:var(--success);color:var(--bg);display:flex;align-items:center;justify-content:center"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2.8" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>{{toast}}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      theme: null, tab: 'laundry', drag: null, hot: false, bump: 0, washing: false, toast: '', toastOn: false, dry: true,
+      worn: [{ id: 'w1', kind: 'shirt', c: '#A8C2D8', name: 'Sky oxford shirt' }, { id: 'w2', kind: 'tee', c: '#F5F3EE', name: 'White tee' }, { id: 'w3', kind: 'sneaker', c: '#A3B196', name: 'Sage trainers' }, { id: 'w4', kind: 'pants', c: '#2F405E', name: 'Indigo jeans' }],
+      pile: [{ kind: 'tee', c: '#1D1C1B', name: 'Black tee' }, { kind: 'folded', c: '#C9A03B', name: 'Socks' }, { kind: 'pants', c: '#3B3936', name: 'Leggings' }, { kind: 'tee', c: '#2F4B3A', name: 'Running top' }, { kind: 'folded', c: '#E3B3A3', name: 'Underwear' }, { kind: 'folded', c: '#F5F3EE', name: 'Gym towel' }],
+      lent: [{ id: 'l1', kind: 'dress', c: '#1D1C1B', name: 'Black midi dress', who: 'Nadia', since: 'since 14 Sep', age: '21 days · reminder set for Fri', remind: true, old: true }, { id: 'l2', kind: 'scarf', c: '#B5542E', name: 'Rust scarf', who: 'Jo', since: 'since 2 Oct', age: '3 days', remind: false, old: false }],
+      leaving: null
+    };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.setRoot = (el) => { this.rootEl = el; };
+    this.setBasket = (el) => { this.basketEl = el; };
+    this.setGhost = (el) => { this.ghostEl = el; if (el) this.placeGhost(); };
+    this.goLaundry = () => this.setState({ tab: 'laundry' });
+    this.goLent = () => this.setState({ tab: 'lent' });
+    this.goDry = () => this.setState({ tab: 'dry' });
+    this.pickedUp = () => { this.setState({ dry: false }); this.toast('Stone trench is back on the rail'); };
+    this.washDone = () => {
+      if (this.state.washing || !this.state.pile.length) return;
+      var n = this.state.pile.length;
+      this.setState({ washing: true });
+      clearTimeout(this.wt); this.wt = setTimeout(() => { this.setState({ washing: false, pile: [] }); this.toast(n + ' pieces back in your wardrobe'); }, 1000 + n * 90);
+    };
+    this.onMove = (e) => {
+      var p = this.pend; if (!p) return;
+      var dx = e.clientX - p.x, dy = e.clientY - p.y;
+      if (!p.started) { if (dx * dx + dy * dy < 49) return; p.started = true; this.lastPt = { x: e.clientX, y: e.clientY }; this.setState({ drag: p.id }); return; }
+      this.lastPt = { x: e.clientX, y: e.clientY }; this.placeGhost();
+      var hot = this.overBasket(e.clientX, e.clientY); if (hot !== this.state.hot) this.setState({ hot: hot });
+    };
+    this.onUp = (e) => {
+      var p = this.pend; this.pend = null; if (!p || !p.started) return;
+      this.justDragged = true; setTimeout(() => { this.justDragged = false; }, 80);
+      var over = this.overBasket(e.clientX, e.clientY);
+      this.setState({ drag: null, hot: false });
+      if (over) this.drop(p.id);
+    };
+    this.onLeave = () => { if (this.pend) { this.pend = null; this.setState({ drag: null, hot: false }); } };
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { clearTimeout(this.tt); clearTimeout(this.wt); clearTimeout(this.lt); try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  toast(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2300); }
+  drop(id) {
+    var it = this.state.worn.filter(function (w) { return w.id === id; })[0]; if (!it) return;
+    this.setState({ worn: this.state.worn.filter(function (w) { return w.id !== id; }), pile: this.state.pile.concat([{ kind: it.kind, c: it.c, name: it.name, fresh: true }]), bump: this.state.bump + 1 });
+    this.toast(it.name + ' is in the basket');
+  }
+  placeGhost() {
+    var g = this.ghostEl, r = this.rootEl, pt = this.lastPt; if (!g || !r || !pt) return;
+    var rect = r.getBoundingClientRect(), s = rect.width / 390 || 1;
+    g.style.transform = 'translate(' + ((pt.x - rect.left) / s - g.offsetWidth / 2) + 'px,' + ((pt.y - rect.top) / s - g.offsetHeight * 0.45) + 'px) rotate(-8deg) scale(1.1)';
+  }
+  overBasket(x, y) { var b = this.basketEl; if (!b) return false; var r = b.getBoundingClientRect(); return x > r.left && x < r.right && y > r.top - 30 && y < r.bottom; }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', F = '0 0 100 70', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76M7 86L18 86M82 86L93 86' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      tee: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L90 24Q93 26 92 29L84 44Q83 46 80 45L74 41L74 112Q74 115 71 115L29 115Q26 115 26 112L26 41L20 45Q17 46 16 44L8 29Q7 26 10 24Z', l: 'M42 6Q50 17 58 6M17 40L21 33M83 40L79 33' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22M50 50L46 112' },
+      pants: { vb: T, d: 'M27 6L73 6L78 112Q78 115 75 115L57 115Q54 115 54 112L50 42L46 112Q46 115 43 115L25 115Q22 115 22 112Z', l: 'M27 14L73 14M50 14L50 40M30 14Q34 26 44 24M70 14Q66 26 56 24' },
+      folded: { vb: F, d: 'M8 20Q8 10 18 10L82 10Q92 10 92 20L92 58Q92 64 86 64L14 64Q8 64 8 58Z', l: 'M38 10Q50 22 62 10M8 28L20 28M80 28L92 28M8 52L92 52' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      scarf: { vb: A, d: 'M28 12Q50 4 72 12L74 28Q50 20 26 28ZM40 28L56 28L62 98L44 98ZM57 28L66 28L82 88L70 93Z', l: 'M46 98L46 106M50 98L50 106M54 98L54 106M58 98L58 106M72 93L74 101M76 91L78 99M80 89L82 97M41 44L57 44M43 64L59 64M44 82L60 82' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().tee;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  dims(kind) { var vb = (this.lib()[kind] || this.lib().tee).vb; return vb === '0 0 100 120' ? [80, 96] : (vb === '0 0 100 70' ? [72, 50] : [88, 59]); }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark();
+    var SLOTS = [[30, 22, -14], [150, 28, 12], [86, 6, -4], [176, 52, 22], [52, 54, -8], [118, 50, 6], [20, 70, 10], [196, 74, -12], [100, 30, 16], [60, 24, -20]];
+    var pile = st.pile.map(function (it, i) {
+      var s = SLOTS[i % SLOTS.length], d = self.dims(it.kind);
+      return self.piece(it.kind, it.c, { x: s[0], y: s[1], r: s[2], w: d[0], h: d[1], anim: st.washing ? 'flyout' : (it.fresh && i === st.pile.length - 1 ? 'dropIn' : ''), delay: st.washing ? (st.pile.length - 1 - i) * 90 : 0 });
+    });
+    var worn = st.worn.map(function (w) {
+      return self.piece(w.kind, w.c, { name: w.name, cls: 'worn press' + (st.drag === w.id ? ' lifting' : ''),
+        down: function (e) { if (e.button !== undefined && e.button !== 0) return; self.pend = { id: w.id, x: e.clientX, y: e.clientY, started: false }; },
+        tap: function () { if (self.justDragged) return; self.drop(w.id); } });
+    });
+    var dragItem = st.drag ? st.worn.filter(function (w) { return w.id === st.drag; })[0] : null;
+    var gd = dragItem ? this.dims(dragItem.kind) : [10, 10];
+    var ghost = dragItem ? this.piece(dragItem.kind, dragItem.c, { w: gd[0] * 1.1, h: gd[1] * 1.1 }) : this.piece('tee', '#F5F3EE', { w: 10, h: 10 });
+    var lent = st.lent.map(function (c) {
+      return self.piece(c.kind, c.c, { name: c.name, who: c.who, initial: c.who.charAt(0), since: c.since, age: c.age, ageColor: c.old ? 'var(--accent-text)' : 'var(--muted)', remind: c.remind, swCls: c.remind ? 'sw on' : 'sw', cls: 'lcard' + (st.leaving === c.id ? ' leaving' : ''),
+        toggle: function () { self.setState({ lent: self.state.lent.map(function (x) { return x.id === c.id ? Object.assign({}, x, { remind: !x.remind }) : x; }) }); },
+        ret: function () { self.setState({ leaving: c.id }); clearTimeout(self.lt); self.lt = setTimeout(function () { self.setState({ lent: self.state.lent.filter(function (x) { return x.id !== c.id; }), leaving: null }); self.toast(c.name + ' is back in your wardrobe'); }, 420); } });
+    });
+    var n = st.pile.length, tab = st.tab;
+    return {
+      themeClass: dark ? 'dark' : '', setRoot: this.setRoot, setBasket: this.setBasket, setGhost: this.setGhost, onMove: this.onMove, onUp: this.onUp, onLeave: this.onLeave,
+      tLaundry: tab === 'laundry' ? 'seg on' : 'seg', tLent: tab === 'lent' ? 'seg on' : 'seg', tDry: tab === 'dry' ? 'seg on' : 'seg', goLaundry: this.goLaundry, goLent: this.goLent, goDry: this.goDry,
+      isLaundry: tab === 'laundry', isLent: tab === 'lent', isDry: tab === 'dry',
+      pileN: n, lentN: st.lent.length, dryN: st.dry ? 1 : 0,
+      worn: worn, noWorn: worn.length === 0, wornHint: worn.length ? 'Drag into the basket' : '',
+      pile: pile, empty: n === 0, hasPile: n > 0, washing: st.washing, washDone: this.washDone,
+      pileLine: n ? n + (n === 1 ? ' piece' : ' pieces') + ' in the wash' : 'Everything’s clean and back on the rail.',
+      basketCls: 'basket' + (st.hot ? ' hot' : '') + (st.bump ? (st.bump % 2 ? ' bumpA' : ' bumpB') : ''),
+      dragging: !!st.drag, ghost: ghost,
+      lent: lent, noLent: lent.length === 0,
+      hasDry: st.dry, noDry: !st.dry, dry: this.piece('coat', '#B8AD9E'), pickedUp: this.pickedUp,
+      toast: st.toast, toastCls: st.toastOn ? 'on' : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

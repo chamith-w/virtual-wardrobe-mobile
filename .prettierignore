@@ -1,0 +1,7 @@
+node_modules
+src/db/migrations
+src/db/seed/assets.ts
+src/db/seed/garments.json
+ios
+android
+.expo

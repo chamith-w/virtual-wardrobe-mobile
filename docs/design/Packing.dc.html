@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Packing list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d1,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d1{font-size:48px;line-height:1;letter-spacing:-.04em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.t2{font-size:18px;line-height:1.25;font-weight:600;letter-spacing:-.01em;margin:0}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.95);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 6px 6px var(--shadow)) drop-shadow(0 1px 2px var(--shadow2))}
+.gl{fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.fc{flex:1;border-radius:20px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.fc.rain{background:var(--sec-soft);box-shadow:none;color:var(--sec)}
+.prow{width:100%;min-height:62px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);text-align:left}
+.prow .nm{flex:1;font-size:15px;font-weight:500;transition:color .3s}
+.prow.done .nm{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line2)}
+.tick{width:30px;height:30px;border-radius:15px;box-shadow:inset 0 0 0 1.5px var(--line2);display:flex;align-items:center;justify-content:center;flex:none;transition:background-color .25s,box-shadow .25s,transform .5s cubic-bezier(.34,1.56,.64,1)}
+.prow.done .tick{background:var(--sec);color:var(--on-sec);box-shadow:none;transform:scale(1.08)}
+.prow.done .tick svg{animation:draw .35s ease both}
+@keyframes draw{0%{transform:scale(0) rotate(-30deg)}100%{transform:none}}
+.toast{position:absolute;left:50%;top:52px;z-index:70;transform:translate(-50%,-160%);opacity:0;transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;background:var(--inv);color:var(--on-inv);border-radius:999px;padding:10px 16px 10px 12px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 12px 28px var(--shadow);pointer-events:none}
+.toast.on{transform:translate(-50%,0);opacity:1}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .6s cubic-bezier(.34,1.56,.64,1) both}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg)">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<main class="noscroll" style="position:absolute;inset:0;overflow-y:auto;padding:48px 20px 60px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<a href="Me.dc.html" class="iconbtn press" aria-label="Back to Me"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+<button class="press" style="height:40px;padding:0 16px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line2);font-size:14px;font-weight:600">Edit trip</button>
+</div>
+<p class="eyebrow" style="margin-top:20px">Packing list</p>
+<h1 class="d1" style="margin-top:8px">Lisbon</h1>
+<p class="b2 muted" style="margin-top:8px">Fri 16 – Tue 20 Oct · 5 days · 2 dinners out</p>
+
+<div style="display:flex;gap:6px;margin-top:18px" role="list" aria-label="Forecast">
+<sc-for list="{{forecast}}" as="f" hint-placeholder-count="5">
+<div class="{{f.cls}}" role="listitem">
+<span class="cap" style="font-weight:700">{{f.day}}</span>
+<svg class="ic" viewBox="0 0 24 24" style="width:22px;height:22px" aria-hidden="true"><path d="{{f.icon}}"></path></svg>
+<span class="fr" style="font-size:18px;line-height:1">{{f.hi}}</span>
+<span class="cap" style="opacity:.75">{{f.lo}}</span>
+</div>
+</sc-for>
+</div>
+
+<section style="margin-top:14px;border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:16px;display:flex;align-items:center;gap:16px" aria-label="Packing progress">
+<svg viewBox="0 0 80 80" style="width:80px;height:80px;flex:none;transform:rotate(-90deg)" role="img" aria-label="{{packed}} of {{total}} packed"><circle cx="40" cy="40" r="33" style="fill:none;stroke:var(--tint);stroke-width:9"></circle><circle cx="40" cy="40" r="33" style="fill:none;stroke:var(--sec);stroke-width:9;stroke-linecap:round;stroke-dasharray:{{dash}} 207.3;transition:stroke-dasharray .8s cubic-bezier(.34,1.3,.5,1)"></circle></svg>
+<div style="flex:1"><p style="margin:0"><span class="fr" style="font-size:34px;line-height:1">{{packed}}</span><span class="fr muted" style="font-size:20px"> / {{total}}</span></p><p class="b2 muted" style="margin-top:4px">{{progressLine}}</p></div>
+</section>
+
+<section style="margin-top:12px;border-radius:26px;background:var(--accent-soft);padding:16px" aria-label="Suggestions">
+<p class="eyebrow" style="color:var(--accent-text)">Suggested for this trip</p>
+<p class="t2" style="margin-top:8px">Rain on Saturday — pack a light rain layer and closed shoes.</p>
+<p class="cap muted" style="margin-top:4px">5 days with 2 dinners: about 5 tops, 3 bottoms, 2 pairs of shoes.</p>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+<sc-for list="{{sugg}}" as="s" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:12px;border-radius:18px;background:var(--surface);padding:8px 8px 8px 8px">
+<span style="width:46px;height:50px;border-radius:12px;background:var(--tint);padding:5px;flex:none"><svg viewBox="{{s.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{s.d}}" fill="{{s.fill}}"></path><path d="{{s.d2}}" fill="{{s.f2}}"></path><path class="gl" d="{{s.l}}" stroke="{{s.line}}"></path></svg></span>
+<span style="flex:1;min-width:0"><span class="b2" style="display:block;font-weight:600">{{s.name}}</span><span class="cap muted">{{s.why}}</span></span>
+<button class="press" onClick="{{s.add}}" disabled="{{s.added}}" style="height:40px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:600;{{s.style}}">{{s.label}}</button>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:26px"><h2 class="d3" style="font-size:24px">Planned outfits</h2><a href="Planner.dc.html" class="b2" style="font-weight:600;color:var(--accent-text);height:44px;display:flex;align-items:center">Planner</a></div>
+<div class="noscroll" style="display:flex;gap:10px;overflow-x:auto;margin:6px -20px 0;padding:0 20px 4px">
+<sc-for list="{{outfits}}" as="o" hint-placeholder-count="3">
+<div style="flex:none;width:128px">
+<div style="position:relative;height:140px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden">
+<sc-for list="{{o.pieces}}" as="it" hint-placeholder-count="3"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</div>
+<p class="cap" style="font-weight:700;margin-top:8px">{{o.day}}</p>
+<p class="cap muted">{{o.name}}</p>
+</div>
+</sc-for>
+</div>
+
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:26px"><p class="eyebrow">{{g.name}}</p><p class="cap muted" style="font-weight:600">{{g.count}}</p></div>
+<div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<button class="{{r.cls}}" onClick="{{r.toggle}}" role="checkbox" aria-checked="{{r.done}}">
+<span style="width:46px;height:50px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:6px;flex:none"><svg viewBox="{{r.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{r.d}}" fill="{{r.fill}}"></path><path d="{{r.d2}}" fill="{{r.f2}}"></path><path class="gl" d="{{r.l}}" stroke="{{r.line}}"></path></svg></span>
+<span class="nm">{{r.name}}</span>
+<span class="cap muted" style="font-weight:600">{{r.qty}}</span>
+<span class="tick"><sc-if value="{{r.done}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;stroke-width:3" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if></span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+<button class="press" style="width:100%;margin-top:20px;height:56px;border-radius:20px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:var(--accent-text)"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add pieces or outfits</button>
+</main>
+
+<div class="toast {{toastCls}}" role="status" aria-live="polite"><span style="width:22px;height:22px;border-radius:11px;background:var(--success);color:var(--bg);display:flex;align-items:center;justify-content:center"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2.8" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>{{toast}}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      theme: null, toast: '', toastOn: false, added: {},
+      items: [
+        ['Tops', 'shirt', '#E8DDC8', 'Ecru linen shirt', '×1', true], ['Tops', 'shirt', '#E3B3A3', 'Blush silk blouse', '×1', false], ['Tops', 'tee', '#F5F3EE', 'White tee', '×2', true], ['Tops', 'shirt', '#A8C2D8', 'Sky oxford shirt', '×1', false],
+        ['Bottoms & dresses', 'pants', '#2F405E', 'Indigo jeans', '×1', true], ['Bottoms & dresses', 'pants', '#B8AD9E', 'Stone chinos', '×1', false], ['Bottoms & dresses', 'pants', '#1D1C1B', 'Black trousers', '×1', true], ['Bottoms & dresses', 'dress', '#B5542E', 'Rust slip dress', '×1', true],
+        ['Shoes', 'sneaker', '#F5F3EE', 'White sneakers', '×1', true], ['Shoes', 'loafer', '#1D1C1B', 'Black loafers', '×1', false],
+        ['Layers', 'jacket', '#26354E', 'Navy blazer', '×1', true], ['Layers', 'knit', '#F0E8D8', 'Cream cable knit', '×1', false],
+        ['Accessories', 'tote', '#B98B5E', 'Camel tote', '×1', true], ['Accessories', 'necklace', '#C9A03B', 'Gold pendant', '×1', true], ['Accessories', 'hat', '#6B6B3A', 'Olive bucket hat', '×1', false]
+      ]
+    };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { clearTimeout(this.tt); try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  toast(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2200); }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102M33 10L41 32L50 26M67 10L59 32L50 26M23 93L77 93' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114' },
+      tee: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L90 24Q93 26 92 29L84 44Q83 46 80 45L74 41L74 112Q74 115 71 115L29 115Q26 115 26 112L26 41L20 45Q17 46 16 44L8 29Q7 26 10 24Z', l: 'M42 6Q50 17 58 6' },
+      knit: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L84 18Q90 22 90 30L95 94Q95 98 91 98L85 98Q82 98 82 94L75 46L75 108Q75 112 71 112L29 112Q25 112 25 108L25 46L18 94Q18 98 15 98L9 98Q5 98 5 94L10 30Q10 22 16 18Z', l: 'M42 6Q50 16 58 6M25 102L75 102M40 34L40 96M50 30L50 96M60 34L60 96' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22' },
+      pants: { vb: T, d: 'M27 6L73 6L78 112Q78 115 75 115L57 115Q54 115 54 112L50 42L46 112Q46 115 43 115L25 115Q22 115 22 112Z', l: 'M27 14L73 14M50 14L50 40' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M20 54Q58 56 88 46' },
+      boot: { vb: S, d: 'M30 6L62 6Q64 6 64 8L64 46Q66 50 72 52Q100 58 106 66L106 68L28 68L28 8Q28 6 30 6Z', d2: 'M26 68L108 68Q108 76 100 76L30 76Q26 76 26 72Z', f2: '#2B2521', l: 'M40 8Q44 28 40 48M56 8Q52 28 56 48' },
+      loafer: { vb: S, d: 'M10 56Q10 46 20 44Q40 40 56 44Q80 48 98 52Q112 55 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 71 106 71L14 71Q8 71 8 66Z', f2: '#2B2521', l: 'M52 46Q68 43 80 50' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M12 56L88 56' },
+      crossbody: { vb: A, d: 'M20 56Q20 48 28 48L72 48Q80 48 80 56L80 92Q80 98 74 98L26 98Q20 98 20 92Z', l: 'M22 52Q50 -4 78 52M20 66Q50 80 80 66' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50' },
+      necklace: { vb: A, d: 'M45 74Q50 66 55 74L55 82Q50 90 45 82Z', l: 'M20 14Q24 64 50 70Q76 64 80 14' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().tee;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark();
+    var SUN = 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41';
+    var CLOUD = 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z';
+    var RAIN = 'M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24M16 14v6M8 14v6M12 16v6';
+    var PART = 'M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.13M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z';
+    var forecast = [['Fri', SUN, '23°', '16°', 0], ['Sat', RAIN, '19°', '14°', 1], ['Sun', CLOUD, '21°', '15°', 0], ['Mon', SUN, '24°', '16°', 0], ['Tue', PART, '22°', '15°', 0]].map(function (f) { return { day: f[0], icon: f[1], hi: f[2], lo: f[3], cls: f[4] ? 'fc rain' : 'fc' }; });
+    var items = st.items.slice();
+    var SUG = [['s1', 'Layers', 'coat', '#B8AD9E', 'Stone trench', 'Water-resistant · goes with 9 pieces you’re packing'], ['s2', 'Shoes', 'boot', '#5A3C2B', 'Chelsea boots', 'Closed shoes for the rainy day in Sintra']];
+    var sugg = SUG.map(function (s) {
+      var added = !!st.added[s[0]];
+      return self.piece(s[2], s[3], { name: s[4], why: s[5], added: added, label: added ? 'Added' : 'Add', style: added ? 'background:var(--success-soft);color:var(--success)' : 'background:var(--inv);color:var(--on-inv)',
+        add: function () { if (self.state.added[s[0]]) return; var a = Object.assign({}, self.state.added); a[s[0]] = true; self.setState({ added: a, items: self.state.items.concat([[s[1], s[2], s[3], s[4], '×1', false]]) }); self.toast(s[4] + ' added to ' + s[1].toLowerCase()); } });
+    });
+    var order = ['Tops', 'Bottoms & dresses', 'Shoes', 'Layers', 'Accessories'];
+    var groups = order.map(function (gname) {
+      var rows = [];
+      items.forEach(function (it, idx) {
+        if (it[0] !== gname) return;
+        var done = it[5];
+        rows.push(self.piece(it[1], it[2], { name: it[3], qty: it[4], done: done, cls: 'prow press' + (done ? ' done' : ''),
+          toggle: function () { var arr = self.state.items.map(function (x, j) { return j === idx ? [x[0], x[1], x[2], x[3], x[4], !x[5]] : x; }); self.setState({ items: arr }); } }));
+      });
+      var dn = rows.filter(function (r) { return r.done; }).length;
+      return { name: gname, rows: rows, count: dn + ' of ' + rows.length + ' packed' };
+    }).filter(function (g) { return g.rows.length; });
+    var total = items.length, packed = items.filter(function (x) { return x[5]; }).length;
+    var mini = function (arr) { return arr.map(function (a) { return self.piece(a[0], a[1], { x: a[2], y: a[3], w: a[4], h: a[5], r: a[6] }); }); };
+    var outfits = [
+      { day: 'Fri · Arrival', name: 'Ecru & navy', pieces: mini([['pants', '#B8AD9E', 64, 34, 52, 62, 5], ['jacket', '#26354E', 4, 12, 66, 79, -6], ['shirt', '#E8DDC8', 34, 6, 60, 72, 2], ['sneaker', '#F5F3EE', 12, 96, 64, 43, -3]]) },
+      { day: 'Sat · Sintra', name: 'Rainy layers', pieces: mini([['pants', '#2F405E', 64, 34, 52, 62, 5], ['coat', '#B8AD9E', 4, 10, 66, 79, -6], ['shirt', '#A8C2D8', 34, 6, 60, 72, 2], ['boot', '#5A3C2B', 12, 94, 64, 43, -3]]) },
+      { day: 'Sun · Dinner', name: 'Rust evening', pieces: mini([['dress', '#B5542E', 30, 4, 70, 84, 2], ['loafer', '#1D1C1B', 8, 96, 64, 43, -3], ['necklace', '#C9A03B', 82, 76, 40, 44, 6]]) }
+    ];
+    return {
+      themeClass: dark ? 'dark' : '', forecast: forecast, sugg: sugg, groups: groups, outfits: outfits,
+      packed: packed, total: total, dash: (207.3 * packed / Math.max(1, total)).toFixed(1),
+      progressLine: packed === total ? 'All packed. Bon voyage!' : (total - packed) + ' still to pack · you leave in 11 days',
+      toast: st.toast, toastCls: st.toastOn ? 'on' : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

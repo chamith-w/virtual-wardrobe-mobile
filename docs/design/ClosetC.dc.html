@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Closet, editorial direction</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--warning:#8A5A12;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--glass:rgba(255,255,255,.86);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--warning:#E2B565;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--glass:rgba(32,30,27,.86);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d1,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d1{font-size:40px;line-height:1.02;letter-spacing:-.035em}
+.fr{letter-spacing:-.025em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin:0}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.97);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 14px 12px var(--shadow)) drop-shadow(0 2px 3px var(--shadow2))}
+.gl{fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.seg{display:flex;align-items:center;justify-content:center;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted);height:36px}
+.seg.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px var(--shadow2)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
+.tab.on{color:var(--ink)}
+.tab.on::after{content:'';position:absolute;bottom:1px;width:4px;height:4px;border-radius:2px;background:var(--accent)}
+.spread{position:relative;display:block;border-radius:30px;overflow:hidden;margin-top:14px}
+.pc{position:absolute;will-change:transform}
+.more{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:600}
+.outchip{flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 14px 0 6px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600;white-space:nowrap}
+.outchip i{width:6px;height:6px;border-radius:3px;display:block}
+@keyframes rise{0%{transform:translateY(24px);opacity:0}100%{transform:none;opacity:1}}
+.rise{animation:rise .8s cubic-bezier(.34,1.3,.5,1) backwards}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;transition-duration:200ms!important;transition-timing-function:ease!important}.pc{transform:none!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg)">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<main class="noscroll" onScroll="{{onScroll}}" style="position:absolute;inset:0;overflow-y:auto;padding:48px 16px 140px">
+<div style="padding:0 4px;display:flex;align-items:center;justify-content:space-between;height:44px">
+<span class="eyebrow muted" style="display:flex;align-items:center;gap:6px">Home wardrobe<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span>
+<a href="AddItem.dc.html" class="iconbtn press" aria-label="Add item"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+</div>
+<div style="padding:0 4px;display:flex;align-items:baseline;gap:10px"><h1 class="d1">Wardrobe</h1><span class="fr muted" style="font-size:22px">Autumn issue</span></div>
+<nav aria-label="Wardrobe view" style="margin:12px 4px 0;height:44px;border-radius:999px;background:var(--tint);padding:4px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+<span class="seg on" aria-current="page">Closet</span><a href="Grid.dc.html" class="seg">Grid</a><a href="Grid.dc.html" class="seg">Outfits</a>
+</nav>
+
+<p class="eyebrow muted" style="margin:20px 4px 10px">Out this week</p>
+<div class="noscroll" style="display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 20px 2px">
+<sc-for list="{{outs}}" as="o" hint-placeholder-count="4">
+<a href="Laundry.dc.html" class="outchip press"><span style="width:40px;height:40px;border-radius:20px;background:var(--tint);padding:5px"><svg viewBox="{{o.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{o.d}}" fill="{{o.fill}}"></path><path d="{{o.d2}}" fill="{{o.f2}}"></path><path class="gl" d="{{o.l}}" stroke="{{o.line}}"></path></svg></span><span style="display:flex;flex-direction:column;gap:1px"><span>{{o.name}}</span><span class="cap muted" style="display:flex;align-items:center;gap:5px;font-weight:600"><i style="background:{{o.dot}}"></i>{{o.tag}}</span></span></a>
+</sc-for>
+</div>
+
+<a href="Closet.dc.html" class="spread press rise" style="height:430px;background:var(--tint)" aria-label="The Rail, 10 pieces">
+<p class="eyebrow muted" style="position:absolute;left:22px;top:24px">No. 01 · Hanging rail</p>
+<p class="fr" style="position:absolute;left:20px;top:44px;font-size:64px;line-height:.95;font-style:italic;letter-spacing:-.045em;z-index:2">The<br>Rail</p>
+<sc-for list="{{railC}}" as="it" hint-placeholder-count="4"><div class="pc" style="left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:translateY(calc(var(--py, 0) * {{it.k}}px)) rotate({{it.r}}deg);z-index:{{it.z}}"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<div style="position:absolute;left:20px;bottom:22px;z-index:3;display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+<p class="b2" style="font-weight:600">10 pieces · 3 out this week</p>
+<span class="more" style="background:var(--inv);color:var(--on-inv)">Browse the rail<svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+</div>
+</a>
+
+<a href="Closet.dc.html" class="spread press rise" style="height:300px;background:var(--sec);color:var(--on-sec);animation-delay:.08s" aria-label="Shelves, 8 pieces">
+<div style="position:absolute;left:22px;top:24px;bottom:22px;width:150px;display:flex;flex-direction:column;z-index:2">
+<p class="eyebrow" style="opacity:.8">No. 02 · Shelves</p>
+<p class="fr" style="font-size:46px;line-height:.98;margin-top:14px;letter-spacing:-.04em">Knit<br>&amp; denim</p>
+<p class="b2" style="margin-top:auto;font-weight:600;opacity:.9">8 pieces, folded</p>
+<p class="cap" style="margin-top:4px;opacity:.8">Cream cable knit hasn’t been out since March.</p>
+</div>
+<sc-for list="{{tower}}" as="it" hint-placeholder-count="5"><div class="pc" style="left:{{it.x}}px;top:{{it.y}}px;width:150px;height:105px;transform:translateY(calc(var(--py, 0) * {{it.k}}px)) rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(0 8px 8px rgba(0,0,0,.25))" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</a>
+
+<a href="Closet.dc.html" class="spread press rise" style="height:250px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);animation-delay:.16s" aria-label="Footwear, 4 pairs">
+<p class="eyebrow muted" style="position:absolute;left:22px;top:24px">No. 03 · Shoe rack</p>
+<p class="fr" style="position:absolute;left:20px;top:44px;font-size:44px;line-height:1;letter-spacing:-.04em">Footwear</p>
+<p class="b2 muted" style="position:absolute;right:22px;top:58px;font-weight:600">4 pairs</p>
+<div style="position:absolute;left:20px;right:20px;bottom:40px;height:3px;border-radius:2px;background:var(--rail)"></div>
+<sc-for list="{{shoes}}" as="it" hint-placeholder-count="4"><div class="pc" style="left:{{it.x}}px;bottom:42px;width:104px;height:69px;transform:translateY(calc(var(--py, 0) * {{it.k}}px)) rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<p class="cap muted" style="position:absolute;left:22px;bottom:14px;font-weight:600">White sneakers: 52 wears and counting</p>
+</a>
+
+<a href="Closet.dc.html" class="spread press rise" style="height:320px;background:var(--accent-soft);animation-delay:.24s" aria-label="Accessories tray, 6 pieces">
+<sc-for list="{{tray}}" as="it" hint-placeholder-count="6"><div class="pc" style="left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:translateY(calc(var(--py, 0) * {{it.k}}px)) rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<div style="position:absolute;left:22px;bottom:22px">
+<p class="eyebrow" style="color:var(--accent-text)">No. 04 · The tray</p>
+<p class="fr" style="font-size:44px;line-height:1;margin-top:8px;letter-spacing:-.04em">Finishing<br>touches</p>
+</div>
+</a>
+
+<section class="spread rise" style="background:var(--tint);padding:24px 22px 12px;animation-delay:.32s" aria-label="Drawers">
+<p class="eyebrow muted">No. 05 · Drawers</p>
+<sc-for list="{{drawers}}" as="d" hint-placeholder-count="3">
+<a href="Closet.dc.html" class="press" style="display:flex;align-items:baseline;gap:14px;padding:14px 0;border-bottom:1px solid var(--line2)">
+<span class="fr" style="font-size:46px;line-height:1;width:66px;letter-spacing:-.04em">{{d.n}}</span>
+<span style="flex:1;font-size:18px;font-weight:600">{{d.name}}</span>
+<svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--muted)" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</a>
+</sc-for>
+<p class="cap muted" style="padding:12px 0 6px">Counts only — we don’t photograph drawer basics unless you want to.</p>
+</section>
+</main>
+
+<nav aria-label="Main" style="position:absolute;left:16px;right:16px;bottom:20px;height:70px;border-radius:30px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 4px;z-index:40">
+<a href="Today.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><span>Today</span></a>
+<a href="ClosetC.dc.html" class="tab press on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1 2 2v1.5l8.4 6.2a1.4 1.4 0 0 1-.8 2.5H4.4a1.4 1.4 0 0 1-.8-2.5L12 9"></path></svg><span>Wardrobe</span></a>
+<a href="AddItem.dc.html" aria-label="Add item" class="press" style="justify-self:center;width:62px;height:62px;border-radius:31px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;margin-top:-34px;box-shadow:0 12px 24px rgba(226,85,63,.42),0 0 0 6px var(--bg)"><svg class="ic" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a href="Planner.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3"></rect><path d="M8 2.5v4M16 2.5v4M3 10h18"></path></svg><span>Planner</span></a>
+<a href="Me.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Me</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.onScroll = (e) => {
+      var el = e.currentTarget, y = el.scrollTop;
+      try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (err) {}
+      el.style.setProperty('--py', (y * 0.08).toFixed(2));
+    };
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', F = '0 0 100 70', S = '0 0 120 80', A = '0 0 100 110';
+    var FD = 'M8 20Q8 10 18 10L82 10Q92 10 92 20L92 58Q92 64 86 64L14 64Q8 64 8 58Z';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76M7 86L18 86M82 86L93 86' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102M33 10L41 32L50 26M67 10L59 32L50 26M23 93L77 93M29 62L40 62M60 62L71 62' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      tee: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L90 24Q93 26 92 29L84 44Q83 46 80 45L74 41L74 112Q74 115 71 115L29 115Q26 115 26 112L26 41L20 45Q17 46 16 44L8 29Q7 26 10 24Z', l: 'M42 6Q50 17 58 6' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22M50 50L46 112' },
+      foldedK: { vb: F, d: FD, l: 'M38 10Q50 22 62 10M8 54L92 54M18 55L18 63M30 55L30 63M42 55L42 63M54 55L54 63M66 55L66 63M78 55L78 63M44 24L44 50M56 24L56 50' },
+      foldedJ: { vb: F, d: FD, l: 'M8 22L92 22M50 22L50 64M16 22Q22 34 34 32M84 22Q78 34 66 32M70 46L77 46' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      boot: { vb: S, d: 'M30 6L62 6Q64 6 64 8L64 46Q66 50 72 52Q100 58 106 66L106 68L28 68L28 8Q28 6 30 6Z', d2: 'M26 68L108 68Q108 76 100 76L30 76Q26 76 26 72Z', f2: '#2B2521', l: 'M40 8Q44 28 40 48M56 8Q52 28 56 48M31 6L31 1L37 1' },
+      loafer: { vb: S, d: 'M10 56Q10 46 20 44Q40 40 56 44Q80 48 98 52Q112 55 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 71 106 71L14 71Q8 71 8 66Z', f2: '#2B2521', l: 'M52 46Q68 43 80 50M58 50L74 52' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M38 40Q38 22 50 22Q62 22 62 40M12 56L88 56' },
+      crossbody: { vb: A, d: 'M20 56Q20 48 28 48L72 48Q80 48 80 56L80 92Q80 98 74 98L26 98Q20 98 20 92Z', l: 'M22 52Q50 -4 78 52M20 66Q50 80 80 66M47 70L53 70L53 77L47 77Z' },
+      belt: { vb: A, d: 'M50 20A34 34 0 1 1 49.9 20ZM50 33A21 21 0 1 0 50.1 33Z', l: 'M42 14L58 14L58 27L42 27ZM50 14L50 22' },
+      scarf: { vb: A, d: 'M28 12Q50 4 72 12L74 28Q50 20 26 28ZM40 28L56 28L62 98L44 98ZM57 28L66 28L82 88L70 93Z', l: 'M46 98L46 106M50 98L50 106M54 98L54 106M58 98L58 106M72 93L74 101M76 91L78 99M80 89L82 97M41 44L57 44M43 64L59 64M44 82L60 82' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50M36 38Q50 34 64 38' },
+      necklace: { vb: A, d: 'M45 74Q50 66 55 74L55 82Q50 90 45 82Z', l: 'M20 14Q24 64 50 70Q76 64 80 14' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().shirt;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var self = this, dark = this.isDark();
+    var P = function (k, c, x, y, w, h, r, kk, z) { return self.piece(k, c, { x: x, y: y, w: w, h: h, r: r, k: kk, z: z || 1 }); };
+    return {
+      themeClass: dark ? 'dark' : '', onScroll: this.onScroll,
+      outs: [['shirt', '#A8C2D8', 'Sky oxford', 'Worn today', 'var(--warning)'], ['dress', '#1D1C1B', 'Black midi', 'Lent · Nadia', 'var(--accent)'], ['coat', '#B8AD9E', 'Stone trench', 'At the cleaner', 'var(--faint)'], ['tee', '#1D1C1B', 'Black tee', 'In laundry', 'var(--sec)']].map(function (o) { return self.piece(o[0], o[1], { name: o[2], tag: o[3], dot: o[4] }); }),
+      railC: [P('jacket', '#26354E', 136, 150, 130, 156, -8, -0.6, 1), P('coat', '#B98B5E', 178, 46, 180, 216, -3, -1.2, 2), P('dress', '#B5542E', 70, 176, 132, 158, 7, 0.5, 3), P('shirt', '#E8DDC8', 236, 214, 118, 142, 10, 0.9, 4)],
+      tower: [P('foldedJ', '#2F405E', 196, 176, 0, 0, -2, -0.3), P('foldedJ', '#B8AD9E', 202, 138, 0, 0, 2, -0.6), P('foldedK', '#3B3936', 194, 100, 0, 0, -3, -0.9), P('foldedK', '#6E2A35', 204, 62, 0, 0, 2, -1.2), P('foldedK', '#F0E8D8', 198, 24, 0, 0, -1, -1.5)],
+      shoes: [P('sneaker', '#F5F3EE', 6, 0, 0, 0, -2, -0.4), P('boot', '#5A3C2B', 92, 0, 0, 0, 0, -0.8), P('loafer', '#1D1C1B', 168, 0, 0, 0, 3, -0.5), P('sneaker', '#A3B196', 236, 0, 0, 0, -3, -0.9)],
+      tray: [P('tote', '#B98B5E', 186, 22, 120, 132, 6, -1.2), P('hat', '#6B6B3A', 40, 30, 110, 121, -10, -0.6), P('crossbody', '#6E2A35', 262, 104, 86, 95, -8, -0.9), P('belt', '#5A3C2B', 236, 210, 84, 92, 0, -0.4), P('necklace', '#C9A03B', 252, 4, 70, 77, 12, -1.6), P('scarf', '#B5542E', 116, 4, 70, 77, -14, -1)],
+      drawers: [{ n: '14', name: 'Underwear' }, { n: '22', name: 'Socks' }, { n: '9', name: 'Activewear' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

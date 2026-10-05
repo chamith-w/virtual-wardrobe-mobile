@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "My Closet",
+    "slug": "my-closet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mycloset",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F7F3EE",
+    "ios": {
+      "bundleIdentifier": "com.chamithwijesooriya.mycloset",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.chamithwijesooriya.mycloset",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F3EE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F3EE",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120,
+          "dark": {
+            "backgroundColor": "#121110",
+            "image": "./assets/images/splash-icon-dark.png"
+          }
+        }
+      ],
+      "expo-sqlite",
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "My Closet uses the camera to photograph your clothes so it can cut them out and hang them in your wardrobe.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "My Closet lets you add clothes from photos you've already taken."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "My Closet uses your location to fetch the weather and suggest outfits that suit it."
+        }
+      ],
+      "./plugins/withoutPushEntitlement",
+      [
+        "expo-notifications",
+        {
+          "color": "#E2553F"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

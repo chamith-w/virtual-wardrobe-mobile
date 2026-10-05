@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Wardrobe grid and outfits</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--danger:#A8321F;--danger-soft:#F7DED7;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--board:#ECE5DB;--glass:rgba(255,255,255,.86);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;transition:background-color .45s ease,color .45s ease}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--danger:#F08A75;--danger-soft:#35201B;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--board:#1A1816;--glass:rgba(32,30,27,.86);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d1,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d1{font-size:40px;line-height:1.02;letter-spacing:-.035em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.95);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 10px 9px var(--shadow)) drop-shadow(0 1px 2px var(--shadow2))}
+.gl{fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.chip{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:500;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line2);white-space:nowrap;flex:none;position:relative;transition:background-color .25s,color .25s,transform .45s cubic-bezier(.34,1.56,.64,1)}
+.chip::before{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-4px}
+.chip.on{background:var(--inv);color:var(--on-inv);box-shadow:none}
+.chip:active{transform:scale(.94)}
+.swb{width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line2);position:relative}
+.swb::before{content:'';position:absolute;inset:-4px}
+.swb span{width:22px;height:22px;border-radius:11px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.swb.on{box-shadow:inset 0 0 0 2px var(--ink)}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.tag{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;background:var(--surface);box-shadow:0 2px 8px var(--shadow2),inset 0 0 0 1px var(--line);font-size:11px;font-weight:600;white-space:nowrap}
+.tag i{width:6px;height:6px;border-radius:3px;display:block}
+.seg{display:flex;align-items:center;justify-content:center;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted);height:36px;transition:background-color .3s,color .3s}
+.seg.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px var(--shadow2)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
+.tab.on{color:var(--ink)}
+.tab.on::after{content:'';position:absolute;bottom:1px;width:4px;height:4px;border-radius:2px;background:var(--accent)}
+.scrim{position:absolute;inset:0;background:rgba(12,10,8,.4);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:50;width:100%;border:0}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:-28px;z-index:51;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 62px;transform:translateY(110%);transition:transform .6s cubic-bezier(.32,1.18,.5,1);box-shadow:0 -12px 40px var(--shadow2)}
+.sheet.on{transform:translateY(0)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 16px}
+.gcard{display:block;background:var(--surface);border-radius:22px;padding:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.outimg{opacity:.32;filter:grayscale(.6)}
+.row{width:100%;min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);font-size:16px;font-weight:500}
+@keyframes rise{0%{transform:translateY(18px);opacity:0}100%{transform:none;opacity:1}}
+.rise{animation:rise .6s cubic-bezier(.34,1.4,.64,1) backwards}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg)">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<main class="noscroll" style="position:absolute;inset:0;overflow-y:auto;padding:48px 0 150px">
+<header style="padding:0 20px">
+<div style="display:flex;align-items:center;justify-content:space-between;height:44px">
+<a href="Closet.dc.html" class="press" style="height:44px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)"><svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Home wardrobe<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></a>
+<sc-if value="{{isGrid}}" hint-placeholder-val="{{true}}"><a href="AddItem.dc.html" class="iconbtn press" aria-label="Add item"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a></sc-if>
+<sc-if value="{{isOutfits}}" hint-placeholder-val="{{false}}"><a href="OutfitBuilder.dc.html" class="press" style="height:40px;padding:0 16px 0 12px;border-radius:999px;background:var(--accent-fill);color:var(--on-accent);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New outfit</a></sc-if>
+</div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-top:2px"><h1 class="d1">{{title}}</h1><span class="fr muted" style="font-size:22px">{{titleCount}}</span></div>
+</header>
+
+<nav aria-label="Wardrobe view" style="margin:14px 20px 0;height:44px;border-radius:999px;background:var(--tint);padding:4px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+<a href="Closet.dc.html" class="seg">Closet</a>
+<button class="{{gridSeg}}" aria-pressed="{{isGrid}}" onClick="{{toGrid}}">Grid</button>
+<button class="{{outSeg}}" aria-pressed="{{isOutfits}}" onClick="{{toOutfits}}">Outfits</button>
+</nav>
+
+<sc-if value="{{isGrid}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;gap:8px;margin:12px 20px 0">
+<label style="flex:1;height:44px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:flex;align-items:center;gap:8px;padding:0 14px;color:var(--muted)">
+<svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<input value="{{q}}" onChange="{{onQ}}" placeholder="Search name, brand, colour" aria-label="Search wardrobe" style="border:0;outline:0;background:transparent;flex:1;min-width:0;font-size:15px;color:var(--ink)">
+</label>
+<button class="iconbtn press" aria-label="Sort" aria-haspopup="dialog" onClick="{{openSort}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"></path></svg></button>
+</div>
+<div class="noscroll" style="display:flex;gap:8px;overflow-x:auto;padding:12px 20px 4px;align-items:center">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5"><button class="{{c.cls}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for>
+<span style="width:1px;height:24px;background:var(--line2);flex:none;margin:0 4px"></span>
+<sc-for list="{{colors}}" as="c" hint-placeholder-count="6"><button class="{{c.cls}}" aria-label="{{c.label}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}"><span style="background:{{c.hex}}"></span></button></sc-for>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px 10px">
+<p class="cap muted" style="font-weight:600">{{resultLine}}</p>
+<button onClick="{{openSort}}" class="press" style="height:36px;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600">{{sortLabel}}<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+</div>
+<sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;gap:12px;padding:0 20px;align-items:flex-start">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{colA}}" as="it" hint-placeholder-count="4">
+<a href="ItemDetail.dc.html" class="gcard press rise" aria-label="{{it.name}}" style="animation-delay:{{it.delay}}ms">
+<div style="position:relative;height:{{it.th}}px;border-radius:16px;background:var(--tint)">
+<div class="{{it.imgCls}}" style="position:absolute;left:{{it.ix}}px;top:{{it.iy}}px;width:{{it.iw}}px;height:{{it.ih}}px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div>
+<sc-if value="{{it.out}}" hint-placeholder-val="{{false}}"><span class="tag" style="position:absolute;left:8px;top:8px"><i style="background:{{it.dot}}"></i>{{it.tag}}</span></sc-if>
+</div>
+<div style="padding:10px 6px 4px"><p class="b2" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{it.name}}</p><p class="cap muted" style="margin-top:2px">{{it.sub}}</p></div>
+</a>
+</sc-for>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{colB}}" as="it" hint-placeholder-count="4">
+<a href="ItemDetail.dc.html" class="gcard press rise" aria-label="{{it.name}}" style="animation-delay:{{it.delay}}ms">
+<div style="position:relative;height:{{it.th}}px;border-radius:16px;background:var(--tint)">
+<div class="{{it.imgCls}}" style="position:absolute;left:{{it.ix}}px;top:{{it.iy}}px;width:{{it.iw}}px;height:{{it.ih}}px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div>
+<sc-if value="{{it.out}}" hint-placeholder-val="{{false}}"><span class="tag" style="position:absolute;left:8px;top:8px"><i style="background:{{it.dot}}"></i>{{it.tag}}</span></sc-if>
+</div>
+<div style="padding:10px 6px 4px"><p class="b2" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{it.name}}</p><p class="cap muted" style="margin-top:2px">{{it.sub}}</p></div>
+</a>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{noItems}}" hint-placeholder-val="{{false}}">
+<div style="margin:16px 20px 0;border-radius:28px;background:var(--tint);padding:34px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+<div style="position:relative;width:120px;height:76px"><div style="position:absolute;left:0;right:0;top:8px;height:3px;border-radius:2px;background:var(--rail)"></div><svg viewBox="0 0 60 30" style="position:absolute;left:30px;top:5px;width:60px;height:30px;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg></div>
+<p class="fr" style="font-size:22px">Nothing matches that</p>
+<p class="b2 muted">Try another colour or clear the filters.</p>
+<button class="press" onClick="{{clear}}" style="height:44px;padding:0 20px;border-radius:999px;background:var(--inv);color:var(--on-inv);font-weight:600">Clear filters</button>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{isOutfits}}" hint-placeholder-val="{{false}}">
+<div class="noscroll" style="display:flex;gap:8px;overflow-x:auto;padding:14px 20px 4px">
+<sc-for list="{{ofilters}}" as="c" hint-placeholder-count="5"><button class="{{c.cls}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for>
+</div>
+<p class="cap muted" style="font-weight:600;padding:12px 20px 10px">{{outLine}}</p>
+<div style="display:flex;gap:12px;padding:0 20px;align-items:flex-start">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{oA}}" as="o" hint-placeholder-count="3">
+<div class="gcard rise" style="position:relative;animation-delay:{{o.delay}}ms">
+<a href="OutfitBuilder.dc.html" class="press" aria-label="Open {{o.name}}" style="display:block;position:relative;height:{{o.h}}px;border-radius:16px;background:var(--tint);overflow:hidden">
+<sc-for list="{{o.pieces}}" as="it" hint-placeholder-count="4"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</a>
+<button class="press" onClick="{{o.fav}}" aria-pressed="{{o.isFav}}" aria-label="Favourite {{o.name}}" style="position:absolute;right:8px;top:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:32px;height:32px;border-radius:16px;background:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow2)"><svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;fill:{{o.heartFill}};color:{{o.heartColor}}" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></span></button>
+<div style="padding:10px 6px 4px"><p class="fr" style="font-size:18px;line-height:1.15">{{o.name}}</p><p class="cap muted" style="margin-top:3px">{{o.meta}}</p></div>
+</div>
+</sc-for>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{oB}}" as="o" hint-placeholder-count="3">
+<div class="gcard rise" style="position:relative;animation-delay:{{o.delay}}ms">
+<a href="OutfitBuilder.dc.html" class="press" aria-label="Open {{o.name}}" style="display:block;position:relative;height:{{o.h}}px;border-radius:16px;background:var(--tint);overflow:hidden">
+<sc-for list="{{o.pieces}}" as="it" hint-placeholder-count="4"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</a>
+<button class="press" onClick="{{o.fav}}" aria-pressed="{{o.isFav}}" aria-label="Favourite {{o.name}}" style="position:absolute;right:8px;top:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:32px;height:32px;border-radius:16px;background:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow2)"><svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;fill:{{o.heartFill}};color:{{o.heartColor}}" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></span></button>
+<div style="padding:10px 6px 4px"><p class="fr" style="font-size:18px;line-height:1.15">{{o.name}}</p><p class="cap muted" style="margin-top:3px">{{o.meta}}</p></div>
+</div>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{noOutfits}}" hint-placeholder-val="{{false}}">
+<div style="margin:0 20px;border-radius:28px;background:var(--tint);padding:30px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+<svg viewBox="0 0 24 24" style="width:44px;height:44px;fill:none;stroke:var(--faint);stroke-width:1.4" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+<p class="fr" style="font-size:22px">No favourites yet</p>
+<p class="b2 muted">Tap the heart on any outfit to keep it here.</p>
+</div>
+</sc-if>
+</sc-if>
+</main>
+
+<nav aria-label="Main" style="position:absolute;left:16px;right:16px;bottom:20px;height:70px;border-radius:30px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 4px;z-index:40">
+<a href="Today.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><span>Today</span></a>
+<a href="Closet.dc.html" class="tab press on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1 2 2v1.5l8.4 6.2a1.4 1.4 0 0 1-.8 2.5H4.4a1.4 1.4 0 0 1-.8-2.5L12 9"></path></svg><span>Wardrobe</span></a>
+<a href="AddItem.dc.html" aria-label="Add item" class="press" style="justify-self:center;width:62px;height:62px;border-radius:31px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;margin-top:-34px;box-shadow:0 12px 24px rgba(226,85,63,.42),0 0 0 6px var(--bg)"><svg class="ic" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a href="Planner.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3"></rect><path d="M8 2.5v4M16 2.5v4M3 10h18"></path></svg><span>Planner</span></a>
+<a href="Me.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Me</span></a>
+</nav>
+
+<button class="scrim {{sortCls}}" aria-label="Close" onClick="{{closeSort}}"></button>
+<div class="sheet {{sortCls}}" role="dialog" aria-label="Sort by">
+<div class="grab"></div>
+<h3 class="d3" style="margin-bottom:6px">Sort by</h3>
+<sc-for list="{{sorts}}" as="s" hint-placeholder-count="5">
+<button class="row press" onClick="{{s.pick}}" aria-pressed="{{s.on}}">
+<span style="display:flex;flex-direction:column;gap:2px"><span>{{s.label}}</span><span class="cap muted" style="font-weight:400">{{s.hint}}</span></span>
+<sc-if value="{{s.on}}" hint-placeholder-val="{{false}}"><span style="width:28px;height:28px;border-radius:14px;background:var(--inv);color:var(--on-inv);display:flex;align-items:center;justify-content:center;flex:none"><svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px;stroke-width:2.6" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"startOn":{"editor":"enum","options":["grid","outfits"],"default":"grid","section":"View"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, seg: props.startOn === 'outfits' ? 'outfits' : 'grid', cat: 'all', color: null, q: '', sort: 'recent', sortOpen: false, of: 'all', favs: { o1: true, o2: true, o5: true } };
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.onQ = (e) => { this.setState({ q: e.target.value }); };
+    this.openSort = () => { this.setState({ sortOpen: true }); };
+    this.closeSort = () => { this.setState({ sortOpen: false }); };
+    this.toGrid = () => { this.setState({ seg: 'grid' }); };
+    this.toOutfits = () => { this.setState({ seg: 'outfits' }); };
+    this.clear = () => { this.setState({ cat: 'all', color: null, q: '' }); };
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) {
+    if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' });
+    if (pp.startOn !== this.props.startOn) this.setState({ seg: this.props.startOn === 'outfits' ? 'outfits' : 'grid' });
+  }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  C() { return { camel: '#B98B5E', ecru: '#E8DDC8', navy: '#26354E', olive: '#6B6B3A', rust: '#B5542E', sage: '#A3B196', denim: '#4E6B8B', cream: '#F0E8D8', burgundy: '#6E2A35', blush: '#E3B3A3', charcoal: '#3B3936', mustard: '#C9A03B', forest: '#2F4B3A', sky: '#A8C2D8', stone: '#B8AD9E', choc: '#5A3C2B', white: '#F5F3EE', black: '#1D1C1B', indigo: '#2F405E' }; }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76M7 86L18 86M82 86L93 86' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102M33 10L41 32L50 26M67 10L59 32L50 26M23 93L77 93M29 62L40 62M60 62L71 62' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      tee: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L90 24Q93 26 92 29L84 44Q83 46 80 45L74 41L74 112Q74 115 71 115L29 115Q26 115 26 112L26 41L20 45Q17 46 16 44L8 29Q7 26 10 24Z', l: 'M42 6Q50 17 58 6M17 40L21 33M83 40L79 33' },
+      knit: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L84 18Q90 22 90 30L95 94Q95 98 91 98L85 98Q82 98 82 94L75 46L75 108Q75 112 71 112L29 112Q25 112 25 108L25 46L18 94Q18 98 15 98L9 98Q5 98 5 94L10 30Q10 22 16 18Z', l: 'M42 6Q50 16 58 6M25 102L75 102M32 103L32 111M40 103L40 111M48 103L48 111M56 103L56 111M64 103L64 111M7 88L18 88M82 88L93 88M40 34L40 96M50 30L50 96M60 34L60 96' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22M50 50L46 112' },
+      pants: { vb: T, d: 'M27 6L73 6L78 112Q78 115 75 115L57 115Q54 115 54 112L50 42L46 112Q46 115 43 115L25 115Q22 115 22 112Z', l: 'M27 14L73 14M50 14L50 40M30 14Q34 26 44 24M70 14Q66 26 56 24' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      boot: { vb: S, d: 'M30 6L62 6Q64 6 64 8L64 46Q66 50 72 52Q100 58 106 66L106 68L28 68L28 8Q28 6 30 6Z', d2: 'M26 68L108 68Q108 76 100 76L30 76Q26 76 26 72Z', f2: '#2B2521', l: 'M40 8Q44 28 40 48M56 8Q52 28 56 48M31 6L31 1L37 1' },
+      loafer: { vb: S, d: 'M10 56Q10 46 20 44Q40 40 56 44Q80 48 98 52Q112 55 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 71 106 71L14 71Q8 71 8 66Z', f2: '#2B2521', l: 'M52 46Q68 43 80 50M58 50L74 52' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M38 40Q38 22 50 22Q62 22 62 40M12 56L88 56' },
+      crossbody: { vb: A, d: 'M20 56Q20 48 28 48L72 48Q80 48 80 56L80 92Q80 98 74 98L26 98Q20 98 20 92Z', l: 'M22 52Q50 -4 78 52M20 66Q50 80 80 66M47 70L53 70L53 77L47 77Z' },
+      belt: { vb: A, d: 'M50 20A34 34 0 1 1 49.9 20ZM50 33A21 21 0 1 0 50.1 33Z', l: 'M42 14L58 14L58 27L42 27ZM50 14L50 22' },
+      scarf: { vb: A, d: 'M28 12Q50 4 72 12L74 28Q50 20 26 28ZM40 28L56 28L62 98L44 98ZM57 28L66 28L82 88L70 93Z', l: 'M46 98L46 106M50 98L50 106M54 98L54 106M58 98L58 106M72 93L74 101M76 91L78 99M80 89L82 97M41 44L57 44M43 64L59 64M44 82L60 82' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50M36 38Q50 34 64 38' },
+      necklace: { vb: A, d: 'M45 74Q50 66 55 74L55 82Q50 90 45 82Z', l: 'M20 14Q24 64 50 70Q76 64 80 14' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  hue(hex) {
+    var n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0;
+    if (d < 0.08) return 400 + (1 - mx) * 100;
+    if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+    return (h * 60 + 360) % 360;
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().tee;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  items() {
+    var rows = [
+      ['r1', 'Camel wool coat', 'coat', 'camel', 'outer', 'in', 23, 390, 412], ['r2', 'Navy blazer', 'jacket', 'navy', 'outer', 'in', 18, 240, 300],
+      ['r3', 'Ecru linen shirt', 'shirt', 'ecru', 'tops', 'in', 31, 88, 520], ['r4', 'Sky oxford shirt', 'shirt', 'sky', 'tops', 'worn', 14, 72, 200],
+      ['r5', 'Rust slip dress', 'dress', 'rust', 'dresses', 'in', 6, 160, 220], ['r6', 'Black midi dress', 'dress', 'black', 'dresses', 'lent', 9, 190, 380],
+      ['r7', 'Olive utility jacket', 'jacket', 'olive', 'outer', 'in', 12, 145, 150], ['r8', 'Denim jacket', 'jacket', 'denim', 'outer', 'in', 27, 98, 610],
+      ['r9', 'Blush silk blouse', 'shirt', 'blush', 'tops', 'in', 4, 120, 21], ['r10', 'Stone trench', 'coat', 'stone', 'outer', 'dry', 8, 260, 260],
+      ['s1', 'Cream cable knit', 'knit', 'cream', 'knit', 'in', 15, 130, 330], ['s2', 'Charcoal merino', 'knit', 'charcoal', 'knit', 'in', 22, 110, 410],
+      ['s3', 'Burgundy cardigan', 'knit', 'burgundy', 'knit', 'in', 2, 95, 400], ['s4', 'White tee', 'tee', 'white', 'tops', 'worn', 40, 28, 700],
+      ['s5', 'Black tee', 'tee', 'black', 'tops', 'laundry', 36, 28, 700], ['s6', 'Indigo jeans', 'pants', 'indigo', 'bottoms', 'in', 46, 96, 640],
+      ['s7', 'Stone chinos', 'pants', 'stone', 'bottoms', 'in', 19, 78, 280], ['s8', 'Black trousers', 'pants', 'black', 'bottoms', 'in', 25, 120, 350],
+      ['h1', 'White sneakers', 'sneaker', 'white', 'shoes', 'in', 52, 110, 500], ['h2', 'Chelsea boots', 'boot', 'choc', 'shoes', 'in', 30, 220, 450],
+      ['h3', 'Black loafers', 'loafer', 'black', 'shoes', 'in', 16, 180, 240], ['h4', 'Sage trainers', 'sneaker', 'sage', 'shoes', 'worn', 11, 90, 12],
+      ['a1', 'Camel tote', 'tote', 'camel', 'acc', 'in', 40, 150, 600], ['a2', 'Burgundy crossbody', 'crossbody', 'burgundy', 'acc', 'in', 9, 130, 160],
+      ['a3', 'Leather belt', 'belt', 'choc', 'acc', 'in', 60, 45, 900], ['a4', 'Rust scarf', 'scarf', 'rust', 'acc', 'lent', 5, 60, 130],
+      ['a5', 'Olive bucket hat', 'hat', 'olive', 'acc', 'in', 7, 38, 70], ['a6', 'Gold pendant', 'necklace', 'mustard', 'acc', 'in', 33, 85, 300]
+    ];
+    return rows.map(function (r, i) { return { id: r[0], name: r[1], kind: r[2], c: r[3], cat: r[4], status: r[5], wears: r[6], price: r[7], added: r[8], order: i }; });
+  }
+  outfits() {
+    return [
+      { id: 'o1', name: 'Ecru & navy', occ: 'work', meta: 'Work · Spring, Autumn', s: { layer: ['jacket', 'navy'], top: ['shirt', 'ecru'], bottom: ['pants', 'stone'], shoes: ['loafer', 'black'], acc: ['tote', 'camel'] }, h: 170 },
+      { id: 'o2', name: 'Rust weekend', occ: 'weekend', meta: 'Weekend · Summer', s: { layer: ['jacket', 'denim'], top: ['dress', 'rust'], shoes: ['sneaker', 'white'], acc: ['crossbody', 'burgundy'] }, h: 206 },
+      { id: 'o3', name: 'Quiet neutrals', occ: 'weekend', meta: 'Errands · Spring', s: { layer: ['jacket', 'olive'], top: ['shirt', 'blush'], bottom: ['pants', 'indigo'], shoes: ['boot', 'choc'], acc: ['necklace', 'mustard'] }, h: 206 },
+      { id: 'o4', name: 'Gallery night', occ: 'evening', meta: 'Evening · Autumn', s: { layer: ['coat', 'camel'], top: ['dress', 'black'], shoes: ['loafer', 'black'], acc: ['crossbody', 'burgundy'] }, h: 170 },
+      { id: 'o5', name: 'Monday uniform', occ: 'work', meta: 'Work · Autumn, Winter', s: { top: ['knit', 'charcoal'], bottom: ['pants', 'black'], shoes: ['loafer', 'black'], acc: ['belt', 'choc'] }, h: 170 },
+      { id: 'o6', name: 'Rainy errands', occ: 'weekend', meta: 'Weekend · Autumn', s: { layer: ['coat', 'stone'], top: ['tee', 'white'], bottom: ['pants', 'indigo'], shoes: ['boot', 'choc'], acc: ['hat', 'olive'] }, h: 206 }
+    ];
+  }
+  renderVals() {
+    var C = this.C(), st = this.state, self = this, dark = this.isDark();
+    var CN = { camel: 'Camel', ecru: 'Ecru', navy: 'Navy', olive: 'Olive', rust: 'Rust', sage: 'Sage', denim: 'Denim', cream: 'Cream', burgundy: 'Burgundy', blush: 'Blush', charcoal: 'Charcoal', mustard: 'Gold', sky: 'Sky', stone: 'Stone', choc: 'Chocolate', white: 'White', black: 'Black', indigo: 'Indigo' };
+    var TAG = { worn: ['Worn', 'var(--warning)'], laundry: ['Laundry', 'var(--sec)'], dry: ['Dry cleaner', 'var(--faint)'], lent: ['Lent', 'var(--accent)'] };
+    var q = st.q.trim().toLowerCase();
+    var list = this.items().filter(function (i) { return (st.cat === 'all' || i.cat === st.cat) && (!st.color || i.c === st.color) && (!q || (i.name + ' ' + CN[i.c]).toLowerCase().indexOf(q) >= 0); });
+    var cpw = function (i) { return i.price / Math.max(1, i.wears); };
+    var sorters = { recent: function (a, b) { return a.added - b.added; }, most: function (a, b) { return b.wears - a.wears; }, least: function (a, b) { return a.wears - b.wears; }, cpw: function (a, b) { return cpw(a) - cpw(b); }, color: function (a, b) { return self.hue(C[a.c]) - self.hue(C[b.c]); } };
+    list.sort(sorters[st.sort]);
+    var age = function (d) { return d < 45 ? d + ' days ago' : (d < 365 ? Math.round(d / 30) + ' months ago' : Math.round(d / 36.5) / 10 + ' years ago'); };
+    var sub = function (i) { if (st.sort === 'cpw') return '$' + cpw(i).toFixed(2) + ' per wear'; if (st.sort === 'most' || st.sort === 'least') return 'Worn ' + i.wears + '×'; if (st.sort === 'color') return CN[i.c]; return 'Added ' + age(i.added); };
+    var colA = [], colB = [], hA = 0, hB = 0;
+    list.forEach(function (i, idx) {
+      var g = self.lib()[i.kind], box;
+      if (g.vb === '0 0 100 120') box = { th: 176, iw: 112, ih: 134, ix: 22, iy: 21 };
+      else if (g.vb === '0 0 120 80') box = { th: 112, iw: 128, ih: 85, ix: 14, iy: 12 };
+      else box = { th: 134, iw: 96, ih: 106, ix: 30, iy: 14 };
+      var t = TAG[i.status];
+      var p = self.piece(i.kind, C[i.c], { name: i.name, sub: sub(i), th: box.th, iw: box.iw, ih: box.ih, ix: box.ix, iy: box.iy, out: !!t, tag: t ? t[0] : '', dot: t ? t[1] : '', imgCls: t ? 'outimg' : '', delay: Math.min(idx, 10) * 40 });
+      if (hA <= hB) { colA.push(p); hA += box.th + 60; } else { colB.push(p); hB += box.th + 60; }
+    });
+    var cats = [['all', 'All'], ['tops', 'Tops'], ['dresses', 'Dresses'], ['outer', 'Outerwear'], ['knit', 'Knitwear'], ['bottoms', 'Bottoms'], ['shoes', 'Shoes'], ['acc', 'Accessories']].map(function (c) {
+      var on = st.cat === c[0]; return { label: c[1], on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setState({ cat: c[0] }); } };
+    });
+    var colors = ['camel', 'navy', 'ecru', 'rust', 'black', 'olive', 'denim', 'burgundy'].map(function (c) {
+      var on = st.color === c; return { hex: C[c], label: 'Filter by ' + CN[c], on: on, cls: on ? 'swb on' : 'swb', pick: function () { self.setState({ color: self.state.color === c ? null : c }); } };
+    });
+    var SL = { recent: ['Recently added', 'Newest pieces first'], most: ['Most worn', 'Your true favourites'], least: ['Least worn', 'Pieces that need some love'], cpw: ['Cost per wear', 'Price ÷ times worn, lowest first'], color: ['Colour', 'Arranged around the colour wheel'] };
+    var sorts = ['recent', 'most', 'least', 'cpw', 'color'].map(function (k) { return { label: SL[k][0], hint: SL[k][1], on: st.sort === k, pick: function () { self.setState({ sort: k, sortOpen: false }); } }; });
+    var POS = { bottom: { x: 96, y: 30, w: 56, h: 67, r: 5 }, layer: { x: 2, y: 12, w: 68, h: 82, r: -6 }, top: { x: 44, y: 4, w: 66, h: 79, r: 2 }, shoes: { x: 8, y: 104, w: 70, h: 47, r: -3 }, acc: { x: 104, y: 100, w: 44, h: 48, r: 7 } };
+    var order = ['bottom', 'layer', 'top', 'shoes', 'acc'];
+    var ofl = this.outfits().filter(function (o) { return st.of === 'all' || (st.of === 'fav' ? !!st.favs[o.id] : o.occ === st.of); });
+    var oA = [], oB = [], ha = 0, hb = 0;
+    ofl.forEach(function (o, idx) {
+      var dy = o.h > 180 ? 22 : 6, pieces = [];
+      order.forEach(function (slot) { var s = o.s[slot]; if (!s) return; var p = POS[slot]; pieces.push(self.piece(s[0], C[s[1]], { x: p.x, y: p.y + dy, w: p.w, h: p.h, r: p.r })); });
+      var fav = !!st.favs[o.id];
+      var card = { name: o.name, meta: o.meta + ' · ' + pieces.length + ' pieces', h: o.h, pieces: pieces, isFav: fav, heartFill: fav ? 'var(--accent)' : 'none', heartColor: fav ? 'var(--accent)' : 'var(--ink)', delay: idx * 50,
+        fav: function () { var f = Object.assign({}, self.state.favs); f[o.id] = !f[o.id]; self.setState({ favs: f }); } };
+      if (ha <= hb) { oA.push(card); ha += o.h + 70; } else { oB.push(card); hb += o.h + 70; }
+    });
+    var ofilters = [['all', 'All'], ['fav', 'Favourites'], ['work', 'Work'], ['weekend', 'Weekend'], ['evening', 'Evening']].map(function (c) {
+      var on = st.of === c[0]; return { label: c[1], on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setState({ of: c[0] }); } };
+    });
+    var isGrid = st.seg === 'grid';
+    return {
+      themeClass: dark ? 'dark' : '',
+      isGrid: isGrid, isOutfits: !isGrid, gridSeg: isGrid ? 'seg on' : 'seg', outSeg: isGrid ? 'seg' : 'seg on', toGrid: this.toGrid, toOutfits: this.toOutfits,
+      title: isGrid ? 'Wardrobe' : 'Outfits', titleCount: isGrid ? '28' : '6',
+      q: st.q, onQ: this.onQ, cats: cats, colors: colors, clear: this.clear,
+      resultLine: list.length + (list.length === 1 ? ' piece' : ' pieces'), sortLabel: SL[st.sort][0],
+      colA: colA, colB: colB, hasItems: list.length > 0, noItems: list.length === 0,
+      openSort: this.openSort, closeSort: this.closeSort, sortCls: st.sortOpen ? 'on' : '', sorts: sorts,
+      ofilters: ofilters, oA: oA, oB: oB, noOutfits: ofl.length === 0, outLine: ofl.length + (ofl.length === 1 ? ' outfit' : ' outfits') + ' · tap the heart to favourite'
+    };
+  }
+}
+</script>
+</body>
+</html>

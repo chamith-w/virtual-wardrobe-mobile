@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Closet — Planner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.mc{--bg:#F7F3EE;--surface:#FFFFFF;--tint:#EFE8DF;--tint2:#E4D9CB;--ink:#1C1A17;--muted:#6E6860;--faint:#8A847C;--line:rgba(28,26,23,.09);--line2:rgba(28,26,23,.17);--accent:#E2553F;--accent-fill:#C2412C;--on-accent:#FFFFFF;--accent-text:#B23A26;--accent-soft:#F8E0D8;--sec:#2F4B3A;--on-sec:#FFFFFF;--sec-soft:#DFE8E1;--success:#2F6B45;--success-soft:#DCEBE0;--warning:#8A5A12;--warning-soft:#F5E8CF;--shadow:rgba(84,58,34,.24);--shadow2:rgba(84,58,34,.12);--rail:#B9AE9F;--glass:rgba(255,255,255,.88);--inv:#1C1A17;--on-inv:#F7F3EE;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mc.dark{--bg:#121110;--surface:#1D1B19;--tint:#26231F;--tint2:#312C27;--ink:#F3EEE8;--muted:#9C958C;--faint:#6F6962;--line:rgba(243,238,232,.08);--line2:rgba(243,238,232,.17);--accent:#FF7A5C;--accent-fill:#FF7A5C;--on-accent:#1A0F0B;--accent-text:#FF8F75;--accent-soft:#3B231C;--sec:#8DB89C;--on-sec:#0F1A12;--sec-soft:#1E2B22;--success:#86C59B;--success-soft:#1B2A20;--warning:#E2B565;--warning-soft:#2F2717;--shadow:rgba(0,0,0,.62);--shadow2:rgba(0,0,0,.4);--rail:#4E4740;--glass:rgba(32,30,27,.88);--inv:#F3EEE8;--on-inv:#121110}
+.mc *{box-sizing:border-box}
+.d1,.d3,.fr{font-family:'Fraunces',Georgia,serif;font-weight:500;margin:0}
+.d1{font-size:40px;line-height:1.02;letter-spacing:-.035em}
+.d3{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.fr{letter-spacing:-.02em}
+.b2{font-size:14px;line-height:1.4;margin:0}
+.cap{font-size:12px;line-height:1.3;margin:0}
+.eyebrow{font-size:11px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+.press{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.press:active{transform:scale(.94);transition-duration:.12s}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.cut{filter:drop-shadow(0 10px 9px var(--shadow)) drop-shadow(0 1px 2px var(--shadow2))}
+.gl{fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.btn{height:50px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 20px;font-size:15px;font-weight:600}
+.btn-ink{background:var(--inv);color:var(--on-inv)}
+.btn-line{box-shadow:inset 0 0 0 1.5px var(--line2)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:12px;font-weight:600;white-space:nowrap}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
+.tab.on{color:var(--ink)}
+.tab.on::after{content:'';position:absolute;bottom:1px;width:4px;height:4px;border-radius:2px;background:var(--accent)}
+.calwrap{overflow:hidden;transition:height .65s cubic-bezier(.34,1.25,.5,1)}
+.calgrid{transition:transform .65s cubic-bezier(.34,1.25,.5,1)}
+.cell{height:56px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;transition:background-color .25s,color .25s,transform .4s cubic-bezier(.34,1.56,.64,1)}
+.cell.out{color:var(--faint)}
+.cell.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.cell.sel{background:var(--inv);color:var(--on-inv);box-shadow:none}
+.cell.hover{background:var(--accent-soft);transform:scale(1.12);box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.trip::before{content:'';position:absolute;left:6px;right:6px;bottom:3px;height:3px;border-radius:2px;background:var(--sec);opacity:.55}
+.dots{display:flex;gap:2px;height:6px}
+.dots i{width:6px;height:6px;border-radius:3px;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.chk{width:14px;height:14px;border-radius:7px;background:var(--sec);color:var(--on-sec);display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(12,10,8,.4);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:50;width:100%;border:0}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:-28px;z-index:51;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 62px;transform:translateY(110%);transition:transform .6s cubic-bezier(.32,1.18,.5,1);box-shadow:0 -12px 40px var(--shadow2)}
+.sheet.on{transform:translateY(0)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 16px}
+.toast{position:absolute;left:50%;top:52px;z-index:70;transform:translate(-50%,-160%);opacity:0;transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;background:var(--inv);color:var(--on-inv);border-radius:999px;padding:10px 16px 10px 12px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 12px 28px var(--shadow);pointer-events:none}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.ocard{flex:none;width:92px;cursor:grab;touch-action:none}
+.row{width:100%;min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);font-size:15px;font-weight:500}
+.tick{width:26px;height:26px;border-radius:13px;box-shadow:inset 0 0 0 1.5px var(--line2);display:flex;align-items:center;justify-content:center;transition:background-color .25s,transform .45s cubic-bezier(.34,1.56,.64,1);flex:none}
+.tick.on{background:var(--sec);color:var(--on-sec);box-shadow:none;transform:scale(1.06)}
+@keyframes popA{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.04);opacity:1}100%{transform:none;opacity:1}}
+@keyframes popB{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.04);opacity:1}100%{transform:none;opacity:1}}
+.popA{animation:popA .6s cubic-bezier(.34,1.56,.64,1) both}
+.popB{animation:popB .6s cubic-bezier(.34,1.56,.64,1) both}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.mc *,.mc *::before,.mc *::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:200ms!important;transition-timing-function:ease!important}}
+</style>
+</helmet>
+<div class="mc {{themeClass}}" ref="{{setRoot}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onLeave}}" style="position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);user-select:none;-webkit-user-select:none">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mcShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#ffffff;stop-opacity:.26"></stop><stop offset=".5" style="stop-color:#ffffff;stop-opacity:0"></stop><stop offset="1" style="stop-color:#000000;stop-opacity:.18"></stop></linearGradient></defs></svg>
+
+<main class="noscroll" style="position:absolute;inset:0;overflow-y:auto;padding:48px 0 270px">
+<header style="padding:0 20px;display:flex;align-items:flex-end;justify-content:space-between">
+<div><p class="eyebrow">Planner</p><h1 class="d1" style="margin-top:8px">October <span class="muted" style="font-size:24px;letter-spacing:-.02em">2026</span></h1></div>
+<button class="press" onClick="{{toggleCal}}" aria-expanded="{{expanded}}" style="height:44px;padding:0 14px 0 16px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600">{{calLabel}}<svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px;transition:transform .5s cubic-bezier(.34,1.56,.64,1);transform:{{chev}}" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+</header>
+
+<section aria-label="Calendar" style="margin:16px 14px 0;border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:10px 8px 8px">
+<div style="display:flex;align-items:center;gap:2px">
+<sc-if value="{{collapsed}}" hint-placeholder-val="{{true}}"><button class="press" onClick="{{prevWeek}}" aria-label="Previous week" style="width:28px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button></sc-if>
+<div style="flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center">
+<sc-for list="{{wd}}" as="w" hint-placeholder-count="7"><span class="cap muted" style="font-weight:700;height:22px">{{w.l}}</span></sc-for>
+</div>
+<sc-if value="{{collapsed}}" hint-placeholder-val="{{true}}"><button class="press" onClick="{{nextWeek}}" aria-label="Next week" style="width:28px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></sc-if>
+</div>
+<div class="calwrap" style="height:{{calH}}px;margin:0 {{calMargin}}px">
+<div class="calgrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:4px;transform:translateY({{calY}}px)">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="14">
+<button class="{{d.cls}}" ref="{{d.setRef}}" onClick="{{d.pick}}" aria-label="{{d.aria}}" aria-pressed="{{d.sel}}">
+<span class="fr" style="font-size:19px;line-height:1">{{d.num}}</span>
+<sc-if value="{{d.worn}}" hint-placeholder-val="{{false}}"><span class="chk"><svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px;stroke-width:3.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+<sc-if value="{{d.planned}}" hint-placeholder-val="{{false}}"><span class="dots"><sc-for list="{{d.dots}}" as="c" hint-placeholder-count="3"><i style="background:{{c.hex}}"></i></sc-for></span></sc-if>
+<sc-if value="{{d.blank}}" hint-placeholder-val="{{true}}"><span style="height:6px"></span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section aria-label="Selected day" style="padding:20px 20px 0">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+<div><p class="eyebrow" style="color:{{kindColor}}">{{kindLabel}}</p><h2 class="fr" style="font-size:26px;line-height:1.1;margin-top:6px">{{dayTitle}}</h2></div>
+<span class="tag" style="flex:none"><svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.13"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>{{weather}}</span>
+</div>
+<sc-if value="{{isTrip}}" hint-placeholder-val="{{false}}">
+<a href="Packing.dc.html" class="press" style="margin-top:12px;height:44px;border-radius:14px;background:var(--sec-soft);color:var(--sec);display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;font-weight:600"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"></path><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14M10 20h4"></path></svg>Lisbon trip · open packing list</a>
+</sc-if>
+
+<sc-if value="{{showBoard}}" hint-placeholder-val="{{true}}">
+<div class="{{boardAnim}}" style="position:relative;height:200px;border-radius:24px;background:var(--tint);margin-top:14px;overflow:hidden">
+<sc-for list="{{board}}" as="it" hint-placeholder-count="5"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<span class="tag" style="position:absolute;left:12px;top:12px">{{outfitName}}</span>
+<sc-if value="{{loggedToday}}" hint-placeholder-val="{{false}}"><span class="popA" style="position:absolute;right:12px;top:12px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:var(--success);color:var(--bg);display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2.8" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Logged</span></sc-if>
+</div>
+<div style="display:flex;gap:8px;margin-top:12px">
+<sc-if value="{{canLog}}" hint-placeholder-val="{{true}}"><button class="btn btn-ink press" onClick="{{openLog}}" style="flex:1">Log as worn</button></sc-if>
+<sc-if value="{{isFuturePlan}}" hint-placeholder-val="{{false}}"><button class="btn btn-ink press" onClick="{{openPick}}" style="flex:1">Swap outfit</button></sc-if>
+<sc-if value="{{showSwap}}" hint-placeholder-val="{{true}}"><button class="btn btn-line press" onClick="{{openPick}}">Swap</button></sc-if>
+<sc-if value="{{isFuturePlan}}" hint-placeholder-val="{{false}}"><button class="btn btn-line press" onClick="{{clearPlan}}">Clear</button></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isPast}}" hint-placeholder-val="{{false}}">
+<div class="{{boardAnim}}" style="display:flex;gap:14px;margin-top:14px;border-radius:24px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:12px">
+<div style="position:relative;width:118px;height:168px;flex:none;border-radius:60px 60px 16px 16px;background:var(--tint2);overflow:hidden;box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--line2)">
+<sc-for list="{{selfie}}" as="it" hint-placeholder-count="3"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px"><svg viewBox="{{it.vb}}" class="cut" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path d="{{it.d}}" fill="url(#mcShade)"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+<span style="position:absolute;left:8px;bottom:8px;height:22px;padding:0 8px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center">Mirror selfie</span>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-top:4px">
+<p class="eyebrow" style="color:var(--success)">Worn</p>
+<p class="fr" style="font-size:21px;line-height:1.1">{{outfitName}}</p>
+<p class="b2 muted" style="font-style:italic">“{{note}}”</p>
+<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:auto">
+<sc-for list="{{board}}" as="it" hint-placeholder-count="4"><span style="width:34px;height:36px;border-radius:10px;background:var(--tint);padding:4px"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></span></sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+<div class="{{boardAnim}}" style="margin-top:14px;height:200px;border-radius:24px;border:1.5px dashed var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 30px">
+<div style="position:relative;width:110px;height:40px"><div style="position:absolute;left:0;right:0;top:6px;height:3px;border-radius:2px;background:var(--rail)"></div><svg viewBox="0 0 60 30" style="position:absolute;left:25px;top:3px;width:60px;height:30px;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M30 14L30 11Q30 9 32 8.2Q35 7 35 4.5Q35 1.5 32 1.5Q29.5 1.5 29 4M30 14L5 26.5Q3 28 5.5 28.5L54.5 28.5Q57 28 55 26.5Z"></path></svg></div>
+<p class="fr" style="font-size:20px">Nothing planned yet</p>
+<p class="cap muted">Drag an outfit from below onto any day, or let us pick one for the weather.</p>
+</div>
+<div style="display:flex;gap:8px;margin-top:12px">
+<button class="btn btn-ink press" onClick="{{suggest}}" style="flex:1"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72M14 7l3 3M5 6v4M19 14v4M10 2v2M7 8H3M21 16h-4M11 3H9"></path></svg>Suggest one</button>
+<button class="btn btn-line press" onClick="{{openPick}}" style="flex:1">Pick an outfit</button>
+</div>
+</sc-if>
+</section>
+</main>
+
+<div style="position:absolute;left:12px;right:12px;bottom:102px;border-radius:26px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);padding:10px 0 10px;z-index:30">
+<p class="eyebrow" style="padding:0 16px 8px">Your outfits · drag onto a day</p>
+<div class="noscroll" style="display:flex;gap:8px;overflow-x:auto;padding:0 12px">
+<sc-for list="{{dock}}" as="o" hint-placeholder-count="5">
+<button class="ocard press" onPointerDown="{{o.down}}" onClick="{{o.tap}}" aria-label="Plan {{o.name}} for the selected day">
+<div style="position:relative;height:84px;border-radius:16px;background:var(--tint);overflow:hidden">
+<sc-for list="{{o.pieces}}" as="it" hint-placeholder-count="4"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(0 4px 4px var(--shadow2))" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</div>
+<p class="cap" style="font-weight:600;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{o.name}}</p>
+</button>
+</sc-for>
+</div>
+</div>
+
+<sc-if value="{{dragging}}" hint-placeholder-val="{{false}}">
+<div ref="{{setGhost}}" style="position:absolute;left:0;top:0;width:92px;height:84px;border-radius:16px;background:var(--tint);overflow:hidden;z-index:60;pointer-events:none;box-shadow:0 22px 40px var(--shadow)">
+<sc-for list="{{ghost}}" as="it" hint-placeholder-count="4"><div style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px;transform:rotate({{it.r}}deg)"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;overflow:visible;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path><path class="gl" d="{{it.l}}" stroke="{{it.line}}"></path></svg></div></sc-for>
+</div>
+</sc-if>
+
+<div class="toast {{toastCls}}" role="status" aria-live="polite"><span style="width:22px;height:22px;border-radius:11px;background:var(--success);color:var(--bg);display:flex;align-items:center;justify-content:center"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2.8" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>{{toast}}</div>
+
+<nav aria-label="Main" style="position:absolute;left:16px;right:16px;bottom:20px;height:70px;border-radius:30px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 14px 34px var(--shadow2),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 4px;z-index:40">
+<a href="Today.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><span>Today</span></a>
+<a href="Closet.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1 2 2v1.5l8.4 6.2a1.4 1.4 0 0 1-.8 2.5H4.4a1.4 1.4 0 0 1-.8-2.5L12 9"></path></svg><span>Wardrobe</span></a>
+<a href="AddItem.dc.html" aria-label="Add item" class="press" style="justify-self:center;width:62px;height:62px;border-radius:31px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;margin-top:-34px;box-shadow:0 12px 24px rgba(226,85,63,.42),0 0 0 6px var(--bg)"><svg class="ic" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a href="Planner.dc.html" class="tab press on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3"></rect><path d="M8 2.5v4M16 2.5v4M3 10h18"></path></svg><span>Planner</span></a>
+<a href="Me.dc.html" class="tab press"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Me</span></a>
+</nav>
+
+<button class="scrim {{logCls}}" aria-label="Close" onClick="{{closeSheets}}"></button>
+<div class="sheet {{logCls}}" role="dialog" aria-label="Log today’s outfit">
+<div class="grab"></div>
+<h3 class="d3">Log what you wore</h3>
+<p class="b2 muted" style="margin-top:6px">Untick anything you swapped out.</p>
+<div style="margin-top:8px">
+<sc-for list="{{logItems}}" as="li" hint-placeholder-count="5">
+<button class="row press" onClick="{{li.toggle}}" aria-pressed="{{li.on}}">
+<span style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:42px;border-radius:12px;background:var(--tint);padding:5px"><svg viewBox="{{li.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{li.d}}" fill="{{li.fill}}"></path><path d="{{li.d2}}" fill="{{li.f2}}"></path><path class="gl" d="{{li.l}}" stroke="{{li.line}}"></path></svg></span>{{li.name}}</span>
+<span class="{{li.cls}}"><sc-if value="{{li.on}}" hint-placeholder-val="{{true}}"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:3" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if></span>
+</button>
+</sc-for>
+</div>
+<div style="display:flex;gap:10px;margin-top:14px">
+<button class="press" onClick="{{toggleSelfie}}" aria-pressed="{{selfieOn}}" style="flex:1;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;{{selfieStyle}}"><svg class="ic" viewBox="0 0 24 24" style="width:19px;height:19px" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3"></circle></svg>{{selfieLabel}}</button>
+<div style="flex:1;height:64px;border-radius:18px;background:var(--sec-soft);color:var(--sec);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:600;text-align:center"><span>24° · Partly cloudy</span><span style="font-size:11px;font-weight:500;opacity:.85">weather attached</span></div>
+</div>
+<p class="cap muted" style="margin-top:12px">Each piece gets +1 wear and is marked Worn. Tees move to the laundry after 1 wear.</p>
+<button class="btn btn-ink press" onClick="{{confirmLog}}" style="width:100%;margin-top:14px">Log {{logCount}} pieces</button>
+</div>
+
+<button class="scrim {{pickCls}}" aria-label="Close" onClick="{{closeSheets}}"></button>
+<div class="sheet {{pickCls}}" role="dialog" aria-label="Pick an outfit">
+<div class="grab"></div>
+<h3 class="d3" style="margin-bottom:6px">Pick an outfit</h3>
+<sc-for list="{{pickList}}" as="o" hint-placeholder-count="6">
+<button class="row press" onClick="{{o.pick}}">
+<span style="display:flex;align-items:center;gap:12px"><span style="position:relative;width:52px;height:52px;border-radius:14px;background:var(--tint);overflow:hidden;flex:none"><sc-for list="{{o.pieces}}" as="it" hint-placeholder-count="3"><span style="position:absolute;left:{{it.x}}px;top:{{it.y}}px;width:{{it.w}}px;height:{{it.h}}px"><svg viewBox="{{it.vb}}" style="width:100%;height:100%;display:block" aria-hidden="true"><path d="{{it.d}}" fill="{{it.fill}}"></path><path d="{{it.d2}}" fill="{{it.f2}}"></path></svg></span></sc-for></span><span style="display:flex;flex-direction:column;gap:2px"><span>{{o.name}}</span><span class="cap muted" style="font-weight:400">{{o.meta}}</span></span></span>
+<svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--muted)" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, expanded: false, row: 1, sel: 7, plans: { 7: 'o1', 9: 'o5', 10: 'o4', 12: 'o2', 18: 'o6' }, logs: { 0: 'o5', 1: 'o1', 2: 'o3', 3: 'o6', 4: 'o4', 5: 'o2', 6: 'o3' }, sheet: null, checks: {}, selfie: false, drag: null, hover: null, anim: 0, toast: '', toastOn: false };
+    this.cells = {};
+    this.onStorage = (e) => { if (e && e.key === 'mycloset-theme') this.setState({ theme: e.newValue }); };
+    this.setRoot = (el) => { this.rootEl = el; };
+    this.setGhost = (el) => { this.ghostEl = el; if (el) this.placeGhost(); };
+    this.toggleCal = () => { var ex = !this.state.expanded; this.setState({ expanded: ex, row: ex ? this.state.row : Math.floor(this.state.sel / 7) }); };
+    this.prevWeek = () => this.setState({ row: Math.max(0, this.state.row - 1) });
+    this.nextWeek = () => this.setState({ row: Math.min(4, this.state.row + 1) });
+    this.openLog = () => { var o = this.state.plans[this.state.sel]; if (!o) return; this.setState({ sheet: 'log', checks: {}, selfie: false }); };
+    this.openPick = () => this.setState({ sheet: 'pick' });
+    this.closeSheets = () => this.setState({ sheet: null });
+    this.toggleSelfie = () => this.setState({ selfie: !this.state.selfie });
+    this.clearPlan = () => { var p = Object.assign({}, this.state.plans); delete p[this.state.sel]; this.setState({ plans: p, anim: this.state.anim + 1 }); };
+    this.suggest = () => { var sel = this.state.sel, p = Object.assign({}, this.state.plans); p[sel] = sel % 2 ? 'o3' : 'o2'; this.setState({ plans: p, anim: this.state.anim + 1 }); this.toast('Suggested for ' + this.weather(sel)); };
+    this.confirmLog = () => {
+      var sel = this.state.sel, l = Object.assign({}, this.state.logs); l[sel] = this.state.plans[sel];
+      var n = this.logPieces().filter((p) => !this.state.checks[p.key]).length;
+      this.setState({ logs: l, sheet: null }); this.toast('Logged · ' + n + ' pieces +1 wear');
+    };
+    this.onMove = (e) => {
+      var p = this.pend; if (!p) return;
+      var dx = e.clientX - p.x, dy = e.clientY - p.y;
+      if (!p.started) { if (dx * dx + dy * dy < 49) return; p.started = true; this.lastPt = { x: e.clientX, y: e.clientY }; this.setState({ drag: p.oid }); return; }
+      this.lastPt = { x: e.clientX, y: e.clientY }; this.placeGhost();
+      var h = this.hitCell(e.clientX, e.clientY); if (h !== this.state.hover) this.setState({ hover: h });
+    };
+    this.onUp = () => {
+      var p = this.pend; this.pend = null; if (!p || !p.started) return;
+      this.justDragged = true; setTimeout(() => { this.justDragged = false; }, 80);
+      var h = this.state.hover;
+      this.setState({ drag: null, hover: null });
+      if (h !== null && h !== undefined) this.plan(h, p.oid);
+    };
+    this.onLeave = () => { if (this.pend) { this.pend = null; this.setState({ drag: null, hover: null }); } };
+  }
+  componentDidMount() {
+    try { var t = window.localStorage.getItem('mycloset-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+    try { window.addEventListener('storage', this.onStorage); } catch (e) {}
+  }
+  componentWillUnmount() { clearTimeout(this.tt); try { window.removeEventListener('storage', this.onStorage); } catch (e) {} }
+  componentDidUpdate(pp) { if (pp.dark !== this.props.dark) this.setState({ theme: this.props.dark ? 'dark' : 'light' }); }
+  isDark() {
+    var t = this.state.theme;
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    if (t === 'system') { try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
+    return !!this.props.dark;
+  }
+  toast(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2300); }
+  date(i) { return new Date(2026, 8, 28 + i); }
+  weather(i) { var W = ['18° · Overcast', '21° · Sunny', '20° · Breezy', '16° · Light rain', '19° · Clear', '23° · Sunny', '22° · Partly cloudy', '24° · Partly cloudy', '25° · Sunny', '23° · Showers', '22° · Cloudy', '24° · Sunny', '26° · Sunny', '21° · Rain']; return W[i] || 'Forecast soon'; }
+  plan(i, oid) { if (i < 7) { this.toast('That day has passed'); return; } var p = Object.assign({}, this.state.plans); p[i] = oid; var o = this.outfits()[oid]; this.setState({ plans: p, sel: i, anim: this.state.anim + 1, sheet: null }); this.toast(o.name + ' · ' + this.date(i).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })); }
+  placeGhost() {
+    var g = this.ghostEl, r = this.rootEl, pt = this.lastPt; if (!g || !r || !pt) return;
+    var rect = r.getBoundingClientRect(), s = rect.width / 390 || 1;
+    g.style.transform = 'translate(' + ((pt.x - rect.left) / s - 46) + 'px,' + ((pt.y - rect.top) / s - 60) + 'px) rotate(-5deg) scale(1.05)';
+  }
+  hitCell(x, y) {
+    var st = this.state, lo = st.expanded ? 0 : st.row * 7, hi = st.expanded ? 34 : st.row * 7 + 6;
+    for (var i = lo; i <= hi; i++) { var el = this.cells[i]; if (!el) continue; var r = el.getBoundingClientRect(); if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return i; }
+    return null;
+  }
+  outfits() {
+    return {
+      o1: { name: 'Ecru & navy', meta: 'Work · 5 pieces', s: { layer: ['jacket', '#26354E', 'Navy blazer'], top: ['shirt', '#E8DDC8', 'Ecru linen shirt'], bottom: ['pants', '#B8AD9E', 'Stone chinos'], shoes: ['loafer', '#1D1C1B', 'Black loafers'], acc: ['tote', '#B98B5E', 'Camel tote'] } },
+      o2: { name: 'Rust weekend', meta: 'Weekend · 4 pieces', s: { layer: ['jacket', '#4E6B8B', 'Denim jacket'], top: ['dress', '#B5542E', 'Rust slip dress'], shoes: ['sneaker', '#F5F3EE', 'White sneakers'], acc: ['crossbody', '#6E2A35', 'Burgundy crossbody'] } },
+      o3: { name: 'Quiet neutrals', meta: 'Errands · 5 pieces', s: { layer: ['jacket', '#6B6B3A', 'Olive utility jacket'], top: ['shirt', '#E3B3A3', 'Blush silk blouse'], bottom: ['pants', '#2F405E', 'Indigo jeans'], shoes: ['boot', '#5A3C2B', 'Chelsea boots'], acc: ['necklace', '#C9A03B', 'Gold pendant'] } },
+      o4: { name: 'Gallery night', meta: 'Evening · 4 pieces', s: { layer: ['coat', '#B98B5E', 'Camel wool coat'], top: ['dress', '#1D1C1B', 'Black midi dress'], shoes: ['loafer', '#1D1C1B', 'Black loafers'], acc: ['crossbody', '#6E2A35', 'Burgundy crossbody'] } },
+      o5: { name: 'Monday uniform', meta: 'Work · 4 pieces', s: { top: ['knit', '#3B3936', 'Charcoal merino'], bottom: ['pants', '#1D1C1B', 'Black trousers'], shoes: ['loafer', '#1D1C1B', 'Black loafers'], acc: ['belt', '#5A3C2B', 'Leather belt'] } },
+      o6: { name: 'Rainy errands', meta: 'Weekend · 5 pieces', s: { layer: ['coat', '#B8AD9E', 'Stone trench'], top: ['tee', '#F5F3EE', 'White tee'], bottom: ['pants', '#2F405E', 'Indigo jeans'], shoes: ['boot', '#5A3C2B', 'Chelsea boots'], acc: ['hat', '#6B6B3A', 'Olive bucket hat'] } }
+    };
+  }
+  compose(oid, k, ox, oy) {
+    var o = this.outfits()[oid], self = this; if (!o) return [];
+    var POS = { bottom: [206, 30, 92, 110, 5], layer: [24, 14, 110, 132, -6], top: [110, 6, 104, 125, 2], shoes: [36, 132, 96, 64, -3], acc: [240, 118, 68, 75, 7] };
+    return ['bottom', 'layer', 'top', 'shoes', 'acc'].filter(function (s) { return o.s[s]; }).map(function (s) {
+      var p = POS[s], v = o.s[s];
+      return self.piece(v[0], v[1], { x: Math.round(p[0] * k + ox), y: Math.round(p[1] * k + oy), w: Math.round(p[2] * k), h: Math.round(p[3] * k), r: p[4], name: v[2], key: s });
+    });
+  }
+  logPieces() { return this.compose(this.state.plans[this.state.sel] || 'o1', 1, 0, 0); }
+  lib() {
+    if (this._lib) return this._lib;
+    var T = '0 0 100 120', S = '0 0 120 80', A = '0 0 100 110';
+    this._lib = {
+      coat: { vb: T, d: 'M33 8L45 4L50 24L55 4L67 8L82 16Q88 20 89 28L95 92Q95 96 91 96L85 96Q82 96 82 92L77 46L80 114Q80 117 77 117L23 117Q20 117 20 114L23 46L18 92Q18 96 15 96L9 96Q5 96 5 92L11 28Q12 20 18 16Z', l: 'M45 4L50 24L55 4M50 24L50 116M33 8L41 30L50 24M67 8L59 30L50 24M27 76L38 76M62 76L73 76M7 86L18 86M82 86L93 86' },
+      jacket: { vb: T, d: 'M33 10L45 6L50 26L55 6L67 10L82 18Q88 22 89 30L94 88Q94 92 90 92L85 92Q82 92 82 88L77 48L78 100Q78 103 75 103L25 103Q22 103 22 100L23 48L18 88Q18 92 15 92L10 92Q6 92 6 88L11 30Q12 22 18 18Z', l: 'M45 6L50 26L55 6M50 26L50 102M33 10L41 32L50 26M67 10L59 32L50 26M23 93L77 93M29 62L40 62M60 62L71 62' },
+      shirt: { vb: T, d: 'M35 8L44 4L50 12L56 4L65 8L80 16Q86 19 87 26L94 90Q94 94 90 94L85 94Q82 94 82 90L76 44L76 112Q76 115 73 115L27 115Q24 115 24 112L24 44L18 90Q18 94 15 94L10 94Q6 94 6 90L13 26Q14 19 20 16Z', l: 'M44 4L46 14L50 12L54 14L56 4M50 12L50 114M8 84L18 84M82 84L92 84M30 30L40 30L40 39L30 39Z' },
+      tee: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L90 24Q93 26 92 29L84 44Q83 46 80 45L74 41L74 112Q74 115 71 115L29 115Q26 115 26 112L26 41L20 45Q17 46 16 44L8 29Q7 26 10 24Z', l: 'M42 6Q50 17 58 6M17 40L21 33M83 40L79 33' },
+      knit: { vb: T, d: 'M32 10L42 6Q50 14 58 6L68 10L84 18Q90 22 90 30L95 94Q95 98 91 98L85 98Q82 98 82 94L75 46L75 108Q75 112 71 112L29 112Q25 112 25 108L25 46L18 94Q18 98 15 98L9 98Q5 98 5 94L10 30Q10 22 16 18Z', l: 'M42 6Q50 16 58 6M25 102L75 102M7 88L18 88M82 88L93 88M40 34L40 96M50 30L50 96M60 34L60 96' },
+      dress: { vb: T, d: 'M38 6Q40 4 41 6L44 22Q50 26 56 22L59 6Q60 4 62 6L66 28Q67 36 62 44L80 110Q81 116 75 116L25 116Q19 116 20 110L38 44Q33 36 34 28Z', l: 'M37 44Q50 48 63 44M44 22Q50 26 56 22M50 50L46 112' },
+      pants: { vb: T, d: 'M27 6L73 6L78 112Q78 115 75 115L57 115Q54 115 54 112L50 42L46 112Q46 115 43 115L25 115Q22 115 22 112Z', l: 'M27 14L73 14M50 14L50 40M30 14Q34 26 44 24M70 14Q66 26 56 24' },
+      sneaker: { vb: S, d: 'M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 72 106 72L14 72Q8 72 8 66Z', f2: '#E6E1D7', l: 'M46 36L54 44M52 32L60 40M58 30L64 36M20 54Q58 56 88 46' },
+      boot: { vb: S, d: 'M30 6L62 6Q64 6 64 8L64 46Q66 50 72 52Q100 58 106 66L106 68L28 68L28 8Q28 6 30 6Z', d2: 'M26 68L108 68Q108 76 100 76L30 76Q26 76 26 72Z', f2: '#2B2521', l: 'M40 8Q44 28 40 48M56 8Q52 28 56 48M31 6L31 1L37 1' },
+      loafer: { vb: S, d: 'M10 56Q10 46 20 44Q40 40 56 44Q80 48 98 52Q112 55 112 62L112 64L10 64Z', d2: 'M8 64L114 64Q114 71 106 71L14 71Q8 71 8 66Z', f2: '#2B2521', l: 'M52 46Q68 43 80 50M58 50L74 52' },
+      tote: { vb: A, d: 'M18 40L82 40Q86 40 86 44L90 100Q90 104 86 104L14 104Q10 104 10 100L14 44Q14 40 18 40Z', l: 'M32 40Q32 14 50 14Q68 14 68 40M38 40Q38 22 50 22Q62 22 62 40M12 56L88 56' },
+      crossbody: { vb: A, d: 'M20 56Q20 48 28 48L72 48Q80 48 80 56L80 92Q80 98 74 98L26 98Q20 98 20 92Z', l: 'M22 52Q50 -4 78 52M20 66Q50 80 80 66M47 70L53 70L53 77L47 77Z' },
+      belt: { vb: A, d: 'M50 20A34 34 0 1 1 49.9 20ZM50 33A21 21 0 1 0 50.1 33Z', l: 'M42 14L58 14L58 27L42 27ZM50 14L50 22' },
+      hat: { vb: A, d: 'M28 56Q28 28 50 28Q72 28 72 56ZM10 62Q12 56 28 56L72 56Q88 56 90 62Q92 70 80 70L20 70Q8 70 10 62Z', l: 'M28 50L72 50M36 38Q50 34 64 38' },
+      necklace: { vb: A, d: 'M45 74Q50 66 55 74L55 82Q50 90 45 82Z', l: 'M20 14Q24 64 50 70Q76 64 80 14' }
+    };
+    return this._lib;
+  }
+  line(hex) {
+    var n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b, t = lum < 90 ? 255 : 0, a = lum < 90 ? 0.3 : 0.26;
+    return 'rgb(' + Math.round(r + (t - r) * a) + ',' + Math.round(g + (t - g) * a) + ',' + Math.round(b + (t - b) * a) + ')';
+  }
+  piece(kind, hex, extra) {
+    var g = this.lib()[kind] || this.lib().tee;
+    var o = { vb: g.vb, d: g.d, d2: g.d2 || 'M0 0', f2: g.f2 || 'none', l: g.l, fill: hex, line: this.line(hex) };
+    if (extra) { for (var k in extra) o[k] = extra[k]; }
+    return o;
+  }
+  renderVals() {
+    var st = this.state, self = this, dark = this.isDark(), O = this.outfits(), TODAY = 7;
+    var days = [];
+    for (var i = 0; i < 35; i++) {
+      (function (i) {
+        var dt = self.date(i), inMonth = dt.getMonth() === 9, planId = st.plans[i], logId = st.logs[i];
+        var worn = !!logId, planned = !worn && !!planId, trip = i >= 18 && i <= 22;
+        var dots = planned ? ['top', 'bottom', 'layer'].filter(function (s) { return O[planId].s[s]; }).slice(0, 3).map(function (s) { return { hex: O[planId].s[s][1] }; }) : [];
+        var cls = 'cell' + (inMonth ? '' : ' out') + (i === TODAY ? ' today' : '') + (st.sel === i ? ' sel' : '') + (st.hover === i ? ' hover' : '') + (trip ? ' trip' : '');
+        days.push({ num: dt.getDate(), cls: cls, sel: st.sel === i, worn: worn, planned: planned, blank: !worn && !planned, dots: dots,
+          aria: dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + (worn ? ', worn' : '') + (planned ? ', planned' : ''),
+          setRef: function (el) { self.cells[i] = el; },
+          pick: function () { self.setState({ sel: i, anim: self.state.anim + 1 }); } });
+      })(i);
+    }
+    var sel = st.sel, isPast = sel < TODAY && !!st.logs[sel], isToday = sel === TODAY;
+    var planId = st.plans[sel], logId = st.logs[sel], shown = isPast ? logId : planId;
+    var hasPlan = !!planId && !isPast && sel >= TODAY;
+    var kind = isPast ? ['Outfit journal', 'var(--success)'] : (isToday ? ['Today', 'var(--accent-text)'] : (sel < TODAY ? ['Past', 'var(--muted)'] : (hasPlan ? ['Planned', 'var(--muted)'] : ['Free day', 'var(--muted)'])));
+    var notes = { 0: 'Back-to-back meetings, comfy and sharp.', 1: 'Client lunch went well.', 2: 'Errands and a long walk.', 3: 'Caught in the rain — the trench earned its keep.', 4: 'Gallery opening — the burgundy bag got compliments.', 5: 'Farmers market and brunch.', 6: 'Slow Sunday.' };
+    var dock = ['o1', 'o2', 'o3', 'o4', 'o5', 'o6'].map(function (oid) {
+      return { name: O[oid].name, pieces: self.compose(oid, 0.27, 2, 4),
+        down: function (e) { if (e.button !== undefined && e.button !== 0) return; self.pend = { oid: oid, x: e.clientX, y: e.clientY, started: false }; },
+        tap: function () { if (self.justDragged) return; self.plan(self.state.sel, oid); } };
+    });
+    var pickList = ['o1', 'o2', 'o3', 'o4', 'o5', 'o6'].map(function (oid) { return { name: O[oid].name, meta: O[oid].meta, pieces: self.compose(oid, 0.16, 2, 3), pick: function () { self.plan(self.state.sel, oid); } }; });
+    var logItems = this.compose(planId || 'o1', 1, 0, 0).map(function (p) { var on = !st.checks[p.key]; p.on = on; p.cls = on ? 'tick on' : 'tick'; p.toggle = function () { var c = Object.assign({}, self.state.checks); c[p.key] = !c[p.key]; self.setState({ checks: c }); }; return p; });
+    var shownO = shown ? O[shown] : null;
+    var selfie = shown ? (function () {
+      var o = O[shown], arr = [], add = function (slot, x, y, w, h) { var v = o.s[slot]; if (v) arr.push(self.piece(v[0], v[1], { x: x, y: y, w: w, h: h })); };
+      add('bottom', 34, 66, 50, 60); add('top', 22, 14, 74, 89); add('shoes', 26, 128, 66, 44); return arr;
+    })() : [];
+    var rowH = 60;
+    return {
+      themeClass: dark ? 'dark' : '', setRoot: this.setRoot, setGhost: this.setGhost, onMove: this.onMove, onUp: this.onUp, onLeave: this.onLeave,
+      expanded: st.expanded, collapsed: !st.expanded, toggleCal: this.toggleCal, calLabel: st.expanded ? 'Month' : 'Week', chev: st.expanded ? 'rotate(180deg)' : 'none',
+      prevWeek: this.prevWeek, nextWeek: this.nextWeek,
+      wd: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(function (l) { return { l: l }; }),
+      calH: st.expanded ? rowH * 5 - 4 : rowH - 4, calY: st.expanded ? 0 : -st.row * rowH, calMargin: st.expanded ? 0 : 28,
+      days: days,
+      kindLabel: kind[0], kindColor: kind[1], dayTitle: this.date(sel).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }), weather: this.weather(sel),
+      isTrip: sel >= 18 && sel <= 22,
+      showBoard: hasPlan, isPast: isPast, isEmpty: !hasPlan && !isPast,
+      board: shown ? this.compose(shown, 1, 0, 0) : [], selfie: selfie, outfitName: shownO ? shownO.name : '', note: notes[sel] || 'No notes',
+      boardAnim: st.anim ? (st.anim % 2 ? 'popA' : 'popB') : '',
+      loggedToday: isToday && !!st.logs[TODAY], canLog: isToday && hasPlan && !st.logs[TODAY], isFuturePlan: hasPlan && !isToday, showSwap: isToday && hasPlan,
+      openLog: this.openLog, openPick: this.openPick, clearPlan: this.clearPlan, suggest: this.suggest,
+      dock: dock, dragging: !!st.drag, ghost: st.drag ? this.compose(st.drag, 0.27, 2, 4) : [],
+      logCls: st.sheet === 'log' ? 'on' : '', pickCls: st.sheet === 'pick' ? 'on' : '', closeSheets: this.closeSheets,
+      logItems: logItems, logCount: logItems.filter(function (p) { return p.on; }).length, confirmLog: this.confirmLog,
+      selfieOn: st.selfie, toggleSelfie: this.toggleSelfie, selfieLabel: st.selfie ? 'Selfie added' : 'Add mirror selfie', selfieStyle: st.selfie ? 'background:var(--inv);color:var(--on-inv)' : 'border:1.5px dashed var(--line2)',
+      pickList: pickList,
+      toast: st.toast, toastCls: st.toastOn ? 'on' : ''
+    };
+  }
+}
+</script>
+</body>
+</html>
