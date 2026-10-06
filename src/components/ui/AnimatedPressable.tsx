@@ -1,5 +1,5 @@
 import { cssInterop } from 'nativewind';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   Pressable,
   type GestureResponderEvent,
@@ -14,7 +14,23 @@ import { useMotionReduced } from '@/theme/motion';
 import { durations, layout, springs } from '@/theme/tokens';
 
 const AnimatedPressableBase = Animated.createAnimatedComponent(Pressable);
-cssInterop(AnimatedPressableBase, { className: 'style' });
+
+type PressableShellProps = Omit<PressableProps, 'style'> & {
+  className?: string;
+  style?: StyleProp<ViewStyle>;
+  animatedStyle: ComponentProps<typeof AnimatedPressableBase>['style'];
+};
+
+/**
+ * NativeWind flattens `className` and `style` into one object. Reanimated's
+ * style handle has to stay a separate array entry: merged into that object,
+ * its `viewDescriptors` key makes Reanimated treat the whole style as animated
+ * and drop every static value (background, size, padding, flex).
+ */
+function PressableShell({ style, animatedStyle, ...rest }: PressableShellProps) {
+  return <AnimatedPressableBase style={[style, animatedStyle]} {...rest} />;
+}
+cssInterop(PressableShell, { className: 'style' });
 
 export type AnimatedPressableProps = Omit<PressableProps, 'style' | 'children'> & {
   children?: ReactNode;
@@ -71,13 +87,14 @@ export function AnimatedPressable({
   };
 
   return (
-    <AnimatedPressableBase
+    <PressableShell
       accessibilityRole={accessibilityRole}
       hitSlop={touchSlop(hitSlop)}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={handlePress}
-      style={[style, animatedStyle]}
+      style={style}
+      animatedStyle={animatedStyle}
       {...rest}
     />
   );
