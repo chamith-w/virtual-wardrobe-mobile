@@ -1,45 +1,22 @@
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useRef, useState, type ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTabBarInset } from '@/components/navigation/TabBar';
 import { EmptyState, type SheetRef } from '@/components/ui';
+import { openItem } from '@/features/items/openItem';
+import { OutfitsView } from '@/features/outfits/OutfitsView';
+import { useOutfitPicker } from '@/features/outfits/useOutfits';
 import { ClosetView } from '@/features/wardrobe/closet/ClosetView';
 import { WardrobeDoors } from '@/features/wardrobe/closet/WardrobeDoors';
 import { WardrobeHeader } from '@/features/wardrobe/components/WardrobeHeader';
-import { FilterSheet, SortSheet, WardrobeSheet } from '@/features/wardrobe/components/WardrobeSheets';
+import { FilterSheet, NewWardrobeSheet, SortSheet, WardrobeSheet } from '@/features/wardrobe/components/WardrobeSheets';
 import { activeFilterCount, facetsOf, matchesAll, sortItems } from '@/features/wardrobe/filters';
 import { GridView } from '@/features/wardrobe/grid/GridView';
-import {
-  useActiveWardrobe,
-  useWardrobeCounts,
-  useWardrobeItems,
-  useZones,
-  type ClosetItem,
-} from '@/features/wardrobe/useWardrobeData';
+import { useActiveWardrobe, useWardrobeCounts, useWardrobeItems, useZones } from '@/features/wardrobe/useWardrobeData';
 import { useSession } from '@/store/session';
-import { toast } from '@/store/toast';
 import { useWardrobeView } from '@/store/wardrobeView';
-
-/** Outfits list placeholder until phase 5. */
-function OutfitsPlaceholder({ header }: { header: ReactNode }) {
-  const insets = useSafeAreaInsets();
-  const tabInset = useTabBarInset();
-  return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabInset + 28 }}
-    >
-      {header}
-      <View className="px-5 pt-6">
-        <EmptyState title="Saved outfits" body="The outfit list and builder arrive in phase 5." illustration="shelf" />
-      </View>
-    </ScrollView>
-  );
-}
 
 /**
  * The Wardrobe tab: the stylised closet (direction A, docs/design/Closet.dc.html)
@@ -58,8 +35,10 @@ export default function WardrobeScreen() {
   const { data: allZones } = useZones();
   const { data: pieces, loaded } = useWardrobeItems(active?.id);
   const counts = useWardrobeCounts();
+  const { data: outfits } = useOutfitPicker();
 
   const wardrobeSheet = useRef<SheetRef>(null);
+  const newWardrobeSheet = useRef<SheetRef>(null);
   const filterSheet = useRef<SheetRef>(null);
   const sortSheet = useRef<SheetRef>(null);
 
@@ -73,19 +52,17 @@ export default function WardrobeScreen() {
   const zones = allZones.filter((z) => z.wardrobeId === active?.id);
   const facets = facetsOf(pieces);
   const filtering = query.trim().length > 0 || activeFilterCount(filters) > 0;
-  const matching = filtering ? pieces.filter((p) => matchesAll(p, query, filters)) : pieces;
+  // One sort for both views: the closet orders each zone by it, the grid the whole list.
+  const sorted = sortItems(pieces, sort);
+  const matching = filtering ? sorted.filter((p) => matchesAll(p, query, filters)) : sorted;
   const matchIds = filtering ? new Set(matching.map((p) => p.id)) : null;
-
-  const openItem = (item: ClosetItem) => {
-    // The item detail screen isn't routed yet.
-    toast(`Details for ${item.name} arrive with the item screen`, 'info');
-  };
 
   const header = (
     <WardrobeHeader
       wardrobe={active}
       total={pieces.length}
       matching={matching.length}
+      outfitCount={outfits.length}
       facets={facets}
       onOpenWardrobes={() => wardrobeSheet.current?.present()}
       onOpenFilters={() => filterSheet.current?.present()}
@@ -109,19 +86,18 @@ export default function WardrobeScreen() {
       {mode === 'closet' ? (
         <ClosetView
           header={header}
-          pieces={pieces}
+          pieces={sorted}
           zones={zones}
           matchIds={matchIds}
           loaded={loaded}
           empty={pieces.length === 0 ? emptyWardrobe : null}
           reveal={reveal}
           impulse={impulse}
-          onOpenDetails={openItem}
         />
       ) : mode === 'grid' ? (
         <GridView
           header={header}
-          pieces={sortItems(matching, sort)}
+          pieces={matching}
           sort={sort}
           loaded={loaded}
           empty={
@@ -137,10 +113,10 @@ export default function WardrobeScreen() {
               />
             )
           }
-          onOpenItem={openItem}
+          onOpenItem={(item, view) => openItem(item, { from: view, browseIds: matching.map((p) => p.id) })}
         />
       ) : (
-        <OutfitsPlaceholder header={header} />
+        <OutfitsView header={header} />
       )}
 
       {mode === 'closet' && doors.on ? (
@@ -165,6 +141,18 @@ export default function WardrobeScreen() {
           setActive(w.id);
           clearFilters();
           wardrobeSheet.current?.dismiss();
+        }}
+        onNew={() => {
+          wardrobeSheet.current?.dismiss();
+          newWardrobeSheet.current?.present();
+        }}
+      />
+      <NewWardrobeSheet
+        ref={newWardrobeSheet}
+        wardrobes={wardrobes}
+        onCreated={(id) => {
+          setActive(id);
+          clearFilters();
         }}
       />
       <FilterSheet ref={filterSheet} facets={facets} matching={matching.length} />

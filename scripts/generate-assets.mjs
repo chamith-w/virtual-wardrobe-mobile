@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * Renders the placeholder garment cutouts for the demo wardrobe (WebP with
- * alpha, ~1200px full + ~400px thumb) and the app icon / splash artwork, then
- * writes src/db/seed/assets.ts (a static require() map Metro can bundle).
+ * alpha, ~1200px full + ~400px thumb), a staged "original photo" of each
+ * garment (JPEG, for the flip on item detail), and the app icon / splash
+ * artwork, then writes src/db/seed/assets.ts (a static require() map Metro
+ * can bundle).
  *
  *   npm run assets
  *
@@ -250,6 +252,82 @@ function raster(svg, maxSide) {
   });
 }
 const toWebp = (svg, maxSide) => raster(svg, maxSide).webp({ quality: 88, alphaQuality: 95, effort: 6 }).toBuffer();
+
+// ---------------------------------------------------------- original photos --
+// A stand-in for the photo the cutout was made from: the garment hung on a
+// wall hook by a door (shoes stand on the floor), as on the back of the flip
+// in docs/design/ItemDetail.dc.html. 5:6, like the detail stage.
+const PHOTO_W = 750;
+const PHOTO_H = 900;
+const WALLS = ['#9A9184', '#A39A8C', '#8E8A82', '#A69F92', '#958B7E'];
+const HOOK = { x: 318, y: 118 };
+const FLOOR_Y = 752;
+const slugHash = (slug) => Math.abs([...slug].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7));
+const lighten = (hex, amount) => toHex(rgb(hex).map((v) => v + (255 - v) * amount));
+
+/** The garment SVG placed in a box of the photo. */
+function placed(garment, x, y, width, height) {
+  return garment.replace(
+    '<svg xmlns="http://www.w3.org/2000/svg" ',
+    `<svg x="${x}" y="${y}" width="${width}" height="${height}" `,
+  );
+}
+
+function photoSvg(g) {
+  const s = SHAPES[g.shape];
+  const h = slugHash(g.slug);
+  const wall = WALLS[h % WALLS.length];
+  const door = lighten(wall, 0.1);
+  const garment = garmentSvg(g.shape, g.colors);
+  const tilt = (h % 7) - 3;
+  const onFloor = s.vb === S;
+  const accessory = s.vb === A;
+
+  let subject;
+  if (onFloor) {
+    const w = 450;
+    const hgt = w / 1.424;
+    subject = `<g filter="url(#drop)">${placed(garment, 120 + (h % 40), 850 - hgt, w, hgt)}</g>`;
+  } else {
+    const w = accessory ? 330 : 430;
+    const hgt = accessory ? w * 1.1 : w * 1.175;
+    // Bags and jewellery hang by their handle or chain, right on the hook.
+    const top = accessory ? HOOK.y - 50 : HOOK.y + 44;
+    const hanger = accessory
+      ? ''
+      : `<path d="M${HOOK.x} ${HOOK.y + 8} L${HOOK.x} ${HOOK.y + 26} M${HOOK.x} ${HOOK.y + 26} L${HOOK.x - 118} ${HOOK.y + 78} L${HOOK.x + 118} ${HOOK.y + 78} Z" fill="none" stroke="#3B342D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`;
+    subject = `<g transform="rotate(${tilt} ${HOOK.x} ${HOOK.y})" filter="url(#drop)">${hanger}${placed(garment, HOOK.x - w / 2, top, w, hgt)}</g>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${PHOTO_W}" height="${PHOTO_H}" viewBox="0 0 ${PHOTO_W} ${PHOTO_H}">
+  <defs>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="12" dy="18" stdDeviation="12" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    <linearGradient id="light" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="0.6" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="0.45" cy="0.42" r="0.8">
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
+    </radialGradient>
+  </defs>
+  <rect width="${PHOTO_W}" height="${PHOTO_H}" fill="${wall}"/>
+  <rect x="452" y="-20" width="262" height="${FLOOR_Y + 20}" rx="6" fill="${door}"/>
+  <rect x="478" y="26" width="210" height="300" rx="5" fill="none" stroke="${lighten(wall, 0.2)}" stroke-width="5"/>
+  <rect x="478" y="360" width="210" height="350" rx="5" fill="none" stroke="${lighten(wall, 0.2)}" stroke-width="5"/>
+  <circle cx="476" cy="420" r="10" fill="${shade(wall, 0.42)}"/>
+  <rect y="${FLOOR_Y - 14}" width="${PHOTO_W}" height="16" fill="${shade(wall, 0.14)}"/>
+  <rect y="${FLOOR_Y}" width="${PHOTO_W}" height="${PHOTO_H - FLOOR_Y}" fill="${shade(wall, 0.3)}"/>
+  <circle cx="${HOOK.x}" cy="${HOOK.y}" r="12" fill="${shade(wall, 0.5)}"/>
+  ${subject}
+  <rect width="${PHOTO_W}" height="${PHOTO_H}" fill="url(#light)"/>
+  <rect width="${PHOTO_W}" height="${PHOTO_H}" fill="url(#vignette)"/>
+</svg>`;
+}
+
+const toPhoto = (svg) => sharp(Buffer.from(svg)).jpeg({ quality: 74, mozjpeg: true }).toBuffer();
 const toPng = (svg, size) => raster(svg, size).png({ compressionLevel: 9 }).toBuffer();
 
 // ------------------------------------------------------------ demo garments --
@@ -258,22 +336,33 @@ const entries = [...data.garments, ...data.wishlist];
 const outDir = join(root, 'assets/seed');
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(join(outDir, 'thumbs'), { recursive: true });
+mkdirSync(join(outDir, 'originals'), { recursive: true });
 
+const owned = new Set(data.garments.map((g) => g.slug));
 for (const g of entries) {
   const svg = garmentSvg(g.shape, g.colors);
   writeFileSync(join(outDir, `${g.slug}.webp`), await toWebp(svg, FULL));
   writeFileSync(join(outDir, 'thumbs', `${g.slug}.webp`), await toWebp(svg, THUMB));
+  // Wishlist entries were never photographed: no original.
+  if (owned.has(g.slug)) writeFileSync(join(outDir, 'originals', `${g.slug}.jpg`), await toPhoto(photoSvg(g)));
 }
 
 const manifest = `// Generated by scripts/generate-assets.mjs — do not edit by hand.
 /* eslint-disable */
 
-/** Bundled placeholder cutouts for the demo wardrobe, keyed by slug. */
-export const SEED_IMAGES: Record<string, { cutout: number; thumb: number }> = {
+/** Bundled placeholder images for the demo wardrobe, keyed by slug. */
+export const SEED_IMAGES: Record<string, { cutout: number; thumb: number; original?: number }> = {
 ${entries
-  .map(
-    (g) =>
-      `  '${g.slug}': {\n    cutout: require('../../../assets/seed/${g.slug}.webp'),\n    thumb: require('../../../assets/seed/thumbs/${g.slug}.webp'),\n  },`,
+  .map((g) =>
+    [
+      `  '${g.slug}': {`,
+      `    cutout: require('../../../assets/seed/${g.slug}.webp'),`,
+      `    thumb: require('../../../assets/seed/thumbs/${g.slug}.webp'),`,
+      owned.has(g.slug) ? `    original: require('../../../assets/seed/originals/${g.slug}.jpg'),` : null,
+      `  },`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
   )
   .join('\n')}
 };

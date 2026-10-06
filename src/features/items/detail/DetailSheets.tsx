@@ -1,13 +1,23 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { Plus } from 'lucide-react-native';
-import { useState, type RefObject } from 'react';
+import { router } from 'expo-router';
+import { Plus, Sparkles } from 'lucide-react-native';
+import { useState, type ReactNode, type RefObject } from 'react';
 import { View } from 'react-native';
 
 import { AnimatedPressable, Button, CheckBadge, Chip, Sheet, Text, type SheetRef } from '@/components/ui';
 import type { Wardrobe } from '@/db/schema';
 import { moveToWardrobe } from '@/features/items/actions';
-import { ARCHIVE_REASON_LABEL, ARCHIVE_REASONS, type ArchiveReason } from '@/features/items/catalog';
+import {
+  ARCHIVE_REASON_LABEL,
+  ARCHIVE_REASONS,
+  CATEGORIES,
+  CATEGORY_LABEL,
+  type ArchiveReason,
+  type Category,
+} from '@/features/items/catalog';
+import { updateItemBasics } from '@/features/items/mutations';
 import { isStorageWardrobe } from '@/features/items/placement';
+import { cleanName } from '@/features/wardrobe/wardrobes';
 import { toggleItemInOutfit } from '@/features/outfits/mutations';
 import { useOutfitPicker } from '@/features/outfits/useOutfits';
 import { haptics } from '@/lib/haptics';
@@ -29,7 +39,7 @@ function Row({
   title: string;
   hint: string;
   last: boolean;
-  trailing: React.ReactNode;
+  trailing: ReactNode;
   onPress: () => void;
   checked: boolean;
 }) {
@@ -40,9 +50,10 @@ function Row({
       accessibilityLabel={`${title}, ${hint}`}
       onPress={onPress}
       scaleTo={0.98}
-      className={['min-h-[58px] flex-row items-center justify-between gap-3 py-2', last ? '' : 'border-b border-line'].join(
-        ' ',
-      )}
+      className={[
+        'min-h-[58px] flex-row items-center justify-between gap-3 py-2',
+        last ? '' : 'border-b border-line',
+      ].join(' ')}
     >
       <View className="flex-1 gap-0.5">
         <Text variant="body" weight="medium">
@@ -55,14 +66,40 @@ function Row({
   );
 }
 
-/** Add this piece to (or take it out of) saved outfits. */
+/** Add this piece to (or take it out of) saved outfits, or start a new one around it. */
 export function AddToOutfitSheet({ ref, item }: SheetProps & { item: ItemRef }) {
   const { colors } = useTheme();
   const { data: outfits } = useOutfitPicker();
   return (
-    <Sheet ref={ref} title="Add to outfit" eyebrow={item.name}>
+    <Sheet
+      ref={ref}
+      title="Add to outfit"
+      eyebrow={item.name}
+      snapPoints={outfits.length > 5 ? ['72%'] : undefined}
+      scrollable={outfits.length > 5}
+    >
+      <AnimatedPressable
+        accessibilityLabel={`New outfit with ${item.name}`}
+        accessibilityHint="Opens the outfit builder"
+        onPress={() => {
+          ref.current?.dismiss();
+          router.push({ pathname: '/outfit/new', params: { itemId: item.id } });
+        }}
+        scaleTo={0.98}
+        className="mb-1 min-h-[58px] flex-row items-center gap-3 rounded-md bg-accent-soft px-3.5 py-2"
+      >
+        <View className="h-9 w-9 items-center justify-center rounded-pill bg-accent-strong">
+          <Sparkles size={17} color={colors.onAccent} strokeWidth={2} />
+        </View>
+        <View className="flex-1 gap-0.5">
+          <Text variant="body" weight="semibold">
+            New outfit
+          </Text>
+          <Text variant="caption">Start a board with this piece</Text>
+        </View>
+      </AnimatedPressable>
       {outfits.length === 0 ? (
-        <Text variant="bodySm" tone="muted">
+        <Text variant="bodySm" tone="muted" className="mt-3">
           No saved outfits yet. Outfits you build will be listed here.
         </Text>
       ) : (
@@ -132,7 +169,10 @@ export function MoveSheet({
 }
 
 /** Archive as donated, sold or discarded, with an optional reason. */
-export function ArchiveSheet({ ref, onArchive }: SheetProps & { onArchive: (reason: ArchiveReason, note: string) => void }) {
+export function ArchiveSheet({
+  ref,
+  onArchive,
+}: SheetProps & { onArchive: (reason: ArchiveReason, note: string) => void }) {
   const { colors } = useTheme();
   const [reason, setReason] = useState<ArchiveReason>('donated');
   const [note, setNote] = useState('');
@@ -180,6 +220,88 @@ export function ArchiveSheet({ ref, onArchive }: SheetProps & { onArchive: (reas
         className="mt-5"
         onPress={() => onArchive(reason, note)}
       />
+    </Sheet>
+  );
+}
+
+/** Minimal editor for now: name and category. The full details sheet arrives with the add flow. */
+export function EditSheet({ ref, item }: SheetProps & { item: ItemRef & { category: Category } }) {
+  const { colors } = useTheme();
+  const [name, setName] = useState(item.name);
+  const [category, setCategory] = useState<Category>(item.category);
+  const cleaned = cleanName(name, 60);
+  const changed = cleaned !== item.name || category !== item.category;
+
+  const save = () => {
+    if (!cleaned) return;
+    if (changed) {
+      updateItemBasics(item.id, { name: cleaned, category });
+      haptics.statusChanged();
+      toast(category !== item.category ? `Saved · now in ${CATEGORY_LABEL[category]}` : 'Saved');
+    }
+    ref.current?.dismiss();
+  };
+
+  return (
+    <Sheet
+      ref={ref}
+      title="Edit piece"
+      snapPoints={['78%']}
+      scrollable
+      onDismiss={() => {
+        // Drop an unsaved draft so the next open starts from the piece as it is.
+        setName(item.name);
+        setCategory(item.category);
+      }}
+    >
+      <Text variant="eyebrow" className="mb-2">
+        Name
+      </Text>
+      <BottomSheetTextInput
+        value={name}
+        onChangeText={setName}
+        onSubmitEditing={save}
+        placeholder="Camel wool coat"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.accent}
+        returnKeyType="done"
+        autoCapitalize="sentences"
+        maxLength={60}
+        accessibilityLabel="Name"
+        maxFontSizeMultiplier={1.5}
+        style={{
+          height: 48,
+          borderRadius: 14,
+          paddingHorizontal: 14,
+          backgroundColor: colors.surfaceTinted,
+          fontFamily: fontFamily.sansMedium,
+          fontSize: 16,
+          color: colors.ink,
+        }}
+      />
+      {!cleaned ? (
+        <Text variant="caption" tone="danger" className="mt-1.5">
+          Give it a name
+        </Text>
+      ) : null}
+      <Text variant="eyebrow" className="mb-2.5 mt-5">
+        Category
+      </Text>
+      <View className="flex-row flex-wrap gap-2" accessibilityRole="radiogroup" accessibilityLabel="Category">
+        {CATEGORIES.map((c) => (
+          <Chip
+            key={c}
+            label={CATEGORY_LABEL[c]}
+            selected={c === category}
+            accessibilityRole="radio"
+            onPress={() => setCategory(c)}
+          />
+        ))}
+      </View>
+      <Text variant="caption" className="mt-4">
+        Colours, seasons, price and care notes come with the full details sheet.
+      </Text>
+      <Button label="Save" fullWidth className="mt-5" disabled={!cleaned} onPress={save} />
     </Sheet>
   );
 }

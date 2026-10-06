@@ -6,8 +6,11 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvide
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FullWindowOverlay } from 'react-native-screens';
 
+import { ToastHost } from '@/components/ui';
 import { DatabaseGate } from '@/db/DatabaseGate';
 import { appFonts } from '@/theme/fonts';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
@@ -38,7 +41,26 @@ function AppStack() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="design-system" options={{ presentation: 'modal' }} />
+        {/* Transparent and unanimated: the screen flies the tapped thumbnail in over the list itself. */}
+        <Stack.Screen
+          name="item/[id]"
+          options={{
+            presentation: 'transparentModal',
+            animation: 'none',
+            contentStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <Stack.Screen name="outfit/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="outfit/new" options={{ presentation: 'modal' }} />
       </Stack>
+      {/* iOS presents modals in their own window layer; the overlay keeps toasts above them. */}
+      {Platform.OS === 'ios' ? (
+        <FullWindowOverlay>
+          <ToastHost />
+        </FullWindowOverlay>
+      ) : (
+        <ToastHost />
+      )}
     </NavigationThemeProvider>
   );
 }

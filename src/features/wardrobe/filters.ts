@@ -145,15 +145,22 @@ export type SortableItem = {
 const time = (d: Date | null) => (d ? d.getTime() : 0);
 
 /**
- * Position on the colour wheel: neutrals first, light to dark, then chromatic
- * colours by hue.
+ * Where the colour wheel starts. Burgundy (~350°) and red (~3°) sit either
+ * side of 0°, so starting at 340° keeps the reds and pinks together.
  */
-export function colorSortKey(colors: ItemColor[]): number {
+const WHEEL_START = 340;
+
+/**
+ * Position on the colour wheel: neutrals grouped first, light to dark, then
+ * chromatic colours by hue from burgundy round to lilac. Pieces without a
+ * colour go last.
+ */
+export function colorSortKey(colors: readonly ItemColor[]): number {
   const primary = colors[0];
   if (!primary) return 2000;
   const { h, l } = hexToHsl(primary.hex);
   if (isNeutral(primary)) return (1 - l) * 100;
-  return 1000 + h;
+  return 1000 + ((h - WHEEL_START + 360) % 360);
 }
 
 /** Returns a new array; ties fall back to name so the order is stable. */

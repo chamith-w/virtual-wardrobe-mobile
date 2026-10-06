@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import Animated, {
@@ -10,6 +10,7 @@ import Animated, {
   useSharedValue,
   withSpring,
   withTiming,
+  type FrameCallback,
   type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -28,11 +29,13 @@ import { ClosetPiece } from './ClosetPiece';
 
 const AnimatedGHScrollView = Animated.createAnimatedComponent(GHScrollView);
 
+export type PressPiece = (item: ClosetItem, view: View | null) => void;
+
 type ZoneProps = {
   zone: Zone;
   pieces: ClosetItem[];
   isDimmed: (item: ClosetItem) => boolean;
-  onPressPiece: (item: ClosetItem) => void;
+  onPressPiece: PressPiece;
   /** Show the zone's own name (when a section holds several zones of one type). */
   labelled?: boolean;
 };
@@ -50,16 +53,18 @@ const RAIL_CUTOUT = { width: 92, height: 110, left: -3, top: 19 };
 
 function RailHanger({
   item,
+  zoneId,
   index,
   sway,
   dimmed,
   onPress,
 }: {
   item: ClosetItem;
+  zoneId: string;
   index: number;
   sway: SharedValue<number>;
   dimmed: boolean;
-  onPress: (item: ClosetItem) => void;
+  onPress: PressPiece;
 }) {
   const { colors } = useTheme();
   const k = swayFactor(item);
@@ -73,6 +78,7 @@ function RailHanger({
       <View style={{ position: 'absolute', left: RAIL_CUTOUT.left, top: RAIL_CUTOUT.top }}>
         <ClosetPiece
           item={item}
+          zoneId={zoneId}
           width={RAIL_CUTOUT.width}
           height={RAIL_CUTOUT.height}
           dimmed={dimmed}
@@ -107,7 +113,9 @@ export function HangingRail({
   const lastT = useSharedValue(0);
   const running = useSharedValue(false);
 
-  const stopPhysics = () => physics.setActive(false);
+  // The frame loop stops itself once settled; the ref lets the worklet reach it.
+  const physicsRef = useRef<FrameCallback | null>(null);
+  const stopPhysics = () => physicsRef.current?.setActive(false);
   const physics = useFrameCallback((frame) => {
     const dt = Math.min(0.032, Math.max(0.001, (frame.timeSincePreviousFrame ?? 16) / 1000));
     // No scroll events for a moment: the finger is holding still, let it settle.
@@ -127,6 +135,9 @@ export function HangingRail({
     velocity.set(nv);
     sway.set(nx);
   }, false);
+  useEffect(() => {
+    physicsRef.current = physics;
+  }, [physics]);
   const startPhysics = () => physics.setActive(true);
 
   const kick = () => {
@@ -199,7 +210,15 @@ export function HangingRail({
               contentContainerStyle={{ paddingHorizontal: 14, paddingBottom: 8 }}
             >
               {pieces.map((p, i) => (
-                <RailHanger key={p.id} item={p} index={i} sway={sway} dimmed={isDimmed(p)} onPress={onPressPiece} />
+                <RailHanger
+                  key={p.id}
+                  item={p}
+                  zoneId={zone.id}
+                  index={i}
+                  sway={sway}
+                  dimmed={isDimmed(p)}
+                  onPress={onPressPiece}
+                />
               ))}
             </AnimatedGHScrollView>
           </View>
@@ -234,6 +253,7 @@ export function ShelfBand({ zone, pieces, isDimmed, onPressPiece }: ZoneProps) {
             <ClosetPiece
               key={p.id}
               item={p}
+              zoneId={zone.id}
               width={72}
               height={86}
               dimmed={isDimmed(p)}
@@ -306,6 +326,7 @@ function Drawer({
               <ClosetPiece
                 key={p.id}
                 item={p}
+                zoneId={zone.id}
                 width={58}
                 height={70}
                 dimmed={isDimmed(p)}
@@ -362,7 +383,7 @@ export function DrawerStack({
   zones: Zone[];
   piecesOf: (zoneId: string) => ClosetItem[];
   isDimmed: (item: ClosetItem) => boolean;
-  onPressPiece: (item: ClosetItem) => void;
+  onPressPiece: PressPiece;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   return (
@@ -409,6 +430,7 @@ export function ShoeRack({ zone, pieces, isDimmed, onPressPiece, labelled }: Zon
             <ClosetPiece
               key={p.id}
               item={p}
+              zoneId={zone.id}
               width={94}
               height={66}
               dimmed={isDimmed(p)}
@@ -459,6 +481,7 @@ export function AccessoryTray({ zone, pieces, isDimmed, onPressPiece, labelled }
             <View key={p.id} style={{ transform: [{ rotate: `${trayTilt(p.id)}deg` }] }}>
               <ClosetPiece
                 item={p}
+                zoneId={zone.id}
                 width={72}
                 height={80}
                 dimmed={isDimmed(p)}

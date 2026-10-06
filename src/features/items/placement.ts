@@ -30,7 +30,7 @@ export function isStorageWardrobe(wardrobe: Pick<WardrobeLite, 'icon'>): boolean
  * wardrobes usually have shelves but no drawers.
  */
 export function zoneFor(
-  zones: ZoneLite[],
+  zones: readonly ZoneLite[],
   wardrobeId: string,
   category: Category,
   preferredType?: ZoneType,
@@ -47,8 +47,28 @@ export function zoneFor(
   return inWardrobe[0]?.id ?? null;
 }
 
-function byId<T extends { id: string }>(rows: T[], id: string | null | undefined): T | undefined {
+function byId<T extends { id: string }>(rows: readonly T[], id: string | null | undefined): T | undefined {
   return id ? rows.find((r) => r.id === id) : undefined;
+}
+
+/**
+ * The zone after an edit changes the category. A piece sitting in its old
+ * category's kind of zone follows the new category (a top retagged as a
+ * T-shirt moves from the rail to a shelf); one the user dragged somewhere
+ * else stays put.
+ */
+export function zoneAfterCategoryChange(
+  item: Pick<PlacedItem, 'wardrobeId' | 'zoneId' | 'category'>,
+  next: Category,
+  zones: readonly ZoneLite[],
+): string | null {
+  if (next === item.category) return item.zoneId;
+  const current = byId(zones, item.zoneId);
+  if (current && current.wardrobeId === item.wardrobeId) {
+    if (current.type !== CATEGORY_DEFAULT_ZONE[item.category]) return current.id;
+    if (current.type === CATEGORY_DEFAULT_ZONE[next]) return current.id;
+  }
+  return zoneFor(zones, item.wardrobeId, next);
 }
 
 /** The wardrobe an item returns to when it comes out of storage. */

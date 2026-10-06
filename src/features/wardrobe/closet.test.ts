@@ -1,4 +1,73 @@
-import { gridTileHeight, swayFactor, trayTilt, zoneMeta, zoneSections } from './closet';
+import type { Category } from '@/features/items/catalog';
+import type { ZoneLite } from '@/features/items/placement';
+
+import { gridTileHeight, groupByZone, resolveDrop, swayFactor, trayTilt, zoneMeta, zoneSections } from './closet';
+
+const homeZones: ZoneLite[] = [
+  { id: 'rail', wardrobeId: 'home', type: 'rail', sortOrder: 0 },
+  { id: 'knit', wardrobeId: 'home', type: 'shelf', sortOrder: 1 },
+  { id: 'denim', wardrobeId: 'home', type: 'shelf', sortOrder: 2 },
+  { id: 'socks', wardrobeId: 'home', type: 'drawer', sortOrder: 3 },
+  { id: 'shoes', wardrobeId: 'home', type: 'shoes', sortOrder: 4 },
+  { id: 'tray', wardrobeId: 'home', type: 'accessories', sortOrder: 5 },
+];
+const piece = (id: string, category: Category, zoneId: string | null) => ({ id, category, zoneId, wardrobeId: 'home' });
+
+describe('groupByZone', () => {
+  it('keeps each piece in its own zone, in the order given', () => {
+    const grouped = groupByZone(
+      [piece('c', 'coats', 'rail'), piece('k', 'knitwear', 'denim'), piece('d', 'dresses', 'rail')],
+      homeZones,
+    );
+    expect(grouped.get('rail')?.map((p) => p.id)).toEqual(['c', 'd']);
+    expect(grouped.get('denim')?.map((p) => p.id)).toEqual(['k']);
+    expect(grouped.has('knit')).toBe(false);
+  });
+
+  it('hangs new and orphaned pieces in their category default zone', () => {
+    const grouped = groupByZone(
+      [
+        piece('new-coat', 'coats', null),
+        piece('new-boots', 'shoes', null),
+        piece('new-socks', 'socks', null),
+        piece('stray-bag', 'bags', 'deleted-zone'),
+        piece('tee', 'tshirts', 'storage-shelf'),
+      ],
+      homeZones,
+    );
+    expect(grouped.get('rail')?.map((p) => p.id)).toEqual(['new-coat']);
+    expect(grouped.get('shoes')?.map((p) => p.id)).toEqual(['new-boots']);
+    expect(grouped.get('socks')?.map((p) => p.id)).toEqual(['new-socks']);
+    expect(grouped.get('tray')?.map((p) => p.id)).toEqual(['stray-bag']);
+    expect(grouped.get('knit')?.map((p) => p.id)).toEqual(['tee']);
+  });
+
+  it('drops pieces when the wardrobe has no zones at all', () => {
+    expect(groupByZone([piece('c', 'coats', null)], []).size).toBe(0);
+  });
+});
+
+describe('resolveDrop', () => {
+  const zones = [...homeZones, { id: 's-rail', wardrobeId: 'storage', type: 'rail' as const, sortOrder: 0 }];
+
+  it('moves a coat from the rail to a shelf', () => {
+    expect(resolveDrop('rail', 'knit', zones)?.id).toBe('knit');
+  });
+
+  it('ignores drops on the same zone or outside every zone', () => {
+    expect(resolveDrop('rail', 'rail', zones)).toBeNull();
+    expect(resolveDrop('rail', '', zones)).toBeNull();
+    expect(resolveDrop('rail', 'nowhere', zones)).toBeNull();
+  });
+
+  it('never moves a piece into another wardrobe', () => {
+    expect(resolveDrop('rail', 's-rail', zones)).toBeNull();
+  });
+
+  it('accepts a piece whose zone is unknown', () => {
+    expect(resolveDrop(null, 'shoes', zones)?.id).toBe('shoes');
+  });
+});
 
 describe('zoneSections', () => {
   it('groups zones by type in order of first appearance', () => {

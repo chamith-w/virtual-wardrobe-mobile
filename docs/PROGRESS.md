@@ -3,8 +3,8 @@
 | Phase | Scope                                                                                | Status  |
 | ----- | ------------------------------------------------------------------------------------ | ------- |
 | 1     | Setup: project, tokens, fonts, theme, primitives, tab bar, schema + migrations, seed | ✅ Done |
-| 2     | Wardrobe: closet view with zones, grid view, search/filter/sort, item detail         | ⏳ Next |
-| 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      |         |
+| 2     | Wardrobe: closet view with zones, grid view, search/filter/sort, item detail         | ✅ Done |
+| 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ⏳ Next |
 | 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        |         |
 | 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            |         |
 | 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  |         |
@@ -23,6 +23,36 @@
 - **Placeholder screens** read real data: Today shows status tiles, Wardrobe shows zones with thumbnails and empty hangers for pieces that are out, Planner shows upcoming plans, and Me has settings plus "Reset demo data" in a sheet.
 - **Tests (59):** WCAG contrast for every text/background token pair in both themes, dates, colour helpers, and seed-plan consistency.
 
+## Phase 2: what exists
+
+Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressable style fix), `517e549` (closet wired into the tab) and the phase 2 close-out.
+
+- **Closet (direction A):** zones stacked vertically, each scrolling sideways. The hanging rail has swaying hangers: tilt follows scroll velocity on the UI thread with the prototype's spring (k 170, c 9), and coats swing less than silk. Shelves are tinted bands; drawers spring open one at a time. There's a shoe rack on two bars and a tilted accessories tray. Pieces pop in staggered. The doors play once per session (a fade under Reduce Motion) and can be replayed from the header. Pieces that are out leave an empty hanger, or a dashed ghost on shelves and the rack, with a status tag.
+- **Drag between zones:** long-press lifts a tilted ghost. The page auto-scrolls near the edges, the target zone lights up, and the drop persists `items.zoneId` with the `dropSuccess` haptic. A piece without a valid zone hangs in its category's default zone (`groupByZone`). Drops resolve through `resolveDrop`: never into another wardrobe, never a no-op move.
+- **Grid:** FlashList 2 masonry of thumbnails. Cells are memoised, cards rise on first render, and pieces that are out are dimmed and tagged.
+- **Outfits segment:** saved outfits as a masonry of mini boards, with All / Favourites / occasion chips and a heart on each card. A card opens `/outfit/[id]` (board, pieces, tags). The header's "New outfit" opens the `/outfit/new` placeholder until phase 5.
+- **Search, filters, sort (shared):** words match name, brand, material, category and colour names. Filter sheet and quick chips cover category, colour swatches, season, occasion, status and brand; non-matching pieces dim in the Closet and are hidden in the Grid. One sort drives both views (the Closet sorts within each zone): recent, most worn, least worn, cost per wear, colour.
+- **Wardrobe switcher:** Home, Storage and "+ New" (name, plus Wardrobe or Storage, created with default zones).
+- **Cutout:** `components/ui/Cutout` draws the image in Skia with a two-layer drop shadow built from its alpha mask, under a pixel-budgeted decode cache. Lists read `thumbUri` only; the full 1200px cutout loads only on detail.
+- **Item detail (`/item/[id]`):** a transparent modal that draws its own entrance. The tapped thumbnail flies into place over the list, and flies back on close. The background is tinted from the garment's dominant colour (`mixHex`, 0.76 / 0.72) with a deeper disc (0.55 / 0.5), cross-fading over 0.8s while you page (swipe or arrows) through the list it was opened from. Pinch and double-tap zoom (1.65×), with pan while zoomed. A 3D flip shows the original photo and is hidden when there is none. Also on the page:
+  - stats: times worn, cost per wear, last worn, days since added
+  - status switcher, with a lent card (who and since when)
+  - Wear today (toggles today's wear log)
+  - Add to outfit: a membership sheet plus a "New outfit" row
+  - Find matches
+  - Edit: name and category
+  - Move to another wardrobe
+  - Archive as donated, sold or discarded, with a reason
+  - the outfits that include the piece
+  - a details list
+  - a favourite heart
+
+  Pull down (iOS) or press Android back to close.
+
+- **Demo originals:** `npm run assets` now also renders a staged "original photo" (the garment on a hook by a door) for each demo garment into `assets/seed/originals/`, and the seed stores it as `originalUri`.
+- **Already done for phase 4:** status switching (storage moves the piece to the Storage wardrobe and back), lent-to and lent-since, Wear today with the wear cache kept in sync, Move to another wardrobe, and creating wardrobes. Phase 4 should build on `features/items/{actions,mutations,placement}.ts` rather than redo them.
+- **Tests (168):** added colour sort (wheel order, ties, colourless last), cost-per-wear ranking (unworn, free, unpriced), least-worn ordering, zone grouping and drops, category-change zones, hero geometry, the detail copy (stats, eyebrow, byline, details rows), new-wardrobe planning and outfit list filters.
+
 ## Decisions
 
 1. **Routes live in `src/app`.** That's the SDK 57 template default and what `AGENTS.md` expects. Everything else follows the spec's feature folders under `src/`.
@@ -36,22 +66,31 @@
 9. **Tab bar blur:** iOS uses expo-blur. Android uses an opaque glass fill, because Android blur needs a `BlurTargetView` around the content.
 10. **Preferences** (theme, units, currency, reduce motion) live in a persisted Zustand store backed by `expo-sqlite/kv-store`. No AsyncStorage dependency.
 11. **Added `expo-blur`.** It isn't in the spec's stack list; it's used for the frosted tab bar.
+12. **Bundle ID is `com.chamithwijesooriya.mycloset`** on iOS and Android.
+13. **`plugins/withoutPushEntitlement.js` strips the iOS push capability** that expo-notifications adds, so a free Personal Team can sign the app. Reminders are local notifications only. It must stay listed before `expo-notifications` in `app.json`.
+14. **Wardrobe direction A** (stacked zones) is built. B and C stay as prototypes.
+15. **Detail transition is a custom overlay.** Reanimated 4.5.1's shared element transitions sit behind a static feature flag that is off by default (`ENABLE_SHARED_ELEMENT_TRANSITIONS`), so they are still experimental. `/item/[id]` is a `transparentModal` with `animation: 'none'`. The screen flies a hero cutout from the measured thumbnail to the stage on a spring (pure geometry in `detail/hero.ts`) while the tint fades in and the card slides up. The tapped piece is hidden in its list meanwhile. On close it flies back if it's still the same piece in the same wardrobe and isn't zoomed or flipped; otherwise the page fades. Under Reduce Motion everything is a 200ms fade.
+16. **Closet tap opens the quick sheet, Grid tap opens detail**, as in the prototypes. From the quick sheet, the hero leaves the sheet's thumbnail and returns to the piece's spot in the closet.
+17. **Item detail hosts its own `BottomSheetModalProvider`.** A transparent modal is a separate native presentation on iOS, so sheets from the root provider would open behind it.
+18. **The toast host is mounted in the root layout.** It never was, so the existing toasts were silent. On iOS it sits in a `FullWindowOverlay` so toasts also show above modals.
+19. **One sort for both views.** The Closet orders each zone by it, so colour sort gives a rainbow rail. The sort control now shows in the Closet too.
+20. **Colour order:** neutrals first, light to dark; then hues from 340° round the wheel, so burgundy and red sit together; pieces with no colour last.
+21. **Cost per wear** is price ÷ max(1, wears): an unworn piece counts as one wear, so it shows its full price. Free pieces sort first; unpriced pieces sort last and show "—".
+22. **Editing the category** moves a piece to the new category's zone only if it was in its old category's kind of zone. A piece you dragged somewhere else stays put.
+23. **"+ New" wardrobe** offers Wardrobe (Home's zones) or Storage (archive icon, storage zones, pieces count as stored). Names are unique, ignoring case, and capped at 32 characters.
+24. **"Add to outfit"** keeps the working membership sheet (add or remove the piece from saved outfits) and adds a "New outfit" row to the `/outfit/new` placeholder.
+25. **Find matches** draws from every wardrobe (stored and out pieces score lower). Tapping a match switches the detail to it in place.
+26. **Demo originals are rendered, not photographed.** About 14KB each, roughly 0.5MB in all. Existing installs need Me → Reset demo data to get them. Re-running `npm run assets` re-encodes every image with slightly different bytes, so when only new files are wanted, restore the committed cutouts and icons afterwards.
 
 ## Open questions
 
-1. **Wardrobe direction:** A (stacked zones, the spec default), B (elevation, tap to zoom) or C (editorial spreads)? Phase 2 builds A unless told otherwise.
-2. **Onboarding** isn't in any phase of the spec. Proposal: build it in phase 3 (alongside the camera permission flow) or phase 8.
-3. **Bundle identifier** is `com.mycloset.app`. Change it in `app.json` before building to a physical device or the stores.
-4. **Real garment photos:** the owner plans to upload cutouts and photos. They can replace the placeholders in `assets/seed/` (keep the slugs, run `npm run assets` only for regenerated placeholders), or be added through the phase 3 flow.
-5. **Background removal library (phase 3):** pick a maintained Expo module or community library for iOS Vision and ML Kit Subject Segmentation once phase 3 starts, and verify it against SDK 57.
+1. **Onboarding** isn't in any phase of the spec. Proposal: build it in phase 3 (alongside the camera permission flow) or phase 8.
+2. **Real garment photos:** the owner plans to upload cutouts and photos. They can replace the placeholders in `assets/seed/` (keep the slugs; originals go in `assets/seed/originals/<slug>.jpg`), or be added through the phase 3 flow.
+3. **Background removal library (phase 3):** pick a maintained Expo module or community library for iOS Vision and ML Kit Subject Segmentation once phase 3 starts, and verify it against SDK 57.
+4. **"Remind me to ask for it back"** (the lent card in `ItemDetail.dc.html`) needs scheduled local notifications. Proposal: phase 4, with the lent screen.
+5. **Archived pieces** leave every view. Where should they be listed and restored from? Proposal: Me → Insights or a "Donated & sold" list in phase 7.
+6. **Closet tap:** it opens the quick sheet first (as the prototype does) rather than going straight to detail. Say if you'd rather skip the sheet.
 
-## Next: phase 2 checklist
+## Next: phase 3
 
-- Closet view: rail, shelves, drawers (slide open), shoe rack, accessories tray; zones stacked vertically, each scrolling horizontally.
-- Swaying hangers (scroll velocity → spring tilt) and the empty-hanger visuals for out items.
-- Wardrobe doors on first open per session.
-- Grid view: masonry with FlashList v2.
-- Search, filter chips (category, colour swatches, season, occasion, status, brand) and the sort sheet (recent, most worn, least worn, cost per wear, colour).
-- Wardrobe switcher (Home and Storage).
-- Item detail: colour-tinted background, pinch to zoom, flip to the original photo, stats, status switcher, actions, and the outfits that include the item.
-- Skia silhouette shadow component for cutouts, built from the alpha mask.
+See `docs/phases/phase-3.md`: capture with a garment guide, background removal (open question 3), colour extraction with LAB/ΔE naming, the details sheet (replacing the minimal Edit sheet), and the fly-in into the piece's default zone.

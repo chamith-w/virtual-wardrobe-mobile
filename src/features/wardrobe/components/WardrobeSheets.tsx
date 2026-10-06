@@ -1,27 +1,27 @@
-import type { ReactNode, Ref, RefObject } from 'react';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { Plus } from 'lucide-react-native';
+import { useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { View } from 'react-native';
 
 import { AnimatedPressable, Button, CheckBadge, Chip, Sheet, Swatch, Text, type SheetRef } from '@/components/ui';
 import type { Wardrobe, Zone } from '@/db/schema';
-import {
-  GROUP_LABEL,
-  OCCASION_LABEL,
-  OCCASIONS,
-  SEASON_LABEL,
-  SEASONS,
-  STATUS_LABEL,
-} from '@/features/items/catalog';
+import { GROUP_LABEL, OCCASION_LABEL, OCCASIONS, SEASON_LABEL, SEASONS, STATUS_LABEL } from '@/features/items/catalog';
 import { isStorageWardrobe } from '@/features/items/placement';
 import { STATUS_TONE } from '@/features/items/status';
 import { SORT_OPTIONS, toggleIn, type Facets } from '@/features/wardrobe/filters';
+import { createWardrobe } from '@/features/wardrobe/mutations';
+import { planWardrobe, WARDROBE_NAME_MAX, wardrobeNameProblem, type WardrobeKind } from '@/features/wardrobe/wardrobes';
+import { haptics } from '@/lib/haptics';
+import { toast } from '@/store/toast';
 import { useWardrobeView } from '@/store/wardrobeView';
 import { useTheme } from '@/theme/ThemeProvider';
+import { fontFamily } from '@/theme/tokens';
 
-import { wardrobeIcon } from './WardrobeHeader';
+import { WardrobeIcon } from './WardrobeHeader';
 
 // --------------------------------------------------------------- wardrobes --
 
-/** Choose which wardrobe the tab shows (Home, Storage…). */
+/** Choose which wardrobe the tab shows (Home, Storage…), or start a new one. */
 export function WardrobeSheet({
   ref,
   wardrobes,
@@ -29,6 +29,7 @@ export function WardrobeSheet({
   counts,
   activeId,
   onPick,
+  onNew,
 }: {
   ref: Ref<SheetRef>;
   wardrobes: Wardrobe[];
@@ -36,12 +37,12 @@ export function WardrobeSheet({
   counts: Record<string, number>;
   activeId: string | undefined;
   onPick: (wardrobe: Wardrobe) => void;
+  onNew: () => void;
 }) {
   const { colors } = useTheme();
   return (
     <Sheet ref={ref} title="Wardrobes">
       {wardrobes.map((w, i) => {
-        const Icon = wardrobeIcon(w.icon);
         const n = counts[w.id] ?? 0;
         const drawers = zones.filter((z) => z.wardrobeId === w.id && z.type === 'drawer').length;
         const hint = isStorageWardrobe(w)
@@ -62,7 +63,7 @@ export function WardrobeSheet({
             ].join(' ')}
           >
             <View className="h-[46px] w-[46px] items-center justify-center rounded-[16px] bg-surface-tinted">
-              <Icon size={22} color={colors.ink} strokeWidth={1.8} />
+              <WardrobeIcon icon={w.icon} size={22} color={colors.ink} />
             </View>
             <View className="flex-1 gap-0.5">
               <Text variant="body" weight="semibold">
@@ -74,6 +75,134 @@ export function WardrobeSheet({
           </AnimatedPressable>
         );
       })}
+      <AnimatedPressable
+        accessibilityLabel="New wardrobe"
+        accessibilityHint="Adds another place you keep clothes"
+        onPress={onNew}
+        scaleTo={0.98}
+        className="mt-1 min-h-[68px] flex-row items-center gap-3.5 border-t border-line py-2.5"
+      >
+        <View className="h-[46px] w-[46px] items-center justify-center rounded-[16px] border-[1.5px] border-dashed border-line-strong">
+          <Plus size={20} color={colors.ink} strokeWidth={1.9} />
+        </View>
+        <View className="flex-1 gap-0.5">
+          <Text variant="body" weight="semibold">
+            New wardrobe
+          </Text>
+          <Text variant="caption">A second home, a holiday place, a storage box</Text>
+        </View>
+      </AnimatedPressable>
+    </Sheet>
+  );
+}
+
+const KINDS: { value: WardrobeKind; label: string; hint: string }[] = [
+  { value: 'wardrobe', label: 'Wardrobe', hint: 'Rail, shelves, drawers, shoes and a tray' },
+  { value: 'storage', label: 'Storage', hint: 'Off-season: pieces here count as stored' },
+];
+
+/** Name a new wardrobe and choose whether it's a wardrobe or storage. */
+export function NewWardrobeSheet({
+  ref,
+  wardrobes,
+  onCreated,
+}: {
+  ref: RefObject<SheetRef | null>;
+  wardrobes: Wardrobe[];
+  onCreated: (id: string) => void;
+}) {
+  const { colors } = useTheme();
+  const [name, setName] = useState('');
+  const [kind, setKind] = useState<WardrobeKind>('wardrobe');
+  const [touched, setTouched] = useState(false);
+  const problem = wardrobeNameProblem(name, wardrobes);
+
+  const create = () => {
+    setTouched(true);
+    const plan = planWardrobe(name, kind, wardrobes);
+    if (!plan) {
+      haptics.warning();
+      return;
+    }
+    const id = createWardrobe(plan);
+    haptics.itemAdded();
+    toast(`${plan.wardrobe.name} is ready`);
+    ref.current?.dismiss();
+    onCreated(id);
+  };
+
+  return (
+    <Sheet
+      ref={ref}
+      title="New wardrobe"
+      onDismiss={() => {
+        setName('');
+        setKind('wardrobe');
+        setTouched(false);
+      }}
+    >
+      <Text variant="eyebrow" className="mb-2">
+        Name
+      </Text>
+      <BottomSheetTextInput
+        value={name}
+        onChangeText={setName}
+        onSubmitEditing={create}
+        placeholder="Parents’ place"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.accent}
+        returnKeyType="done"
+        autoCapitalize="words"
+        maxLength={WARDROBE_NAME_MAX}
+        accessibilityLabel="Wardrobe name"
+        maxFontSizeMultiplier={1.5}
+        style={{
+          height: 48,
+          borderRadius: 14,
+          paddingHorizontal: 14,
+          backgroundColor: colors.surfaceTinted,
+          fontFamily: fontFamily.sansMedium,
+          fontSize: 16,
+          color: colors.ink,
+        }}
+      />
+      {touched && problem ? (
+        <Text variant="caption" tone="danger" className="mt-1.5">
+          {problem}
+        </Text>
+      ) : null}
+      <Text variant="eyebrow" className="mb-2.5 mt-5">
+        Kind
+      </Text>
+      <View className="gap-2" accessibilityRole="radiogroup" accessibilityLabel="Kind">
+        {KINDS.map((k) => {
+          const on = k.value === kind;
+          return (
+            <AnimatedPressable
+              key={k.value}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: on }}
+              accessibilityLabel={`${k.label}. ${k.hint}`}
+              onPress={() => setKind(k.value)}
+              scaleTo={0.98}
+              className={[
+                'min-h-[64px] flex-row items-center gap-3.5 rounded-md px-3.5 py-2.5',
+                on ? 'border-[1.5px] border-ink bg-surface' : 'border border-line bg-surface-tinted',
+              ].join(' ')}
+            >
+              <WardrobeIcon icon={k.value === 'storage' ? 'archive' : 'home'} size={20} color={colors.ink} />
+              <View className="flex-1 gap-0.5">
+                <Text variant="body" weight="semibold">
+                  {k.label}
+                </Text>
+                <Text variant="caption">{k.hint}</Text>
+              </View>
+              {on ? <CheckBadge /> : null}
+            </AnimatedPressable>
+          );
+        })}
+      </View>
+      <Button label="Create wardrobe" fullWidth className="mt-6" onPress={create} />
     </Sheet>
   );
 }
@@ -145,8 +274,7 @@ export function FilterSheet({
   const filters = useWardrobeView((s) => s.filters);
   const setFilters = useWardrobeView((s) => s.setFilters);
   const clearFilters = useWardrobeView((s) => s.clearFilters);
-  const count = (list: { value: string; count: number }[], value: string) =>
-    list.find((f) => f.value === value)?.count;
+  const count = (list: { value: string; count: number }[], value: string) => list.find((f) => f.value === value)?.count;
   const dismiss = () => ref.current?.dismiss();
 
   return (

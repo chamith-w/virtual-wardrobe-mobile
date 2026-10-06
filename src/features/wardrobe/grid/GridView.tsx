@@ -1,5 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
-import { memo, useEffect, type ReactNode } from 'react';
+import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { StatusTag } from '@/features/items/components/StatusTag';
 import { isOut, statusTagLabel } from '@/features/items/status';
 import type { ClosetItem } from '@/features/wardrobe/useWardrobeData';
 import { useMotionReduced } from '@/theme/motion';
+import { useHiddenForHero } from '@/store/itemTransition';
 import { durations, springs } from '@/theme/tokens';
 
 import { gridTileHeight } from '../closet';
@@ -28,7 +29,8 @@ type CardProps = {
   index: number;
   sort: SortKey;
   columnWidth: number;
-  onPress: (item: ClosetItem) => void;
+  /** `view` is the cutout's box, measured for the detail transition. */
+  onPress: (item: ClosetItem, view: View | null) => void;
 };
 
 /** The cutout's box inside the well, by kind of piece (proportions from Grid.dc.html). */
@@ -42,6 +44,8 @@ function imageBox(item: ClosetItem, wellWidth: number, wellHeight: number) {
 const GridCard = memo(function GridCard({ item, index, sort, columnWidth, onPress }: CardProps) {
   const reduced = useMotionReduced();
   const rise = useSharedValue(index < RISE_COUNT ? 0 : 1);
+  const cutoutBox = useRef<View>(null);
+  const hidden = useHiddenForHero(item.id);
 
   useEffect(() => {
     if (rise.get() === 1) return;
@@ -71,18 +75,20 @@ const GridCard = memo(function GridCard({ item, index, sort, columnWidth, onPres
       <AnimatedPressable
         accessibilityLabel={out ? `${item.name}, ${statusTagLabel(item.status, item.lentTo)}` : item.name}
         accessibilityHint={subtitle}
-        onPress={() => onPress(item)}
+        onPress={() => onPress(item, cutoutBox.current)}
         scaleTo={0.97}
         className="rounded-[22px] border border-line bg-surface p-1.5"
       >
         <View className="items-center justify-center rounded-[16px] bg-surface-tinted" style={{ height: wellHeight }}>
-          <Cutout
-            uri={item.thumbUri}
-            width={box.width}
-            height={box.height}
-            desaturate={out ? 0.6 : 0}
-            style={out ? { opacity: 0.32 } : undefined}
-          />
+          <View ref={cutoutBox} collapsable={false} style={{ opacity: hidden ? 0 : 1 }}>
+            <Cutout
+              uri={item.thumbUri}
+              width={box.width}
+              height={box.height}
+              desaturate={out ? 0.6 : 0}
+              style={out ? { opacity: 0.32 } : undefined}
+            />
+          </View>
           {out ? (
             <View className="absolute left-2 top-2">
               <StatusTag status={item.status} lentTo={item.lentTo} pop={false} />
@@ -123,7 +129,7 @@ export type GridViewProps = {
   loaded: boolean;
   /** Shown when nothing matches (or the wardrobe is empty). */
   empty: ReactNode;
-  onOpenItem: (item: ClosetItem) => void;
+  onOpenItem: (item: ClosetItem, view: View | null) => void;
 };
 
 /** Masonry grid of cutouts (FlashList v2), two columns, tall tiles for garments and short for shoes. */
@@ -145,7 +151,13 @@ export function GridView({ header, pieces, sort, loaded, empty, onOpenItem }: Gr
       extraData={sort}
       ListHeaderComponent={<View style={{ marginHorizontal: -LIST_PADDING }}>{header}</View>}
       ListEmptyComponent={
-        loaded ? <View className="px-1.5 pt-4">{empty}</View> : <View className="-mx-3.5 pt-2"><GridSkeleton /></View>
+        loaded ? (
+          <View className="px-1.5 pt-4">{empty}</View>
+        ) : (
+          <View className="-mx-3.5 pt-2">
+            <GridSkeleton />
+          </View>
+        )
       }
       showsVerticalScrollIndicator={false}
       keyboardDismissMode="on-drag"

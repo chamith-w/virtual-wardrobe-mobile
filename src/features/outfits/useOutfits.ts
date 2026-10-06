@@ -1,9 +1,10 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 
 import { db } from '@/db/client';
 import { useLiveData } from '@/db/live';
 import { items, outfitItems, outfits } from '@/db/schema';
+import type { Occasion, Season } from '@/features/items/catalog';
 
 export type OutfitPiece = {
   itemId: string;
@@ -16,25 +17,49 @@ export type OutfitPiece = {
   zIndex: number;
 };
 
-export type OutfitSummary = { id: string; name: string; isFavorite: boolean; pieces: OutfitPiece[] };
+export type OutfitSummary = {
+  id: string;
+  name: string;
+  isFavorite: boolean;
+  occasion: Occasion | null;
+  seasons: Season[];
+  pieces: OutfitPiece[];
+};
 
-type PieceRow = OutfitPiece & { outfitId: string; outfitName: string; isFavorite: boolean };
+type OutfitColumns = {
+  outfitId: string;
+  outfitName: string;
+  isFavorite: boolean;
+  occasion: Occasion | null;
+  seasons: Season[];
+};
+type PieceRow = OutfitColumns & { [K in keyof OutfitPiece]: OutfitPiece[K] | null };
 
+/** Rows of (outfit, piece) → outfits with their pieces. Outfits whose pieces are all gone keep an empty list. */
 function groupOutfits(rows: PieceRow[]): OutfitSummary[] {
   const byId = new Map<string, OutfitSummary>();
   for (const r of rows) {
-    const outfit = byId.get(r.outfitId) ?? { id: r.outfitId, name: r.outfitName, isFavorite: r.isFavorite, pieces: [] };
+    const outfit = byId.get(r.outfitId) ?? {
+      id: r.outfitId,
+      name: r.outfitName,
+      isFavorite: r.isFavorite,
+      occasion: r.occasion,
+      seasons: r.seasons,
+      pieces: [],
+    };
+    byId.set(r.outfitId, outfit);
+    // No piece row, or its item was deleted.
+    if (r.itemId === null || r.name === null || r.x === null || r.y === null) continue;
     outfit.pieces.push({
       itemId: r.itemId,
       name: r.name,
       thumbUri: r.thumbUri,
       x: r.x,
       y: r.y,
-      scale: r.scale,
-      rotation: r.rotation,
-      zIndex: r.zIndex,
+      scale: r.scale ?? 1,
+      rotation: r.rotation ?? 0,
+      zIndex: r.zIndex ?? 0,
     });
-    byId.set(r.outfitId, outfit);
   }
   return [...byId.values()];
 }
@@ -43,6 +68,8 @@ const pieceColumns = {
   outfitId: outfits.id,
   outfitName: outfits.name,
   isFavorite: outfits.isFavorite,
+  occasion: outfits.occasion,
+  seasons: outfits.seasons,
   itemId: outfitItems.itemId,
   name: items.name,
   thumbUri: items.thumbUri,
@@ -73,6 +100,46 @@ export function useItemOutfits(itemId: string | undefined) {
     [] as OutfitSummary[],
   );
   return { outfits: data, loaded };
+}
+
+/** Every saved outfit with its pieces, newest first (the Outfits segment). */
+export function useOutfitList() {
+  const { data, loaded } = useLiveData(
+    async () =>
+      groupOutfits(
+        await db
+          .select(pieceColumns)
+          .from(outfits)
+          .leftJoin(outfitItems, and(eq(outfitItems.outfitId, outfits.id), isNull(outfitItems.deletedAt)))
+          .leftJoin(items, and(eq(items.id, outfitItems.itemId), isNull(items.deletedAt)))
+          .where(isNull(outfits.deletedAt))
+          .orderBy(desc(outfits.createdAt), asc(outfitItems.zIndex)),
+      ),
+    [outfits, outfitItems, items],
+    [],
+    [] as OutfitSummary[],
+  );
+  return { outfits: data, loaded };
+}
+
+/** One outfit with its pieces (the outfit screen). */
+export function useOutfit(id: string | undefined) {
+  const { data, loaded } = useLiveData(
+    async () =>
+      groupOutfits(
+        await db
+          .select(pieceColumns)
+          .from(outfits)
+          .leftJoin(outfitItems, and(eq(outfitItems.outfitId, outfits.id), isNull(outfitItems.deletedAt)))
+          .leftJoin(items, and(eq(items.id, outfitItems.itemId), isNull(items.deletedAt)))
+          .where(and(eq(outfits.id, id ?? ''), isNull(outfits.deletedAt)))
+          .orderBy(asc(outfitItems.zIndex)),
+      ),
+    [outfits, outfitItems, items],
+    [id],
+    [] as OutfitSummary[],
+  );
+  return { outfit: data[0], loaded };
 }
 
 /** Every outfit with its piece ids — for the "Add to outfit" picker. */

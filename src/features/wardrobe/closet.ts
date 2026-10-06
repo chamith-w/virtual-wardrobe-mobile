@@ -3,6 +3,7 @@
  * tile sizes. Pure — safe to import from tests.
  */
 import { CATEGORY_DEFAULT_ZONE, type Category, type ItemStatus, type ZoneType } from '@/features/items/catalog';
+import { zoneFor, type ZoneLite } from '@/features/items/placement';
 import { isOut } from '@/features/items/status';
 
 export const ZONE_SECTION_TITLE: Record<ZoneType, string> = {
@@ -27,6 +28,44 @@ export function zoneSections<Z extends { type: ZoneType; sortOrder: number }>(zo
   return sections;
 }
 
+type Placeable = { wardrobeId: string; zoneId: string | null; category: Category };
+
+/**
+ * Pieces per zone id, keeping the order they come in (the active sort). A
+ * piece with no zone, or one pointing at a zone that isn't shown (deleted, or
+ * in another wardrobe), hangs in its category's default zone.
+ */
+export function groupByZone<P extends Placeable>(pieces: readonly P[], zones: readonly ZoneLite[]): Map<string, P[]> {
+  const shown = new Set(zones.map((z) => z.id));
+  const grouped = new Map<string, P[]>();
+  for (const p of pieces) {
+    const zoneId = p.zoneId && shown.has(p.zoneId) ? p.zoneId : zoneFor(zones, p.wardrobeId, p.category);
+    if (!zoneId) continue;
+    const list = grouped.get(zoneId);
+    if (list) list.push(p);
+    else grouped.set(zoneId, [p]);
+  }
+  return grouped;
+}
+
+/**
+ * The zone a dragged piece should move to, or null when the drop changes
+ * nothing: dropped where it already hangs, outside every zone, or on a zone
+ * of another wardrobe.
+ */
+export function resolveDrop<Z extends { id: string; wardrobeId: string }>(
+  fromZoneId: string | null,
+  toZoneId: string,
+  zones: readonly Z[],
+): Z | null {
+  if (!toZoneId || toZoneId === fromZoneId) return null;
+  const to = zones.find((z) => z.id === toZoneId);
+  if (!to) return null;
+  const from = zones.find((z) => z.id === fromZoneId);
+  if (from && from.wardrobeId !== to.wardrobeId) return null;
+  return to;
+}
+
 /** "10 pieces · 3 out" */
 export function zoneMeta(rows: readonly { status: ItemStatus }[]): string {
   const out = rows.filter((r) => isOut(r.status)).length;
@@ -49,7 +88,11 @@ const SWAY_BY_CATEGORY: Partial<Record<Category, number>> = {
  * How much a garment swings on the rail (docs/DESIGN.md → "Swaying hangers"):
  * heavy coats barely move (0.7), silk and dresses swing most (up to 1.35).
  */
-export function swayFactor(item: { category: Category; material?: string | null; subcategory?: string | null }): number {
+export function swayFactor(item: {
+  category: Category;
+  material?: string | null;
+  subcategory?: string | null;
+}): number {
   let k = SWAY_BY_CATEGORY[item.category] ?? 1;
   const fabric = `${item.material ?? ''} ${item.subcategory ?? ''}`.toLowerCase();
   if (/silk|satin|chiffon|slip/.test(fabric)) k += 0.1;

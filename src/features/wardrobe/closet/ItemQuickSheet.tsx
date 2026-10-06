@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react-native';
-import type { Ref } from 'react';
+import { useRef, type Ref } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button, Chip, Cutout, Sheet, Text, type SheetRef } from '@/components/ui';
@@ -12,6 +12,7 @@ import { isOut } from '@/features/items/status';
 import { useWornToday } from '@/features/planner/wearLog';
 import type { ClosetItem } from '@/features/wardrobe/useWardrobeData';
 import { formatRelativeDay } from '@/lib/dates';
+import { useHiddenForHero } from '@/store/itemTransition';
 
 export function wearLine(item: { wearCount: number; lastWornAt: Date | null }): string {
   if (item.wearCount === 0) return 'Not worn yet';
@@ -25,9 +26,11 @@ function QuickSheetBody({
 }: {
   item: ClosetItem;
   zones: Zone[];
-  onOpenDetails: (item: ClosetItem) => void;
+  onOpenDetails: (item: ClosetItem, thumb: View | null) => void;
 }) {
   const wornToday = useWornToday(item.id);
+  const thumb = useRef<View>(null);
+  const hidden = useHiddenForHero(item.id);
   const zone = zones.find((z) => z.id === item.zoneId);
   const otherZones = zones.filter((z) => z.wardrobeId === item.wardrobeId);
 
@@ -35,7 +38,9 @@ function QuickSheetBody({
     <View>
       <View className="flex-row items-center gap-4">
         <View className="h-28 w-24 items-center justify-center rounded-[22px] bg-surface-tinted">
-          <Cutout uri={item.thumbUri} width={72} height={88} />
+          <View ref={thumb} collapsable={false} style={{ opacity: hidden ? 0 : 1 }}>
+            <Cutout uri={item.thumbUri} width={72} height={88} />
+          </View>
         </View>
         <View className="flex-1">
           <Text variant="eyebrow">{zone?.name ?? CATEGORY_LABEL[item.category]}</Text>
@@ -80,7 +85,7 @@ function QuickSheetBody({
       ) : null}
 
       <View className="mt-6 flex-row gap-2.5">
-        <Button label="Open details" className="flex-1" onPress={() => onOpenDetails(item)} />
+        <Button label="Open details" className="flex-1" onPress={() => onOpenDetails(item, thumb.current)} />
         <Button
           label={wornToday ? 'Worn today' : 'Wear today'}
           variant="secondary"
@@ -105,7 +110,7 @@ export function ItemQuickSheet({
   ref: Ref<SheetRef>;
   item: ClosetItem | undefined;
   zones: Zone[];
-  onOpenDetails: (item: ClosetItem) => void;
+  onOpenDetails: (item: ClosetItem, thumb: View | null) => void;
   onDismiss: () => void;
 }) {
   return (

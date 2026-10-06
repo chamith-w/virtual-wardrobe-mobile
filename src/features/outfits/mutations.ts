@@ -1,7 +1,7 @@
 import { and, eq, isNull, max } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { outfitItems } from '@/db/schema';
+import { outfitItems, outfits } from '@/db/schema';
 import { newId } from '@/lib/ids';
 
 /**
@@ -31,8 +31,19 @@ export function toggleItemInOutfit(outfitId: string, itemId: string): boolean {
     const pose = { x: 0.5, y: 0.5, scale: 0.9, rotation: 0, zIndex: top + 1, locked: false };
 
     // (outfit, item) is unique, so a soft-deleted link is revived rather than re-inserted.
-    if (link) tx.update(outfitItems).set({ ...pose, deletedAt: null }).where(eq(outfitItems.id, link.id)).run();
-    else tx.insert(outfitItems).values({ id: newId(), outfitId, itemId, ...pose }).run();
+    if (link)
+      tx.update(outfitItems)
+        .set({ ...pose, deletedAt: null })
+        .where(eq(outfitItems.id, link.id))
+        .run();
+    else
+      tx.insert(outfitItems)
+        .values({ id: newId(), outfitId, itemId, ...pose })
+        .run();
     return true;
   });
+}
+
+export function setOutfitFavorite(outfitId: string, isFavorite: boolean) {
+  db.update(outfits).set({ isFavorite }).where(eq(outfits.id, outfitId)).run();
 }

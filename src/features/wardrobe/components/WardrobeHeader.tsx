@@ -1,5 +1,14 @@
 import { router } from 'expo-router';
-import { Archive, ChevronDown, DoorOpen, House, Plus, SlidersHorizontal, type LucideIcon } from 'lucide-react-native';
+import {
+  Archive,
+  ChevronDown,
+  DoorOpen,
+  House,
+  Plus,
+  SlidersHorizontal,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { View } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 
@@ -10,8 +19,10 @@ import { activeFilterCount, sortLabel, toggleIn, type Facets } from '@/features/
 import { useWardrobeView, type WardrobeMode } from '@/store/wardrobeView';
 import { useTheme } from '@/theme/ThemeProvider';
 
-export function wardrobeIcon(icon: string | undefined): LucideIcon {
-  return icon === 'archive' ? Archive : House;
+/** A wardrobe's glyph: a house for wardrobes, an archive box for storage. */
+export function WardrobeIcon({ icon, size, color }: { icon: string | undefined; size: number; color: string }) {
+  const Glyph: LucideIcon = icon === 'archive' ? Archive : House;
+  return <Glyph size={size} color={color} strokeWidth={1.9} />;
 }
 
 function QuickFilters({ facets }: { facets: Facets }) {
@@ -26,7 +37,11 @@ function QuickFilters({ facets }: { facets: Facets }) {
       className="-mx-5 mt-3"
       contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 4, gap: 8, alignItems: 'center' }}
     >
-      <Chip label="All" selected={filters.groups.length === 0} onPress={() => setFilters((f) => ({ ...f, groups: [] }))} />
+      <Chip
+        label="All"
+        selected={filters.groups.length === 0}
+        onPress={() => setFilters((f) => ({ ...f, groups: [] }))}
+      />
       {facets.groups.map((g) => (
         <Chip
           key={g.value}
@@ -56,6 +71,8 @@ export type WardrobeHeaderProps = {
   wardrobe: Wardrobe | undefined;
   total: number;
   matching: number;
+  /** Saved outfits, for the title in the Outfits segment. */
+  outfitCount: number;
   facets: Facets;
   onOpenWardrobes: () => void;
   onOpenFilters: () => void;
@@ -68,6 +85,7 @@ export function WardrobeHeader({
   wardrobe,
   total,
   matching,
+  outfitCount,
   facets,
   onOpenWardrobes,
   onOpenFilters,
@@ -86,7 +104,6 @@ export function WardrobeHeader({
   const activeCount = activeFilterCount(filters);
   const filtering = activeCount > 0 || query.trim().length > 0;
   const name = wardrobe?.name ?? 'Home';
-  const Icon = wardrobeIcon(wardrobe?.icon);
 
   return (
     <View className="px-5">
@@ -98,26 +115,36 @@ export function WardrobeHeader({
           scaleTo={0.96}
           className="h-11 flex-row items-center gap-1.5"
         >
-          <Icon size={16} color={colors.muted} strokeWidth={1.9} />
+          <WardrobeIcon icon={wardrobe?.icon} size={16} color={colors.muted} />
           <Text variant="eyebrow" style={{ fontSize: 12, letterSpacing: 1.6 }}>
             {name} wardrobe
           </Text>
           <ChevronDown size={15} color={colors.muted} strokeWidth={1.9} />
         </AnimatedPressable>
-        <View className="flex-row gap-2">
-          {mode === 'closet' ? (
-            <IconButton icon={DoorOpen} accessibilityLabel="Replay the opening doors" onPress={onReplayDoors} />
-          ) : null}
-          <IconButton icon={Plus} accessibilityLabel="Add a piece" onPress={() => router.push('/add')} />
-        </View>
+        {mode === 'outfits' ? (
+          <Button
+            label="New outfit"
+            variant="accent"
+            size="sm"
+            icon={Sparkles}
+            onPress={() => router.push('/outfit/new')}
+          />
+        ) : (
+          <View className="flex-row gap-2">
+            {mode === 'closet' ? (
+              <IconButton icon={DoorOpen} accessibilityLabel="Replay the opening doors" onPress={onReplayDoors} />
+            ) : null}
+            <IconButton icon={Plus} accessibilityLabel="Add a piece" onPress={() => router.push('/add')} />
+          </View>
+        )}
       </View>
 
       <View className="mt-0.5 flex-row items-baseline gap-2.5">
         <Text variant="display1" accessibilityRole="header">
-          Wardrobe
+          {mode === 'outfits' ? 'Outfits' : 'Wardrobe'}
         </Text>
         <Text variant="display3" tone="muted" style={{ fontSize: 22 }}>
-          {total}
+          {mode === 'outfits' ? outfitCount : total}
         </Text>
       </View>
 
@@ -165,11 +192,14 @@ export function WardrobeHeader({
 
           <QuickFilters facets={facets} />
 
-          {mode === 'grid' ? (
-            <View className="flex-row items-center justify-between pb-2.5 pt-2">
-              <Text variant="caption" weight="semibold">
-                {filtering ? `${matching} of ${total} pieces` : `${total} ${total === 1 ? 'piece' : 'pieces'}`}
-              </Text>
+          <View className="flex-row items-center justify-between pb-2.5 pt-2">
+            <Text variant="caption" weight="semibold">
+              {filtering
+                ? `${matching} of ${total} ${mode === 'closet' ? 'pieces match' : 'pieces'}`
+                : `${total} ${total === 1 ? 'piece' : 'pieces'}`}
+            </Text>
+            <View className="flex-row items-center gap-1">
+              {filtering ? <Button label="Clear" variant="ghost" size="sm" onPress={clearAll} /> : null}
               <AnimatedPressable
                 accessibilityLabel={`Sort: ${sortLabel(sort)}`}
                 accessibilityHint="Changes the order"
@@ -182,14 +212,7 @@ export function WardrobeHeader({
                 <ChevronDown size={15} color={colors.ink} strokeWidth={1.9} />
               </AnimatedPressable>
             </View>
-          ) : filtering ? (
-            <View className="flex-row items-center justify-between pt-2">
-              <Text variant="caption" weight="semibold">
-                {matching} of {total} pieces match
-              </Text>
-              <Button label="Clear" variant="ghost" size="sm" onPress={clearAll} />
-            </View>
-          ) : null}
+          </View>
         </>
       )}
     </View>

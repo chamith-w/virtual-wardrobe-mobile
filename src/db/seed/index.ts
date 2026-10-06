@@ -82,14 +82,15 @@ export async function seedDemoWardrobe(today = new Date()): Promise<void> {
   };
 
   // 1. Images (async, outside the transaction).
-  const imageUris = new Map<string, { cutout: string; thumb: string }>();
+  const imageUris = new Map<string, { cutout: string; thumb: string; original: string | null }>();
   for (const item of plan.items) {
     const source = SEED_IMAGES[item.slug];
     if (!source) continue;
     const dir = itemDir(id(itemId, item.slug));
     const cutout = await copyBundledAsset(source.cutout, new File(dir, 'cutout.webp'));
     const thumb = await copyBundledAsset(source.thumb, new File(dir, 'thumb.webp'));
-    imageUris.set(item.slug, { cutout, thumb });
+    const original = source.original ? await copyBundledAsset(source.original, new File(dir, 'original.jpg')) : null;
+    imageUris.set(item.slug, { cutout, thumb, original });
   }
   const wishDir = wishlistRoot();
   wishDir.create({ intermediates: true, idempotent: true });
@@ -143,6 +144,7 @@ export async function seedDemoWardrobe(today = new Date()): Promise<void> {
             purchaseDate: i.purchaseDate,
             store: i.store,
             careNotes: i.careNotes,
+            originalUri: imageUris.get(i.slug)?.original ?? null,
             cutoutUri: imageUris.get(i.slug)?.cutout ?? null,
             thumbUri: imageUris.get(i.slug)?.thumb ?? null,
             status: i.status,

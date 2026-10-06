@@ -3,8 +3,14 @@ import { eq, isNull } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { items, wardrobes, zones } from '@/db/schema';
 
-import type { ArchiveReason, ItemStatus } from './catalog';
-import { applyStatus, moveToWardrobe, type PlacedItem, type PlacementPatch } from './placement';
+import type { ArchiveReason, Category, ItemStatus } from './catalog';
+import {
+  applyStatus,
+  moveToWardrobe,
+  zoneAfterCategoryChange,
+  type PlacedItem,
+  type PlacementPatch,
+} from './placement';
 
 type Executor = Pick<typeof db, 'select' | 'update'>;
 
@@ -70,6 +76,19 @@ export function moveItemToWardrobe(id: string, wardrobeId: string): PlacementPat
 /** Long-press drag between zones of the same wardrobe. */
 export function moveItemToZone(id: string, zoneId: string) {
   db.update(items).set({ zoneId }).where(eq(items.id, id)).run();
+}
+
+/**
+ * The minimal editor (phase 3 brings the full details sheet). A new category
+ * can carry the piece to that category's zone — see zoneAfterCategoryChange.
+ */
+export function updateItemBasics(id: string, patch: { name: string; category: Category }) {
+  db.transaction((tx) => {
+    const item = placedItem(tx, id);
+    if (!item) return;
+    const zoneId = zoneAfterCategoryChange(item, patch.category, placementContext(tx).zones);
+    tx.update(items).set({ name: patch.name, category: patch.category, zoneId }).where(eq(items.id, id)).run();
+  });
 }
 
 export function setLentTo(id: string, name: string) {

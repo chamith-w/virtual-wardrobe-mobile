@@ -15,10 +15,11 @@ import { useTabBarInset } from '@/components/navigation/TabBar';
 import { SectionHeader, Skeleton, Text, type SheetRef } from '@/components/ui';
 import type { Zone } from '@/db/schema';
 import { moveToZone } from '@/features/items/actions';
-import { zoneFor } from '@/features/items/placement';
+import type { Rect } from '@/features/items/detail/hero';
+import { measureRect, openItem } from '@/features/items/openItem';
 import type { ClosetItem } from '@/features/wardrobe/useWardrobeData';
 
-import { ZONE_SECTION_TITLE, zoneMeta, zoneSections } from '../closet';
+import { groupByZone, resolveDrop, ZONE_SECTION_TITLE, zoneMeta, zoneSections } from '../closet';
 import { ClosetDragProvider, type DragPiece } from './ClosetDrag';
 import { ItemQuickSheet } from './ItemQuickSheet';
 import { AccessoryTray, DrawerStack, HangingRail, ShelfBand, ShoeRack } from './Zones';
@@ -40,7 +41,6 @@ export type ClosetViewProps = {
   reveal: SharedValue<number>;
   /** Bumped when the doors finish, to give the rail a swing. */
   impulse: SharedValue<number>;
-  onOpenDetails: (item: ClosetItem) => void;
 };
 
 function ClosetSkeleton() {
@@ -64,17 +64,7 @@ function ClosetSkeleton() {
  * horizontally. Pieces that don't match the search fade back rather than
  * disappearing, so the closet keeps its shape.
  */
-export function ClosetView({
-  header,
-  pieces,
-  zones,
-  matchIds,
-  loaded,
-  empty,
-  reveal,
-  impulse,
-  onOpenDetails,
-}: ClosetViewProps) {
+export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, reveal, impulse }: ClosetViewProps) {
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const scrollRef = useAnimatedRef<RNScrollView>();
@@ -84,16 +74,12 @@ export function ClosetView({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const sheetRef = useRef<SheetRef>(null);
 
-  const zoneIds = new Set(zones.map((z) => z.id));
-  const byZone = new Map<string, ClosetItem[]>();
-  for (const p of pieces) {
-    const zoneId = p.zoneId && zoneIds.has(p.zoneId) ? p.zoneId : zoneFor(zones, p.wardrobeId, p.category);
-    if (!zoneId) continue;
-    byZone.set(zoneId, [...(byZone.get(zoneId) ?? []), p]);
-  }
+  const byZone = groupByZone(pieces, zones);
   const piecesOf = (zoneId: string) => byZone.get(zoneId) ?? [];
   const isDimmed = (p: ClosetItem) => matchIds !== null && !matchIds.has(p.id);
   const sections = zoneSections(zones);
+  // Detail pages through the closet in the order it reads: zone by zone, left to right.
+  const browseIds = sections.flatMap((s) => s.zones.flatMap((z) => piecesOf(z.id).map((p) => p.id)));
 
   const selected = selectedId ? pieces.find((p) => p.id === selectedId) : undefined;
   useEffect(() => {
@@ -101,13 +87,24 @@ export function ClosetView({
     if (selectedId && loaded && !selected) sheetRef.current?.dismiss();
   }, [selectedId, selected, loaded]);
 
-  const openPiece = (item: ClosetItem) => {
+  // Where the tapped piece sits, so its detail can fly back into the spot.
+  const pieceRect = useRef<Rect | null>(null);
+  const openPiece = (item: ClosetItem, view: View | null) => {
+    pieceRect.current = null;
+    measureRect(view).then((rect) => {
+      pieceRect.current = rect;
+    });
     setSelectedId(item.id);
     sheetRef.current?.present();
   };
 
+  const openDetails = async (item: ClosetItem, sheetThumb: View | null) => {
+    await openItem(item, { from: sheetThumb, back: pieceRect.current, browseIds });
+    sheetRef.current?.dismiss();
+  };
+
   const onDrop = (piece: DragPiece, zoneId: string) => {
-    const zone = zones.find((z) => z.id === zoneId);
+    const zone = resolveDrop(piece.zoneId, zoneId, zones);
     if (zone) moveToZone(piece, zone);
   };
 
@@ -152,7 +149,11 @@ export function ClosetView({
                 return (
                   <View key={section.type}>
                     <View className="px-5">
-                      <SectionHeader size="sm" title={ZONE_SECTION_TITLE[section.type]} meta={zoneMeta(sectionPieces)} />
+                      <SectionHeader
+                        size="sm"
+                        title={ZONE_SECTION_TITLE[section.type]}
+                        meta={zoneMeta(sectionPieces)}
+                      />
                     </View>
                     {section.type === 'rail' ? (
                       <View className="gap-4">
@@ -195,10 +196,7 @@ export function ClosetView({
         item={selected}
         zones={zones}
         onDismiss={() => setSelectedId(null)}
-        onOpenDetails={(item) => {
-          sheetRef.current?.dismiss();
-          onOpenDetails(item);
-        }}
+        onOpenDetails={openDetails}
       />
     </ClosetDragProvider>
   );

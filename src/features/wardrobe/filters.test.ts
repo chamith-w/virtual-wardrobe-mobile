@@ -139,6 +139,59 @@ describe('sortItems', () => {
     expect(colorSortKey([])).toBeGreaterThan(colorSortKey([c('Lilac')]));
   });
 
+  it('arranges a whole rail around the wheel, neutrals grouped first', () => {
+    const swatch = (name: string) => row(name, { name, colors: [c(name)] });
+    const names = ['Sage', 'Navy', 'Red', 'White', 'Burgundy', 'Mustard', 'Black', 'Lilac', 'Rust', 'Camel', 'Sky'];
+    const sorted = sortItems(names.map(swatch), 'color').map((r) => r.id);
+    // Neutrals light to dark, then burgundy and red together, warm to cool.
+    expect(sorted).toEqual([
+      'White',
+      'Camel',
+      'Navy',
+      'Black',
+      'Burgundy',
+      'Red',
+      'Rust',
+      'Mustard',
+      'Sage',
+      'Sky',
+      'Lilac',
+    ]);
+  });
+
+  it('sorts by the first colour and puts colourless pieces last', () => {
+    const twoTone = row('two-tone', { colors: [c('Sky'), c('Rust')] });
+    const none = row('none', { colors: [] });
+    const rust = row('rust', { colors: [c('Rust')] });
+    expect(sortItems([none, twoTone, rust], 'color').map((r) => r.id)).toEqual(['rust', 'two-tone', 'none']);
+  });
+
+  it('breaks colour ties by name', () => {
+    const a = row('a', { name: 'B rust', colors: [c('Rust')] });
+    const b = row('b', { name: 'A rust', colors: [c('Rust')] });
+    expect(sortItems([a, b], 'color').map((r) => r.id)).toEqual(['b', 'a']);
+  });
+
+  it('ranks cost per wear: unworn counts as one wear, free pieces first, no price last', () => {
+    const gift = row('gift', { price: 0, wearCount: 0 });
+    const unworn = row('unworn', { price: 30, wearCount: 0 });
+    const cheapPerWear = row('cheap', { price: 300, wearCount: 100 });
+    const unpriced = row('unpriced', { price: null, wearCount: 50 });
+    expect(sortItems([unpriced, unworn, cheapPerWear, gift], 'cpw').map((r) => r.id)).toEqual([
+      'gift',
+      'cheap',
+      'unworn',
+      'unpriced',
+    ]);
+  });
+
+  it('puts never-worn pieces first when sorting least worn', () => {
+    const never = row('never', { wearCount: 0, lastWornAt: null });
+    const once = row('once', { wearCount: 1, lastWornAt: new Date(2026, 8, 1) });
+    const onceLongAgo = row('once-long-ago', { wearCount: 1, lastWornAt: new Date(2025, 0, 1) });
+    expect(sortItems([once, onceLongAgo, never], 'least').map((r) => r.id)).toEqual(['never', 'once-long-ago', 'once']);
+  });
+
   it('does not mutate the input', () => {
     const copy = [...rows];
     sortItems(rows, 'most');

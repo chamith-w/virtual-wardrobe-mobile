@@ -1,4 +1,12 @@
-import { applyStatus, moveToWardrobe, zoneFor, type PlacedItem, type WardrobeLite, type ZoneLite } from './placement';
+import {
+  applyStatus,
+  moveToWardrobe,
+  zoneAfterCategoryChange,
+  zoneFor,
+  type PlacedItem,
+  type WardrobeLite,
+  type ZoneLite,
+} from './placement';
 
 const wardrobes: WardrobeLite[] = [
   { id: 'home', icon: 'home', sortOrder: 0 },
@@ -89,5 +97,38 @@ describe('applyStatus', () => {
       wardrobeId: 'home',
       status: 'storage',
     });
+  });
+});
+
+describe('zoneAfterCategoryChange', () => {
+  it('follows the new category when the piece sat in its default kind of zone', () => {
+    const top = { wardrobeId: 'home', zoneId: 'h-rail', category: 'tops' as const };
+    expect(zoneAfterCategoryChange(top, 'tshirts', zones)).toBe('h-shelf');
+  });
+
+  it('stays put when the new category uses the same kind of zone', () => {
+    const shirt = { wardrobeId: 'home', zoneId: 'h-rail', category: 'shirts' as const };
+    expect(zoneAfterCategoryChange(shirt, 'dresses', zones)).toBe('h-rail');
+  });
+
+  it('respects a zone the user dragged the piece to', () => {
+    // A coat moved onto a shelf by hand stays there when retagged as a jacket.
+    const coatOnShelf = { wardrobeId: 'home', zoneId: 'h-shelf', category: 'coats' as const };
+    expect(zoneAfterCategoryChange(coatOnShelf, 'jackets', zones)).toBe('h-shelf');
+  });
+
+  it('places a piece with no zone, or a zone in another wardrobe', () => {
+    expect(zoneAfterCategoryChange({ wardrobeId: 'home', zoneId: null, category: 'tops' }, 'shoes', zones)).toBe(
+      'h-shoes',
+    );
+    expect(zoneAfterCategoryChange({ wardrobeId: 'home', zoneId: 's-rail', category: 'tops' }, 'socks', zones)).toBe(
+      'h-drawer',
+    );
+  });
+
+  it('changes nothing when the category is unchanged', () => {
+    expect(zoneAfterCategoryChange({ wardrobeId: 'home', zoneId: 'h-shoes', category: 'tops' }, 'tops', zones)).toBe(
+      'h-shoes',
+    );
   });
 });
