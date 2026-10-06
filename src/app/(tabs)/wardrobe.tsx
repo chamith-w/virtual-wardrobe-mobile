@@ -1,145 +1,174 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HangerGlyph } from '@/components/illustrations/Glyphs';
-import { Chip, EmptyState, IconButton, Screen, Segmented, Text } from '@/components/ui';
-import { SectionHeader } from '@/components/ui/SectionHeader';
-import { db } from '@/db/client';
-import { items } from '@/db/schema';
-import { OUT_STATUSES, STATUS_LABEL, type ItemStatus } from '@/features/items/catalog';
-import { useWardrobes, useZoneSummary } from '@/features/wardrobe/useWardrobeSummary';
+import { useTabBarInset } from '@/components/navigation/TabBar';
+import { EmptyState, type SheetRef } from '@/components/ui';
+import { ClosetView } from '@/features/wardrobe/closet/ClosetView';
+import { WardrobeDoors } from '@/features/wardrobe/closet/WardrobeDoors';
+import { WardrobeHeader } from '@/features/wardrobe/components/WardrobeHeader';
+import { FilterSheet, SortSheet, WardrobeSheet } from '@/features/wardrobe/components/WardrobeSheets';
+import { activeFilterCount, facetsOf, matchesAll, sortItems } from '@/features/wardrobe/filters';
+import { GridView } from '@/features/wardrobe/grid/GridView';
+import {
+  useActiveWardrobe,
+  useWardrobeCounts,
+  useWardrobeItems,
+  useZones,
+  type ClosetItem,
+} from '@/features/wardrobe/useWardrobeData';
 import { useSession } from '@/store/session';
-import { useTheme } from '@/theme/ThemeProvider';
+import { toast } from '@/store/toast';
+import { useWardrobeView } from '@/store/wardrobeView';
 
-type View_ = 'closet' | 'grid' | 'outfits';
-
-function useWardrobeItems(wardrobeId: string | undefined) {
-  const { data } = useLiveQuery(
-    db
-      .select({ id: items.id, name: items.name, zoneId: items.zoneId, thumbUri: items.thumbUri, status: items.status })
-      .from(items)
-      .where(and(eq(items.wardrobeId, wardrobeId ?? ''), isNull(items.deletedAt)))
-      .orderBy(asc(items.createdAt)),
-    [wardrobeId],
-  );
-  return data;
-}
-
-function Thumb({ uri, name, status }: { uri: string | null; name: string; status: ItemStatus }) {
-  const { colors } = useTheme();
-  const out = OUT_STATUSES.includes(status);
+/** Outfits list placeholder until phase 5. */
+function OutfitsPlaceholder({ header }: { header: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const tabInset = useTabBarInset();
   return (
-    <View
-      accessible
-      accessibilityLabel={out ? `${name}, ${STATUS_LABEL[status]}` : name}
-      className="h-24 w-[78px] items-center justify-center rounded-sm bg-surface-tinted"
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabInset + 28 }}
     >
-      {out ? (
-        <View className="items-center gap-1.5">
-          <HangerGlyph width={40} color={colors.faint} />
-          <Text variant="caption" weight="semibold" style={{ fontSize: 10 }}>
-            {STATUS_LABEL[status]}
-          </Text>
-        </View>
-      ) : uri ? (
-        <Image source={{ uri }} style={{ width: 64, height: 76 }} contentFit="contain" transition={180} />
-      ) : null}
-    </View>
+      {header}
+      <View className="px-5 pt-6">
+        <EmptyState title="Saved outfits" body="The outfit list and builder arrive in phase 5." illustration="shelf" />
+      </View>
+    </ScrollView>
   );
 }
 
 /**
- * Phase 1 preview of the Wardrobe: real zones and items from SQLite. The
- * stylised closet (rail, shelves, drawers, doors, swaying hangers) is phase 2.
+ * The Wardrobe tab: the stylised closet (direction A, docs/design/Closet.dc.html)
+ * behind opening doors, the masonry grid, and the outfits list, sharing one
+ * header with the wardrobe switcher, search and filters.
  */
 export default function WardrobeScreen() {
-  const [view, setView] = useState<View_>('closet');
-  const allWardrobes = useWardrobes();
-  const activeId = useSession((s) => s.activeWardrobeId);
-  const setActive = useSession((s) => s.setActiveWardrobe);
-  const wardrobe = allWardrobes.find((w) => w.id === activeId) ?? allWardrobes[0];
-  const zoneRows = useZoneSummary(wardrobe?.id);
-  const pieces = useWardrobeItems(wardrobe?.id);
-  const total = pieces.length;
+  const mode = useWardrobeView((s) => s.mode);
+  const query = useWardrobeView((s) => s.query);
+  const filters = useWardrobeView((s) => s.filters);
+  const sort = useWardrobeView((s) => s.sort);
+  const clearAll = useWardrobeView((s) => s.clearAll);
+  const clearFilters = useWardrobeView((s) => s.clearFilters);
+
+  const { wardrobes, active, setActive } = useActiveWardrobe();
+  const { data: allZones } = useZones();
+  const { data: pieces, loaded } = useWardrobeItems(active?.id);
+  const counts = useWardrobeCounts();
+
+  const wardrobeSheet = useRef<SheetRef>(null);
+  const filterSheet = useRef<SheetRef>(null);
+  const sortSheet = useRef<SheetRef>(null);
+
+  // Doors play on the first visit of the session; the header button replays them.
+  const doorsPlayed = useSession((s) => s.wardrobeDoorsPlayed);
+  const markDoorsPlayed = useSession((s) => s.markWardrobeDoorsPlayed);
+  const [doors, setDoors] = useState({ on: !doorsPlayed, key: 0 });
+  const reveal = useSharedValue(doorsPlayed ? 1 : 0);
+  const impulse = useSharedValue(0);
+
+  const zones = allZones.filter((z) => z.wardrobeId === active?.id);
+  const facets = facetsOf(pieces);
+  const filtering = query.trim().length > 0 || activeFilterCount(filters) > 0;
+  const matching = filtering ? pieces.filter((p) => matchesAll(p, query, filters)) : pieces;
+  const matchIds = filtering ? new Set(matching.map((p) => p.id)) : null;
+
+  const openItem = (item: ClosetItem) => {
+    // The item detail screen isn't routed yet.
+    toast(`Details for ${item.name} arrive with the item screen`, 'info');
+  };
+
+  const header = (
+    <WardrobeHeader
+      wardrobe={active}
+      total={pieces.length}
+      matching={matching.length}
+      facets={facets}
+      onOpenWardrobes={() => wardrobeSheet.current?.present()}
+      onOpenFilters={() => filterSheet.current?.present()}
+      onOpenSort={() => sortSheet.current?.present()}
+      onReplayDoors={() => setDoors((d) => ({ on: true, key: d.key + 1 }))}
+    />
+  );
+
+  const emptyWardrobe = (
+    <EmptyState
+      title={`Nothing in ${active?.name ?? 'this wardrobe'} yet`}
+      body="Photograph a piece and it’s hung here, background removed."
+      actionLabel="Add a piece"
+      actionIcon={Plus}
+      onAction={() => router.push('/add')}
+    />
+  );
 
   return (
-    <Screen className="px-5">
-      <View className="h-11 flex-row items-center justify-between">
-        <View className="flex-row gap-2">
-          {allWardrobes.map((w) => (
-            <Chip key={w.id} label={w.name} selected={w.id === wardrobe?.id} onPress={() => setActive(w.id)} />
-          ))}
-        </View>
-        <IconButton icon={Plus} accessibilityLabel="Add a piece" onPress={() => router.push('/add')} />
-      </View>
-      <View className="mt-2 flex-row items-baseline gap-2.5">
-        <Text variant="display1" accessibilityRole="header">
-          Wardrobe
-        </Text>
-        <Text variant="display3" tone="muted" style={{ fontSize: 22 }}>
-          {total}
-        </Text>
-      </View>
-
-      <View className="mt-4">
-        <Segmented
-          accessibilityLabel="Wardrobe view"
-          value={view}
-          onChange={setView}
-          options={[
-            { value: 'closet', label: 'Closet' },
-            { value: 'grid', label: 'Grid' },
-            { value: 'outfits', label: 'Outfits' },
-          ]}
+    <View className="flex-1 bg-background">
+      {mode === 'closet' ? (
+        <ClosetView
+          header={header}
+          pieces={pieces}
+          zones={zones}
+          matchIds={matchIds}
+          loaded={loaded}
+          empty={pieces.length === 0 ? emptyWardrobe : null}
+          reveal={reveal}
+          impulse={impulse}
+          onOpenDetails={openItem}
         />
-      </View>
-
-      {view !== 'closet' ? (
-        <View className="mt-6">
-          <EmptyState
-            title={view === 'grid' ? 'Masonry grid' : 'Saved outfits'}
-            body={
-              view === 'grid'
-                ? 'The grid, search, filters and sorting arrive in phase 2.'
-                : 'The outfit list and builder arrive in phase 5.'
-            }
-            illustration="shelf"
-          />
-        </View>
+      ) : mode === 'grid' ? (
+        <GridView
+          header={header}
+          pieces={sortItems(matching, sort)}
+          sort={sort}
+          loaded={loaded}
+          empty={
+            pieces.length === 0 ? (
+              emptyWardrobe
+            ) : (
+              <EmptyState
+                title="Nothing matches"
+                body="Try fewer filters or a different word."
+                illustration="shelf"
+                actionLabel="Clear search and filters"
+                onAction={clearAll}
+              />
+            )
+          }
+          onOpenItem={openItem}
+        />
       ) : (
-        zoneRows.map((zone) => {
-          const zonePieces = pieces.filter((p) => p.zoneId === zone.id);
-          return (
-            <View key={zone.id}>
-              <SectionHeader title={zone.name} meta={`${zone.n} ${zone.n === 1 ? 'piece' : 'pieces'}`} />
-              {zonePieces.length === 0 ? (
-                <EmptyState
-                  outlined
-                  illustration={zone.type === 'drawer' || zone.type === 'shelf' ? 'shelf' : 'hanger'}
-                  title="Nothing here yet"
-                  body="Add a piece, or move one here once drag-to-zone lands."
-                />
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerClassName="gap-2 px-5"
-                  className="-mx-5"
-                >
-                  {zonePieces.map((p) => (
-                    <Thumb key={p.id} uri={p.thumbUri} name={p.name} status={p.status} />
-                  ))}
-                </ScrollView>
-              )}
-            </View>
-          );
-        })
+        <OutfitsPlaceholder header={header} />
       )}
-    </Screen>
+
+      {mode === 'closet' && doors.on ? (
+        <WardrobeDoors
+          playKey={doors.key}
+          reveal={reveal}
+          onDone={() => {
+            setDoors((d) => ({ ...d, on: false }));
+            markDoorsPlayed();
+            impulse.set(impulse.get() + 1);
+          }}
+        />
+      ) : null}
+
+      <WardrobeSheet
+        ref={wardrobeSheet}
+        wardrobes={wardrobes}
+        zones={allZones}
+        counts={counts}
+        activeId={active?.id}
+        onPick={(w) => {
+          setActive(w.id);
+          clearFilters();
+          wardrobeSheet.current?.dismiss();
+        }}
+      />
+      <FilterSheet ref={filterSheet} facets={facets} matching={matching.length} />
+      <SortSheet ref={sortSheet} />
+    </View>
   );
 }

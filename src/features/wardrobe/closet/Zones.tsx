@@ -50,11 +50,13 @@ const RAIL_CUTOUT = { width: 92, height: 110, left: -3, top: 19 };
 
 function RailHanger({
   item,
+  index,
   sway,
   dimmed,
   onPress,
 }: {
   item: ClosetItem;
+  index: number;
   sway: SharedValue<number>;
   dimmed: boolean;
   onPress: (item: ClosetItem) => void;
@@ -76,6 +78,7 @@ function RailHanger({
           dimmed={dimmed}
           onPress={onPress}
           tagTop={11}
+          index={index}
         />
       </View>
     </Animated.View>
@@ -87,7 +90,14 @@ function RailHanger({
  * (`sway × k`, heavier pieces swing less), then settle on a spring. The doors
  * give it a push when they finish opening.
  */
-export function HangingRail({ zone, pieces, isDimmed, onPressPiece, labelled, impulse }: ZoneProps & { impulse: SharedValue<number> }) {
+export function HangingRail({
+  zone,
+  pieces,
+  isDimmed,
+  onPressPiece,
+  labelled,
+  impulse,
+}: ZoneProps & { impulse: SharedValue<number> }) {
   const { colors } = useTheme();
   const reduced = useMotionReduced();
   const sway = useSharedValue(0);
@@ -177,7 +187,10 @@ export function HangingRail({ zone, pieces, isDimmed, onPressPiece, labelled, im
           </View>
         ) : (
           <View>
-            <View className="absolute left-0 right-0 top-1 h-[3px] rounded-pill" style={{ backgroundColor: colors.rail }} />
+            <View
+              className="absolute left-0 right-0 top-1 h-[3px] rounded-pill"
+              style={{ backgroundColor: colors.rail }}
+            />
             <AnimatedGHScrollView
               horizontal
               onScroll={onScroll}
@@ -185,8 +198,8 @@ export function HangingRail({ zone, pieces, isDimmed, onPressPiece, labelled, im
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 14, paddingBottom: 8 }}
             >
-              {pieces.map((p) => (
-                <RailHanger key={p.id} item={p} sway={sway} dimmed={isDimmed(p)} onPress={onPressPiece} />
+              {pieces.map((p, i) => (
+                <RailHanger key={p.id} item={p} index={i} sway={sway} dimmed={isDimmed(p)} onPress={onPressPiece} />
               ))}
             </AnimatedGHScrollView>
           </View>
@@ -217,7 +230,7 @@ export function ShelfBand({ zone, pieces, isDimmed, onPressPiece }: ZoneProps) {
             Empty shelf · long-press a piece to move it here
           </Text>
         ) : (
-          pieces.map((p) => (
+          pieces.map((p, i) => (
             <ClosetPiece
               key={p.id}
               item={p}
@@ -226,6 +239,7 @@ export function ShelfBand({ zone, pieces, isDimmed, onPressPiece }: ZoneProps) {
               dimmed={isDimmed(p)}
               onPress={onPressPiece}
               tagTop={26}
+              index={i}
               outArt={<GhostFoldGlyph width={64} color={withAlpha(colors.ink, 0.22)} />}
             />
           ))
@@ -238,7 +252,14 @@ export function ShelfBand({ zone, pieces, isDimmed, onPressPiece }: ZoneProps) {
 
 // ----------------------------------------------------------------- drawers --
 
-function Drawer({ zone, pieces, isDimmed, onPressPiece, open, onToggle }: ZoneProps & { open: boolean; onToggle: () => void }) {
+function Drawer({
+  zone,
+  pieces,
+  isDimmed,
+  onPressPiece,
+  open,
+  onToggle,
+}: ZoneProps & { open: boolean; onToggle: () => void }) {
   const { colors, isDark } = useTheme();
   const reduced = useMotionReduced();
   const progress = useSharedValue(open ? 1 : 0);
@@ -268,14 +289,20 @@ function Drawer({ zone, pieces, isDimmed, onPressPiece, open, onToggle }: ZonePr
         <GHScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 6, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 8, alignItems: 'flex-end' }}
+          contentContainerStyle={{
+            gap: 6,
+            paddingHorizontal: 14,
+            paddingTop: 14,
+            paddingBottom: 8,
+            alignItems: 'flex-end',
+          }}
         >
           {pieces.length === 0 ? (
             <Text variant="caption" className="pb-6">
               Nothing folded away here yet.
             </Text>
           ) : (
-            pieces.map((p) => (
+            pieces.map((p, i) => (
               <ClosetPiece
                 key={p.id}
                 item={p}
@@ -284,6 +311,7 @@ function Drawer({ zone, pieces, isDimmed, onPressPiece, open, onToggle }: ZonePr
                 dimmed={isDimmed(p)}
                 onPress={onPressPiece}
                 tagTop={22}
+                index={i}
                 outArt={<GhostFoldGlyph width={52} color={withAlpha(colors.ink, 0.22)} />}
               />
             ))
@@ -377,7 +405,7 @@ export function ShoeRack({ zone, pieces, isDimmed, onPressPiece, labelled }: Zon
             No shoes on the rack yet
           </Text>
         ) : (
-          pieces.map((p) => (
+          pieces.map((p, i) => (
             <ClosetPiece
               key={p.id}
               item={p}
@@ -386,6 +414,7 @@ export function ShoeRack({ zone, pieces, isDimmed, onPressPiece, labelled }: Zon
               dimmed={isDimmed(p)}
               onPress={onPressPiece}
               tagTop={8}
+              index={i}
               outArt={<GhostShoeGlyph width={86} color={withAlpha(colors.ink, 0.22)} />}
             />
           ))
@@ -426,7 +455,7 @@ export function AccessoryTray({ zone, pieces, isDimmed, onPressPiece, labelled }
             The tray is empty
           </Text>
         ) : (
-          pieces.map((p) => (
+          pieces.map((p, i) => (
             <View key={p.id} style={{ transform: [{ rotate: `${trayTilt(p.id)}deg` }] }}>
               <ClosetPiece
                 item={p}
@@ -435,6 +464,7 @@ export function AccessoryTray({ zone, pieces, isDimmed, onPressPiece, labelled }
                 dimmed={isDimmed(p)}
                 onPress={onPressPiece}
                 tagTop={28}
+                index={i}
                 outArt={<GhostFoldGlyph width={60} color={withAlpha(colors.ink, 0.22)} />}
               />
             </View>
