@@ -15,7 +15,7 @@ Stack: Expo SDK 57 · React Native 0.86 · React 19.2 (React Compiler on) · Typ
 
 ## How we work
 
-The spec is built **in phases** (see "How to work" in `docs/SPEC.md`). Use `/phase <n>` to start one.
+The spec is built **in phases** (see "How to work" in `docs/SPEC.md`). Each phase has a brief in `docs/phases/phase-<n>.md`, the checklist to build against. Use `/phase <n>` to start one, and begin every phase by auditing what already exists against its brief.
 
 After every phase: stop, summarise what you built, list decisions, explain how to run it (and whether a native rebuild is needed), update `docs/PROGRESS.md`, then **wait for the go-ahead**. When the spec is ambiguous, pick the more polished and tactile option and record it under Decisions in `docs/PROGRESS.md`.
 
