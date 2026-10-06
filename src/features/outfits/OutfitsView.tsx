@@ -1,36 +1,53 @@
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { Heart, Sparkles } from 'lucide-react-native';
-import { memo, useEffect, useState, type ReactNode } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTabBarInset } from '@/components/navigation/TabBar';
-import { AnimatedPressable, Chip, EmptyState, Skeleton, Text } from '@/components/ui';
+import { AnimatedPressable, Chip, EmptyState, Skeleton, Text, type SheetRef } from '@/components/ui';
 import { haptics } from '@/lib/haptics';
+import { toast } from '@/store/toast';
 import { useMotionReduced } from '@/theme/motion';
 import { useTheme } from '@/theme/ThemeProvider';
 import { durations, springs } from '@/theme/tokens';
 
-import { filterOutfits, outfitFilterOptions, outfitMeta, outfitTileHeight, type OutfitFilter } from './list';
-import { setOutfitFavorite } from './mutations';
-import { OutfitPreview } from './OutfitPreview';
+import {
+  chipSelected,
+  filterOutfits,
+  isFiltering,
+  NO_OUTFIT_FILTERS,
+  outfitChips,
+  outfitCountLine,
+  outfitMeta,
+  pruneFilters,
+  toggleChip,
+  type OutfitFilters,
+} from './list';
+import { deleteOutfit, duplicateOutfit, setOutfitFavorite } from './mutations';
+import { OutfitMenuSheet, PlanOutfitSheet, type OutfitMenuTarget } from './OutfitSheets';
+import { OutfitThumb } from './OutfitThumb';
 import { useOutfitList, type OutfitSummary } from './useOutfits';
 
 const LIST_PADDING = 14;
 const CARD_GUTTER = 6;
 const RISE_COUNT = 8;
 
+const openOutfit = (id: string) => router.push({ pathname: '/outfit/[id]', params: { id } });
+
 const OutfitCard = memo(function OutfitCard({
   outfit,
   index,
   columnWidth,
+  onMenu,
 }: {
   outfit: OutfitSummary;
   index: number;
   columnWidth: number;
+  onMenu: (outfit: OutfitSummary) => void;
 }) {
   const { colors, isDark } = useTheme();
   const reduced = useMotionReduced();
@@ -60,11 +77,20 @@ const OutfitCard = memo(function OutfitCard({
     <Animated.View style={[{ paddingHorizontal: CARD_GUTTER, paddingBottom: 14 }, riseStyle]}>
       <AnimatedPressable
         accessibilityLabel={`${outfit.name}. ${meta}`}
-        accessibilityHint="Opens the outfit"
-        onPress={() => router.push({ pathname: '/outfit/[id]', params: { id: outfit.id } })}
+        accessibilityHint="Opens the outfit. Hold for more options"
+        accessibilityActions={[{ name: 'longpress', label: 'Plan, duplicate or delete' }]}
+        onAccessibilityAction={(e) => {
+          if (e.nativeEvent.actionName === 'longpress') onMenu(outfit);
+        }}
+        onPress={() => openOutfit(outfit.id)}
+        onLongPress={() => {
+          haptics.press();
+          onMenu(outfit);
+        }}
+        delayLongPress={350}
         scaleTo={0.97}
       >
-        <OutfitPreview pieces={outfit.pieces} width={width} height={outfitTileHeight(outfit.pieces.length)} />
+        <OutfitThumb outfit={outfit} width={width} />
         <View className="px-1.5 pb-1 pt-2.5">
           <Text variant="display3" numberOfLines={1} style={{ fontSize: 18, lineHeight: 21, letterSpacing: -0.3 }}>
             {outfit.name}
@@ -121,23 +147,35 @@ function OutfitsSkeleton() {
   );
 }
 
-/** The Outfits segment: saved outfits as a masonry of little boards, filterable by occasion or favourites. */
+/**
+ * The Outfits segment (Grid.dc.html): saved boards as a masonry of
+ * snapshots, filterable by favourites, occasion and season. Hold a card for
+ * plan, duplicate and delete.
+ */
 export function OutfitsView({ header }: { header: ReactNode }) {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const { outfits, loaded } = useOutfitList();
-  const [filter, setFilter] = useState<OutfitFilter>('all');
+  const [picked, setPicked] = useState<OutfitFilters>(NO_OUTFIT_FILTERS);
+  const [target, setTarget] = useState<OutfitMenuTarget | null>(null);
+  const menuRef = useRef<SheetRef>(null);
+  const planRef = useRef<SheetRef>(null);
 
-  const options = outfitFilterOptions(outfits);
-  const active = options.some((o) => o.value === filter) ? filter : 'all';
-  const shown = filterOutfits(outfits, active);
+  const chips = outfitChips(outfits);
+  const filters = pruneFilters(picked, chips);
+  const shown = filterOutfits(outfits, filters);
   const columnWidth = (width - LIST_PADDING * 2) / 2;
-  const line =
-    active === 'favorites'
-      ? `${shown.length} ${shown.length === 1 ? 'favourite' : 'favourites'}`
-      : `${shown.length} ${shown.length === 1 ? 'outfit' : 'outfits'} · tap the heart to favourite`;
+
+  const showMenu = (o: OutfitSummary) => {
+    setTarget({
+      id: o.id,
+      name: o.name,
+      meta: outfitMeta({ occasion: o.occasion, seasons: o.seasons, pieceCount: o.pieces.length }),
+    });
+    menuRef.current?.present();
+  };
 
   const empty =
     outfits.length === 0 ? (
@@ -147,9 +185,9 @@ export function OutfitsView({ header }: { header: ReactNode }) {
         illustration="hanger"
         actionLabel="New outfit"
         actionIcon={Sparkles}
-        onAction={() => router.push('/outfit/new')}
+        onAction={() => openOutfit('new')}
       />
-    ) : active === 'favorites' ? (
+    ) : filters.favorites && !filters.occasion && !filters.season ? (
       <EmptyState
         title="No favourites yet"
         body="Tap the heart on any outfit to keep it here."
@@ -157,62 +195,96 @@ export function OutfitsView({ header }: { header: ReactNode }) {
       />
     ) : (
       <EmptyState
-        title="Nothing for this occasion"
-        body="Try another filter."
+        title="Nothing matches"
+        body="No outfit fits all of those. Try fewer filters."
         illustration="shelf"
         actionLabel="Show all"
-        onAction={() => setFilter('all')}
+        onAction={() => setPicked(NO_OUTFIT_FILTERS)}
       />
     );
 
   return (
-    <FlashList
-      data={loaded ? shown : []}
-      masonry
-      numColumns={2}
-      keyExtractor={(o) => o.id}
-      renderItem={({ item, index }) => <OutfitCard outfit={item} index={index} columnWidth={columnWidth} />}
-      ListHeaderComponent={
-        <View style={{ marginHorizontal: -LIST_PADDING }}>
-          {header}
-          {outfits.length > 0 ? (
-            <>
-              <GHScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 4, gap: 8 }}
-              >
-                {options.map((o) => (
-                  <Chip
-                    key={o.value}
-                    label={o.label}
-                    selected={o.value === active}
-                    onPress={() => setFilter(o.value)}
-                  />
-                ))}
-              </GHScrollView>
-              <Text variant="caption" weight="semibold" className="px-5 pb-2.5 pt-3">
-                {line}
-              </Text>
-            </>
-          ) : null}
-        </View>
-      }
-      ListEmptyComponent={
-        loaded ? (
-          <View className="px-1.5 pt-4">{empty}</View>
-        ) : (
-          <View className="-mx-3.5">
-            <OutfitsSkeleton />
+    <>
+      <FlashList
+        data={loaded ? shown : []}
+        masonry
+        numColumns={2}
+        keyExtractor={(o) => o.id}
+        renderItem={({ item, index }) => (
+          <OutfitCard outfit={item} index={index} columnWidth={columnWidth} onMenu={showMenu} />
+        )}
+        ListHeaderComponent={
+          <View style={{ marginHorizontal: -LIST_PADDING }}>
+            {header}
+            {outfits.length > 0 ? (
+              <>
+                <GHScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 4, gap: 8 }}
+                >
+                  {chips.map((c) => (
+                    <Chip
+                      key={c.kind === 'occasion' || c.kind === 'season' ? `${c.kind}-${c.value}` : c.kind}
+                      label={c.label}
+                      icon={c.kind === 'favorites' ? Heart : undefined}
+                      selected={chipSelected(c, filters)}
+                      onPress={() => setPicked(toggleChip(c, filters))}
+                    />
+                  ))}
+                </GHScrollView>
+                <Text variant="caption" weight="semibold" className="px-5 pb-2.5 pt-3">
+                  {outfitCountLine(shown.length, filters)}
+                </Text>
+              </>
+            ) : null}
           </View>
-        )
-      }
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingTop: insets.top + 8,
-        paddingBottom: tabInset + 28,
-        paddingHorizontal: LIST_PADDING,
-      }}
-    />
+        }
+        ListEmptyComponent={
+          loaded ? (
+            <View className="px-1.5 pt-4">{empty}</View>
+          ) : (
+            <View className="-mx-3.5">
+              <OutfitsSkeleton />
+            </View>
+          )
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 8,
+          paddingBottom: tabInset + 28,
+          paddingHorizontal: LIST_PADDING,
+        }}
+      />
+
+      <OutfitMenuSheet
+        ref={menuRef}
+        outfit={target}
+        onEdit={() => {
+          menuRef.current?.dismiss();
+          if (target) openOutfit(target.id);
+        }}
+        onPlan={() => {
+          menuRef.current?.dismiss();
+          planRef.current?.present();
+        }}
+        onDuplicate={() => {
+          menuRef.current?.dismiss();
+          const copy = target ? duplicateOutfit(target.id) : null;
+          if (!copy) return;
+          haptics.outfitSaved();
+          if (isFiltering(filters)) setPicked(NO_OUTFIT_FILTERS);
+          toast(`Duplicated as ${copy.name}`);
+        }}
+        onDelete={() => {
+          menuRef.current?.dismiss();
+          if (!target) return;
+          deleteOutfit(target.id);
+          haptics.statusChanged();
+          toast(`Deleted ${target.name}`, 'info');
+        }}
+      />
+      <PlanOutfitSheet ref={planRef} outfit={target} />
+    </>
   );
 }

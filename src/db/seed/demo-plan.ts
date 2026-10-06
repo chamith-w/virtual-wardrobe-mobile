@@ -15,6 +15,7 @@ import {
   type Season,
   type ZoneType,
 } from '@/features/items/catalog';
+import { ROLE_POSE } from '@/features/outfits/canvas';
 import { paletteColor } from '@/lib/color';
 import { addDays, startOfDay, toDayKey, type DayKey } from '@/lib/dates';
 
@@ -188,12 +189,13 @@ export const DEFAULT_HOME_ZONES = ZONES.filter((z) => z.wardrobe === 'home');
 export const DEFAULT_STORAGE_ZONES = ZONES.filter((z) => z.wardrobe === 'storage');
 
 type Slot = 'layer' | 'top' | 'bottom' | 'shoes' | 'acc';
+/** The builder's flat-lay spots, so demo outfits look like boards you'd build. */
 const SLOT_POSE: Record<Slot, Omit<PlannedPiece, 'slug'>> = {
-  bottom: { x: 0.72, y: 0.42, scale: 0.92, rotation: 5, zIndex: 0 },
-  layer: { x: 0.26, y: 0.33, scale: 1, rotation: -6, zIndex: 1 },
-  top: { x: 0.5, y: 0.3, scale: 0.95, rotation: 2, zIndex: 2 },
-  shoes: { x: 0.3, y: 0.8, scale: 0.9, rotation: -3, zIndex: 3 },
-  acc: { x: 0.76, y: 0.78, scale: 0.7, rotation: 7, zIndex: 4 },
+  bottom: { ...ROLE_POSE.bottom, zIndex: 0 },
+  layer: { ...ROLE_POSE.layer, zIndex: 1 },
+  top: { ...ROLE_POSE.top, zIndex: 2 },
+  shoes: { ...ROLE_POSE.shoes, zIndex: 3 },
+  acc: { ...ROLE_POSE.accessory, zIndex: 4 },
 };
 
 const OUTFITS: {
@@ -461,7 +463,8 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
       .map(([slot, slug]) => ({
         slug,
         ...SLOT_POSE[slot],
-        ...(slot === 'top' && !o.slots.bottom ? { x: 0.56, y: 0.4, scale: 1.05 } : {}),
+        // A dress fills the top slot when there are no bottoms.
+        ...(slot === 'top' && !o.slots.bottom ? ROLE_POSE.one_piece : {}),
       })),
   }));
 

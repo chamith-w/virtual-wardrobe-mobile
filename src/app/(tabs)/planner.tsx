@@ -15,7 +15,7 @@ export default function PlannerScreen() {
     db
       .select({ id: plannedOutfits.id, date: plannedOutfits.date, name: outfits.name, occasion: outfits.occasion })
       .from(plannedOutfits)
-      .innerJoin(outfits, eq(outfits.id, plannedOutfits.outfitId))
+      .innerJoin(outfits, and(eq(outfits.id, plannedOutfits.outfitId), isNull(outfits.deletedAt)))
       .where(and(gte(plannedOutfits.date, today), isNull(plannedOutfits.deletedAt)))
       .orderBy(asc(plannedOutfits.date)),
     [today],

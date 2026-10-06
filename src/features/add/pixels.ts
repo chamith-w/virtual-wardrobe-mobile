@@ -3,15 +3,18 @@ import { AlphaType, ColorType, Skia } from '@shopify/react-native-skia';
 import { loadCutout } from '@/components/ui';
 import { detectColors, type DetectedColor } from '@/lib/color-extract';
 
+export type PixelSample = { data: Uint8Array; width: number; height: number };
+
 /**
- * Reads an image as a small RGBA buffer (unpremultiplied) for colour
- * detection: drawn into a ~64px CPU surface, then `readPixels`.
- * `centre` samples only the middle half, for photos without a cutout.
+ * Reads an image as a small RGBA buffer (unpremultiplied), for colour
+ * detection and the outfit board's garment bounds: drawn into a ~64px CPU
+ * surface, then `readPixels`. `centre` samples only the middle half, for
+ * photos without a cutout.
  */
 export async function samplePixels(
   uri: string,
   { maxSide = 64, centre = false }: { maxSide?: number; centre?: boolean } = {},
-): Promise<Uint8Array | null> {
+): Promise<PixelSample | null> {
   const image = await loadCutout(uri);
   if (!image) return null;
   const w = image.width();
@@ -30,14 +33,14 @@ export async function samplePixels(
   const pixels = surface
     .makeImageSnapshot()
     .readPixels(0, 0, { width, height, colorType: ColorType.RGBA_8888, alphaType: AlphaType.Unpremul });
-  return pixels instanceof Uint8Array ? pixels : null;
+  return pixels instanceof Uint8Array ? { data: pixels, width, height } : null;
 }
 
 /** 1–3 named colours of a cutout (or of the middle of a photo when there's no cutout). */
 export async function detectGarmentColors(uri: string, { cutout }: { cutout: boolean }): Promise<DetectedColor[]> {
   try {
-    const pixels = await samplePixels(uri, { centre: !cutout });
-    return pixels ? detectColors(pixels) : [];
+    const sample = await samplePixels(uri, { centre: !cutout });
+    return sample ? detectColors(sample.data) : [];
   } catch {
     return [];
   }

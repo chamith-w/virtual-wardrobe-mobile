@@ -6,8 +6,8 @@
 | 2     | Wardrobe: closet view with zones, grid view, search/filter/sort, item detail         | ✅ Done |
 | 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ✅ Done |
 | 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        | ✅ Done |
-| 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            | ⏳ Next |
-| 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  |         |
+| 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            | ✅ Done |
+| 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  | ⏳ Next |
 | 7     | Me hub: insights, declutter, packing, wishlist, notifications, backup/export         |         |
 | 8     | Polish: signature animations, empty states, reduce motion, a11y + perf pass          |         |
 
@@ -130,6 +130,31 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
   - the lent, cleaner and pile copy and layout, and wash-done timing
   - the seed's state dates
 
+## Phase 5: what exists
+
+**Audit at the start:** `useOutfits` (list, an item's outfits, the picker) and `matches.ts` were done and are reused. `mutations` was partial (membership and favourite only). `OutfitPreview` drew approximate mini boards that no builder could reproduce. The Outfits segment was partial (masonry, favourites and occasion chips). `/outfit/[id]` was a read-only screen and `/outfit/new` a placeholder. The builder, shuffle, snapshots and saving were missing.
+
+- **Route:** `/outfit/[id]` is the builder. `new` starts a board; `?item=<id>` (item detail → Add to outfit → New outfit) and `?items=<id>,<id>` (for phase 6's suggestion Edit) preload pieces in their role's spot. Any other id opens that outfit with its layout restored. It's a full-screen modal with no swipe-to-dismiss, so board drags can't close it; closing with unsaved changes asks first, and Android Back closes an open sheet before the builder.
+- **Board (`features/outfits/builder`):** a `bg-board` board with a faint 18pt dot grid, drawn in **one Skia canvas** driven by Reanimated shared values: the garments (each with its alpha-mask shadow), snap guides and the dashed selection outline. The board keeps the prototype's 366 × 476 shape and fits between the header and the tray.
+  - **Gestures:** one composed gesture on the board, `Race(Simultaneous(Pan, Pinch, Rotation), Tap)`, all on the UI thread. Tap selects (or clears). Pan moves the piece under the finger, and the grabbed piece lifts 4%. Pinch and rotation act on the piece under the fingers, else the selected one, and run together with pan. Each gesture ends in one commit, so one undo step.
+  - **Corner handle:** the accent circle at the outline's turned corner. Dragging it scales with distance and rotates with angle around the piece's centre (scale 0.35–2.6). Rotation settles on 0°/±90°/180° within 4°, with a tick.
+  - **Snap guides:** to the board's centre lines and to other pieces' centres and edges, within 8pt, with a light haptic each time a new guide appears. A dragged piece's centre can't leave the board.
+  - **Trash:** a bin rises from the board's foot while dragging (bouncy spring). Over it, it swells to 1.22 and turns red, the piece dims to 40% and the hint reads "Release to remove". Dropping it shrinks the piece into the bin with the `dropSuccess` haptic.
+  - **Floating toolbar** (hidden while dragging): lock, bring forward, send backward (one step each, dimmed at the ends of the stack) and remove. Locked pieces wear a small upright lock badge.
+  - **Undo:** a header button with a 30-step stack (add, remove, move, scale/rotate, lock, z-order, shuffle).
+  - **Pops:** pieces from the tray or a shuffle pop in from half size and ±10° on the bouncy spring (prototype popA/popB); a saved outfit's pieces fade in. Under Reduce Motion everything is a short fade.
+  - **Accessibility:** the canvas is drawn, so each piece also has an invisible element at its bounds, labelled with its name and lock, with actions: select, lock, bring forward, send backward, make larger or smaller, rotate, and remove.
+- **Garment bounds:** each cutout is sampled at 64px once to find its opaque bounds (`bounds.ts`). Outlines, snapping and hit tests hug the garment, not the image, which matters for the demo cutouts and their transparent margins. Pieces get at least a 44pt touch target.
+- **Tray:** category tabs (Tops, Bottoms, Layers, Dresses, Shoes, Accessories) with counts, over a horizontal FlashList of in-wardrobe pieces only. Tap a piece to place it in its role's flat-lay spot (stepping aside if the spot's taken), or drag it up and drop it anywhere on the board (the board rings in accent while you're over it). A piece already on the board shows a green tick; tapping it selects it, dropping it moves it.
+- **Shuffle and lock:** Shuffle swaps every unlocked piece for another available piece in the same role. It favours colours that harmonise with what stays (`colorHarmony` from `matches.ts`) and shared seasons, choosing at random among the best few so each shuffle differs. It never puts a garment on the board twice, and a piece with nothing to swap in stays. Swapped pieces pop in. On an empty board, Shuffle (or "Shuffle a look") builds a starter outfit. When everything is locked, or nothing could swap, a toast says so.
+- **Save:** a sheet with the name (the placeholder suggests one from the colours, "Ecru & navy"; a blank name takes it), occasion and seasons, pre-filled from what the pieces share. Saving writes the outfit and its `outfit_items` (normalised `x`, `y`, `scale`, `rotation`, `zIndex`, `locked`; links taken off are soft-deleted, links put back are revived) and fires `outfitSaved`. The sheet then turns into the prototype's saved card, with the snapshot popping in, **Plan it** and **View outfits**. Saving again updates the same outfit.
+- **Snapshots (`snapshots.tsx`):** drawn offscreen with Skia's `drawAsImage`, using the same `OutfitScene` component the list draws live. They're cropped to the outfit's content frame and saved as transparent 600px PNGs at `documents/outfits/<id>-<version>.png`, with older versions deleted. A single queue renders them one at a time: a save jumps the queue, and lists render missing ones in the background. Seeded outfits have none until they're first shown. Saving an edit re-renders the snapshot, and "Add to outfit" on item detail clears it so it's drawn afresh. Reset demo data removes the folder.
+- **Outfits list:** a masonry FlashList of snapshot cards whose height follows each outfit's frame. Until a snapshot exists, the card draws the scene live and keeps it until the image has loaded, so nothing blinks. Filter chips are All, Favourites, the occasions in use and the seasons in use; they combine, and all-year outfits match any season. The heart toggles favourite. **Hold a card** for Edit, Plan for a day, Duplicate ("… copy") and Delete (asks once; soft delete). Screen readers get the same menu as an action.
+- **Plan for a day:** a `DatePickerSheet` with Today, Tomorrow, In 2 days, a week and 2 weeks. It writes `planned_outfits` (one outfit per day, replacing and naming the one it replaced), so plans show in the Planner tab now. Phase 6 builds the calendar on top. Deleting an outfit drops its upcoming plans, and past wear logs keep it.
+- **Elsewhere:** item detail's "In N outfits" row shows the same thumbnails. The Planner hides plans for deleted outfits. `samplePixels` now returns its dimensions.
+- **Tests (349):** normalised ↔ canvas round trips, hit testing (rotation, 44pt minimum), the handle, rotation settling, snap detection (centre lines, centres, edges, nearest wins), placement, the content frame, z-order (renumbering, one step, the ends, add and remove), the undo stack, shuffle (locks, availability, roles, no duplicates, harmony, starter outfits), opaque bounds, save defaults and copy names, list filters and plan copy.
+- **Checked in the iOS Simulator** (iPhone 17 Pro, deep links): a new board, an empty board, a preloaded board and a seeded outfit reopened with its layout all render. Item detail rendered three seeded snapshots in the background and wrote them (600 × 703, transparent). Touch couldn't be driven in the headless Simulator, so **drags, pinch, rotate, snapping, the trash, tray drag, shuffle, saving, the list's cards and the long-press menu were not exercised by hand.** Android is still unbuilt.
+
 ## Decisions
 
 1. **Routes live in `src/app`.** That's the SDK 57 template default and what `AGENTS.md` expects. Everything else follows the spec's feature folders under `src/`.
@@ -193,6 +218,21 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
     - Bulk moves skip refused pieces and say how many stayed put.
 51. **New primitives:** `DatePickerSheet`, count badges on `Segmented`, and `Sheet.stackBehavior`. The date picker opens on top of the sheet it came from.
 52. **`wicker`, `wickerShade` and `wickerDeep` tokens** (illustration only, so they have no contrast pairs) colour the basket in both themes.
+53. **The board is one Skia canvas**, not a view per piece. Skia redraws each garment from its source image at the current scale and angle, so pieces stay crisp at 2.6×, and every transform runs on the UI thread from shared values. Each piece gets an invisible element with actions for screen readers.
+54. **Board coordinates:** a fixed 1 : 1.3 board (the prototype's 366 × 476), so a layout restores exactly on any screen. `x` and `y` are the garment's centre as a fraction of width and height, `rotation` is in degrees, and at `scale` 1 a garment's longest visible side is 40% of the board's width. Accessories default to 0.7 and shoes to 0.9.
+55. **Snapshots are drawn offscreen with Skia** (`drawAsImage`), rather than captured with `makeImageFromView` or `react-native-view-shot`. That means no selection chrome to hide, it works for outfits that were never opened (seeded ones render lazily), and there's no new native dependency. They're transparent PNGs carrying the light theme's warm shadow; each card draws its own tinted ground, so they suit both themes.
+56. **Snapshot files are versioned**, `documents/outfits/<id>-<version>.png` rather than `<id>.png`. Image caches key on the URI, so an edited outfit would otherwise keep showing its old board. Older versions are deleted after each render.
+57. **Thumbnails are cropped to the outfit's content frame**: pieces plus a margin, between 0.9 and 1.3 times as tall as wide. Each piece counts as a square of its longest side, so a card's height is known before any image loads and the masonry never jumps.
+58. **Lock means "keep for Shuffle"** (the prototype's "Lock piece for shuffle"). Locked pieces can still be moved.
+59. **Bring forward / Send backward move one step**, as in design tools, rather than straight to the front or back as in the prototype. With a handful of pieces, it's easier to place one exactly.
+60. **Snapping** matches centre to centre (the board's centre lines and other pieces) and edge to edge, within 8pt. Rotation settles on right angles within 4°.
+61. **Undo keeps 30 steps.** The brief asked for at most one; a stack costs nothing extra. Opening an outfit starts a fresh stack.
+62. **Pieces land in role spots** (a layer left, the top centre, bottoms right, shoes and bag below), shared with the demo seed. Shoes and accessories sit at 0.72, the prototype's height (they were at 0.8). Existing installs keep the older demo layout until Me → Reset demo data.
+63. **Shuffle on an empty board builds a starter outfit**, and Shuffle also replaces unlocked pieces that are out (worn, washing, lent).
+64. **The tray offers only pieces hanging in the wardrobe**, without basics (underwear, socks, activewear). An outfit can still contain pieces that are out; they stay on its board.
+65. **The builder is a full-screen modal with its own `BottomSheetModalProvider`** (decision 17's reason), with no swipe-to-dismiss.
+66. **One outfit per planned day:** planning replaces what was there and says what it replaced. Deleting an outfit removes its upcoming plans but leaves wear logs alone.
+67. **The builder draws full cutouts** (crisp when scaled up), with the thumbnail standing in while the cutout decodes. Snapshots and live thumbnails use the 400px thumbnails.
 
 ## Open questions
 
@@ -203,7 +243,10 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 5. **A category classifier** could plug into `setGarmentClassifier` later (an on-device image-labelling model, or a server). Worth it?
 6. **Strictness of the transition table** (decision 39): for example, a piece in the wash can't be marked as lent. Say if any refusal gets in the way.
 7. **Reminder hour:** lend reminders fire at 10:00. Would you rather pick the time?
+8. **Today's "Edit"** (brief, phase 5) needs Today's outfit carousel, which arrives in phase 6. The builder already accepts `/outfit/new?items=<id>,<id>` for it.
+9. **Gestures need a hand test.** Drag, pinch, rotate, the handle, snapping, the trash, dragging from the tray and the save flow have only been checked in code and unit tests. Please try them on a phone, and on Android when it's built (the "smooth on mid-range Android" check is still open).
+10. **Snapshot shadows in dark mode:** they carry the light theme's warm shadow, which is subtle on the dark tint. Rendering a second, dark version is easy if you'd rather have it.
 
-## Next: phase 5
+## Next: phase 6
 
-See `docs/phases/phase-5.md`: the outfit builder canvas, shuffle, snapshots and the outfits list. The outfits segment and `/outfit/[id]` from phase 2 are the starting point; `/outfit/new` is still a placeholder.
+See `docs/phases/phase-6.md`: Today and the Planner, with weather, the suggestion engine, the calendar and wear logging. Shuffle (`outfits/shuffle.ts`) is the engine's starting point; planning already writes `planned_outfits` (`planOutfit`); suggestion cards can open the builder with `/outfit/new?items=…`.

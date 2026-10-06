@@ -10,6 +10,7 @@ export type OutfitPiece = {
   itemId: string;
   name: string;
   thumbUri: string | null;
+  cutoutUri: string | null;
   x: number;
   y: number;
   scale: number;
@@ -23,6 +24,8 @@ export type OutfitSummary = {
   isFavorite: boolean;
   occasion: Occasion | null;
   seasons: Season[];
+  /** The saved board as a PNG; null until the builder or the list renders one. */
+  snapshotUri: string | null;
   pieces: OutfitPiece[];
 };
 
@@ -32,6 +35,7 @@ type OutfitColumns = {
   isFavorite: boolean;
   occasion: Occasion | null;
   seasons: Season[];
+  snapshotUri: string | null;
 };
 type PieceRow = OutfitColumns & { [K in keyof OutfitPiece]: OutfitPiece[K] | null };
 
@@ -45,6 +49,7 @@ function groupOutfits(rows: PieceRow[]): OutfitSummary[] {
       isFavorite: r.isFavorite,
       occasion: r.occasion,
       seasons: r.seasons,
+      snapshotUri: r.snapshotUri,
       pieces: [],
     };
     byId.set(r.outfitId, outfit);
@@ -54,6 +59,7 @@ function groupOutfits(rows: PieceRow[]): OutfitSummary[] {
       itemId: r.itemId,
       name: r.name,
       thumbUri: r.thumbUri,
+      cutoutUri: r.cutoutUri,
       x: r.x,
       y: r.y,
       scale: r.scale ?? 1,
@@ -70,9 +76,11 @@ const pieceColumns = {
   isFavorite: outfits.isFavorite,
   occasion: outfits.occasion,
   seasons: outfits.seasons,
+  snapshotUri: outfits.snapshotUri,
   itemId: outfitItems.itemId,
   name: items.name,
   thumbUri: items.thumbUri,
+  cutoutUri: items.cutoutUri,
   x: outfitItems.x,
   y: outfitItems.y,
   scale: outfitItems.scale,
@@ -120,26 +128,6 @@ export function useOutfitList() {
     [] as OutfitSummary[],
   );
   return { outfits: data, loaded };
-}
-
-/** One outfit with its pieces (the outfit screen). */
-export function useOutfit(id: string | undefined) {
-  const { data, loaded } = useLiveData(
-    async () =>
-      groupOutfits(
-        await db
-          .select(pieceColumns)
-          .from(outfits)
-          .leftJoin(outfitItems, and(eq(outfitItems.outfitId, outfits.id), isNull(outfitItems.deletedAt)))
-          .leftJoin(items, and(eq(items.id, outfitItems.itemId), isNull(items.deletedAt)))
-          .where(and(eq(outfits.id, id ?? ''), isNull(outfits.deletedAt)))
-          .orderBy(asc(outfitItems.zIndex)),
-      ),
-    [outfits, outfitItems, items],
-    [id],
-    [] as OutfitSummary[],
-  );
-  return { outfit: data[0], loaded };
 }
 
 /** Every outfit with its piece ids — for the "Add to outfit" picker. */

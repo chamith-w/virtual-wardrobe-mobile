@@ -74,7 +74,7 @@ export function AddToOutfitSheet({ ref, item }: SheetProps & { item: ItemRef }) 
         accessibilityHint="Opens the outfit builder"
         onPress={() => {
           ref.current?.dismiss();
-          router.push({ pathname: '/outfit/new', params: { itemId: item.id } });
+          router.push({ pathname: '/outfit/[id]', params: { id: 'new', item: item.id } });
         }}
         scaleTo={0.98}
         className="mb-1 min-h-[58px] flex-row items-center gap-3 rounded-md bg-accent-soft px-3.5 py-2"

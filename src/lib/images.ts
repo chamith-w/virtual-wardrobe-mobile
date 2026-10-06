@@ -3,10 +3,12 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 /**
  * Garment images live in the app's documents directory — never in SQLite.
- * Layout: documents/items/<itemId>/{original,cutout,thumb}.<ext>
+ * Layout: documents/items/<itemId>/{original,cutout,thumb}.<ext>, and outfit
+ * snapshots as documents/outfits/<outfitId>-<version>.png.
  */
 export const itemsRoot = () => new Directory(Paths.document, 'items');
 export const wishlistRoot = () => new Directory(Paths.document, 'wishlist');
+export const outfitsRoot = () => new Directory(Paths.document, 'outfits');
 
 export function itemDir(itemId: string): Directory {
   const dir = new Directory(itemsRoot(), itemId);
@@ -24,9 +26,9 @@ export async function copyBundledAsset(moduleId: number, dest: File): Promise<st
   return dest.uri;
 }
 
-/** Removes every stored garment and wishlist image. */
+/** Removes every stored garment, wishlist and outfit image. */
 export function deleteAllImages() {
-  for (const dir of [itemsRoot(), wishlistRoot()]) {
+  for (const dir of [itemsRoot(), wishlistRoot(), outfitsRoot()]) {
     if (dir.exists) dir.delete();
   }
 }

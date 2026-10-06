@@ -61,8 +61,11 @@ function AppStack() {
             contentStyle: { backgroundColor: 'transparent' },
           }}
         />
-        <Stack.Screen name="outfit/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="outfit/new" options={{ presentation: 'modal' }} />
+        {/* Full screen, no swipe to dismiss: the board's own drags must never close it. */}
+        <Stack.Screen
+          name="outfit/[id]"
+          options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+        />
         <Stack.Screen name="edit-item/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="laundry" />
         <Stack.Screen name="wardrobes" options={{ presentation: 'modal' }} />

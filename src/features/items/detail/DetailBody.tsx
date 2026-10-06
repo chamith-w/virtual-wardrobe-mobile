@@ -21,7 +21,7 @@ import { OutActions } from '@/features/items/components/OutActions';
 import { StatusSwitcher } from '@/features/items/components/StatusSwitcher';
 import { detailRows, detailStats, itemByline, itemEyebrow } from '@/features/items/describe';
 import { findMatches } from '@/features/items/matches';
-import { OutfitPreview } from '@/features/outfits/OutfitPreview';
+import { OutfitThumb } from '@/features/outfits/OutfitThumb';
 import { useItemOutfits } from '@/features/outfits/useOutfits';
 import { useWornToday } from '@/features/planner/wearLog';
 import { useAllItems, useZones, type ClosetItem } from '@/features/wardrobe/useWardrobeData';
@@ -244,7 +244,7 @@ function InOutfits({
               scaleTo={0.96}
               style={{ width: 136 }}
             >
-              <OutfitPreview pieces={o.pieces} width={136} height={150} />
+              <OutfitThumb outfit={o} width={136} height={150} />
               <Text variant="bodySm" weight="semibold" numberOfLines={1} className="mt-2">
                 {o.name}
               </Text>
