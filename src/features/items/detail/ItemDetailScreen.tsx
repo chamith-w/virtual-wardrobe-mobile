@@ -33,7 +33,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { durations, springs } from '@/theme/tokens';
 
 import { DetailBody } from './DetailBody';
-import { AddToOutfitSheet, ArchiveSheet, EditSheet, MoveSheet } from './DetailSheets';
+import { AddToOutfitSheet, ArchiveSheet, MoveSheet } from './DetailSheets';
 import { DetailStage, STAGE_ASPECT } from './DetailStage';
 import { heroPose, IDENTITY_POSE, poseAt, type Rect } from './hero';
 
@@ -127,7 +127,6 @@ function ItemDetail({ initialId }: { initialId: string }) {
   const [showMatches, setShowMatches] = useState(false);
 
   const addSheet = useRef<SheetRef>(null);
-  const editSheet = useRef<SheetRef>(null);
   const moveSheet = useRef<SheetRef>(null);
   const archiveSheet = useRef<SheetRef>(null);
 
@@ -367,7 +366,7 @@ function ItemDetail({ initialId }: { initialId: string }) {
                 showMatches={showMatches}
                 onToggleMatches={() => setShowMatches((m) => !m)}
                 onAddToOutfit={() => addSheet.current?.present()}
-                onEdit={() => editSheet.current?.present()}
+                onEdit={() => router.push({ pathname: '/edit-item/[id]', params: { id: item.id } })}
                 onMove={() => moveSheet.current?.present()}
                 onArchive={() => archiveSheet.current?.present()}
                 onOpenItem={(m) => openMatch(m.id)}
@@ -413,7 +412,6 @@ function ItemDetail({ initialId }: { initialId: string }) {
       {item ? (
         <>
           <AddToOutfitSheet ref={addSheet} item={item} />
-          <EditSheet ref={editSheet} item={item} />
           <MoveSheet ref={moveSheet} item={item} wardrobeId={item.wardrobeId} wardrobes={wardrobes} counts={counts} />
           <ArchiveSheet
             ref={archiveSheet}

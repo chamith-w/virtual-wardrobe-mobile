@@ -52,6 +52,7 @@ function AppStack() {
         />
         <Stack.Screen name="outfit/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="outfit/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="edit-item/[id]" options={{ presentation: 'modal' }} />
       </Stack>
       {/* iOS presents modals in their own window layer; the overlay keeps toasts above them. */}
       {Platform.OS === 'ios' ? (

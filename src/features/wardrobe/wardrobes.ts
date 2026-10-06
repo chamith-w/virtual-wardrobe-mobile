@@ -5,6 +5,7 @@
  */
 import { DEFAULT_HOME_ZONES, DEFAULT_STORAGE_ZONES } from '@/db/seed/demo-plan';
 import type { ZoneType } from '@/features/items/catalog';
+import { cleanName } from '@/lib/text';
 
 export type WardrobeKind = 'wardrobe' | 'storage';
 
@@ -12,12 +13,6 @@ export type WardrobeKind = 'wardrobe' | 'storage';
 export const WARDROBE_KIND_ICON: Record<WardrobeKind, string> = { wardrobe: 'home', storage: 'archive' };
 
 export const WARDROBE_NAME_MAX = 32;
-
-/** Collapses runs of whitespace and trims; null when nothing is left. */
-export function cleanName(raw: string, max = 60): string | null {
-  const name = raw.replace(/\s+/g, ' ').trim().slice(0, max).trim();
-  return name.length > 0 ? name : null;
-}
 
 /** Why a new wardrobe name can't be used, or null when it can. */
 export function wardrobeNameProblem(raw: string, existing: readonly { name: string }[]): string | null {

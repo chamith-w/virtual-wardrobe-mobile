@@ -1,9 +1,10 @@
 import { eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { items, wardrobes, zones } from '@/db/schema';
+import { items, wardrobes, zones, type NewItem } from '@/db/schema';
+import type { DraftFields } from '@/features/items/details/draft';
 
-import type { ArchiveReason, Category, ItemStatus } from './catalog';
+import type { ArchiveReason, ItemStatus } from './catalog';
 import {
   applyStatus,
   moveToWardrobe,
@@ -78,16 +79,24 @@ export function moveItemToZone(id: string, zoneId: string) {
   db.update(items).set({ zoneId }).where(eq(items.id, id)).run();
 }
 
+/** Inserts a new piece (the add flow decides its wardrobe, zone and images). */
+export function createItem(row: NewItem) {
+  db.insert(items).values(row).run();
+}
+
 /**
- * The minimal editor (phase 3 brings the full details sheet). A new category
- * can carry the piece to that category's zone — see zoneAfterCategoryChange.
+ * Saves the details form. A new category can carry the piece to that
+ * category's zone — see zoneAfterCategoryChange.
  */
-export function updateItemBasics(id: string, patch: { name: string; category: Category }) {
+export function updateItemDetails(id: string, fields: DraftFields) {
   db.transaction((tx) => {
     const item = placedItem(tx, id);
     if (!item) return;
-    const zoneId = zoneAfterCategoryChange(item, patch.category, placementContext(tx).zones);
-    tx.update(items).set({ name: patch.name, category: patch.category, zoneId }).where(eq(items.id, id)).run();
+    const zoneId = zoneAfterCategoryChange(item, fields.category, placementContext(tx).zones);
+    tx.update(items)
+      .set({ ...fields, zoneId })
+      .where(eq(items.id, id))
+      .run();
   });
 }
 

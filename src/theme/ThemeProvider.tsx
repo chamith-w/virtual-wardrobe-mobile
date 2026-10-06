@@ -1,7 +1,7 @@
 import * as SystemUI from 'expo-system-ui';
 import { vars } from 'nativewind';
 import { createContext, use, useEffect, type ReactNode } from 'react';
-import { Appearance, useColorScheme, View } from 'react-native';
+import { Appearance, useColorScheme, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { usePreferences, type ThemePreference } from '@/store/preferences';
 
@@ -56,6 +56,31 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeContext value={value}>
       <View style={[{ flex: 1, backgroundColor: palette.background }, schemeVars[scheme]]}>{children}</View>
+    </ThemeContext>
+  );
+}
+
+/**
+ * Renders a subtree in a fixed scheme whatever the app theme, e.g. the
+ * always-dark camera. Primitives inside pick up that palette through both the
+ * CSS variables and `useTheme()`.
+ */
+export function SchemeScope({
+  scheme,
+  children,
+  style,
+}: {
+  scheme: ColorScheme;
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const parent = useTheme();
+  const value: ThemeContextValue = { ...parent, scheme, isDark: scheme === 'dark', colors: colors[scheme] };
+  return (
+    <ThemeContext value={value}>
+      <View style={[{ flex: 1, backgroundColor: colors[scheme].background }, schemeVars[scheme], style]}>
+        {children}
+      </View>
     </ThemeContext>
   );
 }

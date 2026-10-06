@@ -7,17 +7,8 @@ import { View } from 'react-native';
 import { AnimatedPressable, Button, CheckBadge, Chip, Sheet, Text, type SheetRef } from '@/components/ui';
 import type { Wardrobe } from '@/db/schema';
 import { moveToWardrobe } from '@/features/items/actions';
-import {
-  ARCHIVE_REASON_LABEL,
-  ARCHIVE_REASONS,
-  CATEGORIES,
-  CATEGORY_LABEL,
-  type ArchiveReason,
-  type Category,
-} from '@/features/items/catalog';
-import { updateItemBasics } from '@/features/items/mutations';
+import { ARCHIVE_REASON_LABEL, ARCHIVE_REASONS, type ArchiveReason } from '@/features/items/catalog';
 import { isStorageWardrobe } from '@/features/items/placement';
-import { cleanName } from '@/features/wardrobe/wardrobes';
 import { toggleItemInOutfit } from '@/features/outfits/mutations';
 import { useOutfitPicker } from '@/features/outfits/useOutfits';
 import { haptics } from '@/lib/haptics';
@@ -220,88 +211,6 @@ export function ArchiveSheet({
         className="mt-5"
         onPress={() => onArchive(reason, note)}
       />
-    </Sheet>
-  );
-}
-
-/** Minimal editor for now: name and category. The full details sheet arrives with the add flow. */
-export function EditSheet({ ref, item }: SheetProps & { item: ItemRef & { category: Category } }) {
-  const { colors } = useTheme();
-  const [name, setName] = useState(item.name);
-  const [category, setCategory] = useState<Category>(item.category);
-  const cleaned = cleanName(name, 60);
-  const changed = cleaned !== item.name || category !== item.category;
-
-  const save = () => {
-    if (!cleaned) return;
-    if (changed) {
-      updateItemBasics(item.id, { name: cleaned, category });
-      haptics.statusChanged();
-      toast(category !== item.category ? `Saved · now in ${CATEGORY_LABEL[category]}` : 'Saved');
-    }
-    ref.current?.dismiss();
-  };
-
-  return (
-    <Sheet
-      ref={ref}
-      title="Edit piece"
-      snapPoints={['78%']}
-      scrollable
-      onDismiss={() => {
-        // Drop an unsaved draft so the next open starts from the piece as it is.
-        setName(item.name);
-        setCategory(item.category);
-      }}
-    >
-      <Text variant="eyebrow" className="mb-2">
-        Name
-      </Text>
-      <BottomSheetTextInput
-        value={name}
-        onChangeText={setName}
-        onSubmitEditing={save}
-        placeholder="Camel wool coat"
-        placeholderTextColor={colors.muted}
-        selectionColor={colors.accent}
-        returnKeyType="done"
-        autoCapitalize="sentences"
-        maxLength={60}
-        accessibilityLabel="Name"
-        maxFontSizeMultiplier={1.5}
-        style={{
-          height: 48,
-          borderRadius: 14,
-          paddingHorizontal: 14,
-          backgroundColor: colors.surfaceTinted,
-          fontFamily: fontFamily.sansMedium,
-          fontSize: 16,
-          color: colors.ink,
-        }}
-      />
-      {!cleaned ? (
-        <Text variant="caption" tone="danger" className="mt-1.5">
-          Give it a name
-        </Text>
-      ) : null}
-      <Text variant="eyebrow" className="mb-2.5 mt-5">
-        Category
-      </Text>
-      <View className="flex-row flex-wrap gap-2" accessibilityRole="radiogroup" accessibilityLabel="Category">
-        {CATEGORIES.map((c) => (
-          <Chip
-            key={c}
-            label={CATEGORY_LABEL[c]}
-            selected={c === category}
-            accessibilityRole="radio"
-            onPress={() => setCategory(c)}
-          />
-        ))}
-      </View>
-      <Text variant="caption" className="mt-4">
-        Colours, seasons, price and care notes come with the full details sheet.
-      </Text>
-      <Button label="Save" fullWidth className="mt-5" disabled={!cleaned} onPress={save} />
     </Sheet>
   );
 }

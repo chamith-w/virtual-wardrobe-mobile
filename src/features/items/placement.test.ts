@@ -4,6 +4,7 @@ import {
   zoneAfterCategoryChange,
   zoneFor,
   type PlacedItem,
+  wardrobeForNewPiece,
   type WardrobeLite,
   type ZoneLite,
 } from './placement';
@@ -130,5 +131,21 @@ describe('zoneAfterCategoryChange', () => {
     expect(zoneAfterCategoryChange({ wardrobeId: 'home', zoneId: 'h-shoes', category: 'tops' }, 'tops', zones)).toBe(
       'h-shoes',
     );
+  });
+});
+
+describe('wardrobeForNewPiece', () => {
+  it('uses the wardrobe on show', () => {
+    expect(wardrobeForNewPiece(wardrobes, 'home')?.id).toBe('home');
+  });
+
+  it('never hangs a new piece in storage', () => {
+    expect(wardrobeForNewPiece(wardrobes, 'storage')?.id).toBe('home');
+  });
+
+  it('defaults to home, or to whatever exists', () => {
+    expect(wardrobeForNewPiece(wardrobes, null)?.id).toBe('home');
+    expect(wardrobeForNewPiece([{ id: 'box', icon: 'archive', sortOrder: 0 }], null)?.id).toBe('box');
+    expect(wardrobeForNewPiece([], null)).toBeUndefined();
   });
 });

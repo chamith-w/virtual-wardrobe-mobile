@@ -4,8 +4,8 @@
 | ----- | ------------------------------------------------------------------------------------ | ------- |
 | 1     | Setup: project, tokens, fonts, theme, primitives, tab bar, schema + migrations, seed | ✅ Done |
 | 2     | Wardrobe: closet view with zones, grid view, search/filter/sort, item detail         | ✅ Done |
-| 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ⏳ Next |
-| 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        |         |
+| 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ✅ Done |
+| 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        | ⏳ Next |
 | 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            |         |
 | 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  |         |
 | 7     | Me hub: insights, declutter, packing, wishlist, notifications, backup/export         |         |
@@ -53,6 +53,30 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 - **Already done for phase 4:** status switching (storage moves the piece to the Storage wardrobe and back), lent-to and lent-since, Wear today with the wear cache kept in sync, Move to another wardrobe, and creating wardrobes. Phase 4 should build on `features/items/{actions,mutations,placement}.ts` rather than redo them.
 - **Tests (168):** added colour sort (wheel order, ties, colourless last), cost-per-wear ranking (unworn, free, unpriced), least-worn ordering, zone grouping and drops, category-change zones, hero geometry, the detail copy (stats, eyebrow, byline, details rows), new-wardrobe planning and outfit list filters.
 
+## Phase 3: what exists
+
+- **Capture (`/add`, full-screen modal, always dark):** `expo-camera` preview with a dashed garment guide (Hanger or Flat lay), corner brackets, flash, flip and a shutter with a white flash. The camera permission is asked for on the first add only, behind a branded explainer card; once refused, the card links to Settings; without a camera (the Simulator) it falls back to photos. The gallery (`expo-image-picker`) takes up to 10 photos at once, which become a batch ("2 of 4") with Skip.
+- **Background removal (`features/add/segmentation`):** one call, `removeBackground(photo)` → `{ cutoutUri, width, height, bounds, engine }`. On device by default through our local module `modules/subject-segmentation`:
+  - iOS 17+: Vision's foreground instance mask
+  - Android: ML Kit Subject Segmentation, whose model Play services downloads on first use. The module checks for it and downloads it with progress, which the review screen shows as "Preparing on-device cutouts · 42%".
+
+  The module returns a PNG with alpha, cropped to the garment plus 4%, with orientation corrected, and reports where the garment sat in the photo. A remove.bg adapter takes over when on-device removal isn't available, but only if `EXPO_PUBLIC_REMOVE_BG_KEY` is set (dev only; see decision 32). The eraser/restore brush is a typed stub (`segmentation/refine.ts`) and its button stays hidden.
+
+- **Magic cutout (DESIGN.md #3):** a diagonal shimmer sweeps every 1.25s while it works (at least 1.1s, so it reads). Then the photo blurs, scales 1.06 and dissolves over 1.1s, a checkerboard flashes, and the garment lifts −8px with a spring before settling in the middle. Detected colour chips pop in 120ms apart. "Keep original" plays it backwards (and is forced on when there's no cutout). Failures explain themselves, with Try again or keep the photo.
+- **Colours (`lib/color-extract.ts`):** the cutout is read with Skia at about 64px (`readPixels`, unpremultiplied). Pixels with alpha under 128 are dropped, then k-means (k ≤ 3) runs in CIELAB from a deterministic start. Shades closer than ΔE 10 merge, clusters under 8% are dropped, and each is named by its nearest `FASHION_PALETTE` colour using CIEDE2000. Without a cutout, the middle of the photo is sampled.
+- **Category:** `classifyGarment()` is pluggable (`setGarmentClassifier`). Nothing is plugged in, so it returns null and a quick-pick sheet of large category tiles opens. A confident guess (≥ 0.75) would skip the sheet; a weak one is pre-highlighted.
+- **Details form (`features/items/details`), shared by Add and Edit:**
+  - name: suggested ("Camel wool coat") until you type your own
+  - chips: category, kind, colours (detected first, up to 3), pattern, materials (which edit a free-text composition), seasons, occasions, size (per category, plus free text)
+  - text fields: brand (with suggestions from your wardrobe), price with a currency chip, store, care notes, tags (with suggestions)
+  - purchased: a month and year chip picker
+
+  Validation shows after the first save attempt. Item detail → Edit opens the same form as a modal (`/edit-item/[id]`); a new category moves the piece as in phase 2.
+
+- **Save:** the photo is first made an upright, ≤2048px JPEG working copy. Saving writes `documents/items/<id>/original.jpg`, `cutout.webp` (1200px) and `thumb.webp` (400px), both WebP with alpha via `expo-image-manipulator`. The piece goes into its category's default zone in the wardrobe on show (never into storage), with the `itemAdded` haptic.
+- **Fly-in (DESIGN.md #4):** the cutout leaves the review stage at 3.1×, lifts (−21px, 3.3×, −2°), overshoots its slot (+10px, 0.9×, 5°) and settles at 1.35s. This happens over a miniature of its zone, alongside the newest neighbours. The hanger pops in, a ring pulses, the landed hanger swings −5° → 3.5° → −1.5°, and the neighbours nudge. Then come "Hung on the rail." (or shelf, drawer, rack, tray), what was filed where, and Add another / View in wardrobe (Next photo while a batch is going).
+- **Tests (235):** LAB conversion, CIEDE2000 against Sharma's published pairs, k-means and cluster filtering on synthetic pixels, palette naming, draft defaults, suggested names, price parsing, validation and the form's round trip, image paths and sizes, the classify fallback, engine choice and bounds, the flow reducer, the new-piece wardrobe rule and the saved copy.
+
 ## Decisions
 
 1. **Routes live in `src/app`.** That's the SDK 57 template default and what `AGENTS.md` expects. Everything else follows the spec's feature folders under `src/`.
@@ -81,16 +105,28 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 24. **"Add to outfit"** keeps the working membership sheet (add or remove the piece from saved outfits) and adds a "New outfit" row to the `/outfit/new` placeholder.
 25. **Find matches** draws from every wardrobe (stored and out pieces score lower). Tapping a match switches the detail to it in place.
 26. **Demo originals are rendered, not photographed.** About 14KB each, roughly 0.5MB in all. Existing installs need Me → Reset demo data to get them. Re-running `npm run assets` re-encodes every image with slightly different bytes, so when only new files are wanted, restore the committed cutouts and icons afterwards.
+27. **Background removal is our own local Expo module**, `modules/subject-segmentation` (about 250 lines of Swift and Kotlin), rather than a library. It's autolinked from `modules/`. It gives us cropped, orientation-corrected output with bounds, and a real model-download state on Android. The libraries researched were `@six33/react-native-bg-removal` (no model check, last released January 2026) and `@rbayuokt/expo-background-removal` (three weeks old, one author).
+28. **iOS deployment target is 17.0** (via `expo-build-properties`), so Vision's foreground mask is always available. The only iPhones lost are those that stop at iOS 16 (iPhone 8 and X).
+29. **Onboarding stays in phase 8.**
+30. **Purchase date is a chip month picker**, not `@react-native-community/datetimepicker`: the app shows months only ("Aug 2025"), chips match the form, and it needs no native dependency.
+31. **No install-time ML Kit model hint on Android.** expo-camera already declares `com.google.mlkit.vision.DEPENDENCIES` (`barcode_ui`), and a second value would break the manifest merge. The model downloads on first use instead, with progress.
+32. **remove.bg is a dev-only fallback.** `EXPO_PUBLIC_*` values are inlined into the JS bundle, so the key can be extracted from any build. It's meant for testing in the Simulator, where Vision doesn't run. A production fallback must go through a server.
+33. **Cutouts and thumbnails are WebP with alpha**; originals are JPEG. `expo-image-manipulator` 57 keeps alpha on both platforms (iOS resizes with `opaque = false` and encodes via SDWebImageWebPCoder; Android uses ARGB bitmaps).
+34. **Stored colours use the palette hex**, so filters and swatches stay consistent. The measured colour is shown on the review chips only.
+35. **A new piece goes to the wardrobe on show**, or Home if that's a storage wardrobe, since a new piece is in use rather than stored.
+36. **Details is a full screen, not a bottom sheet**, as in the prototype. It's long and has text fields, and a full screen handles the keyboard better. Edit presents the same form as a modal page sheet.
+37. **The flight lands in a miniature of the zone** on the saved screen (as in the prototype), not in the live closet behind the modal. "View in wardrobe" then opens that wardrobe's closet with filters cleared, where the new piece sorts first.
+38. **`SchemeScope`** (in ThemeProvider) renders a subtree in a fixed scheme. The camera uses it to stay dark in light mode without hard-coded colours.
 
 ## Open questions
 
-1. **Onboarding** isn't in any phase of the spec. Proposal: build it in phase 3 (alongside the camera permission flow) or phase 8.
-2. **Real garment photos:** the owner plans to upload cutouts and photos. They can replace the placeholders in `assets/seed/` (keep the slugs; originals go in `assets/seed/originals/<slug>.jpg`), or be added through the phase 3 flow.
-3. **Background removal library (phase 3):** pick a maintained Expo module or community library for iOS Vision and ML Kit Subject Segmentation once phase 3 starts, and verify it against SDK 57.
-4. **"Remind me to ask for it back"** (the lent card in `ItemDetail.dc.html`) needs scheduled local notifications. Proposal: phase 4, with the lent screen.
-5. **Archived pieces** leave every view. Where should they be listed and restored from? Proposal: Me → Insights or a "Donated & sold" list in phase 7.
-6. **Closet tap:** it opens the quick sheet first (as the prototype does) rather than going straight to detail. Say if you'd rather skip the sheet.
+1. **Real garment photos:** the owner plans to upload cutouts and photos. They can now go through the add flow, or replace the placeholders in `assets/seed/` (keep the slugs; originals go in `assets/seed/originals/<slug>.jpg`).
+2. **"Remind me to ask for it back"** (the lent card in `ItemDetail.dc.html`) needs scheduled local notifications. Proposal: phase 4, with the lent screen.
+3. **Archived pieces** leave every view. Where should they be listed and restored from? Proposal: Me → Insights or a "Donated & sold" list in phase 7.
+4. **Closet tap:** it opens the quick sheet first (as the prototype does) rather than going straight to detail. Say if you'd rather skip the sheet.
+5. **Android is untested.** This machine has no Android SDK, so the Kotlin side of `modules/subject-segmentation` has never been compiled. The first `npm run android` is its first build; expect a fix or two there.
+6. **A category classifier** could plug into `setGarmentClassifier` later (an on-device image-labelling model, or a server). Worth it?
 
-## Next: phase 3
+## Next: phase 4
 
-See `docs/phases/phase-3.md`: capture with a garment guide, background removal (open question 3), colour extraction with LAB/ΔE naming, the details sheet (replacing the minimal Edit sheet), and the fly-in into the piece's default zone.
+See `docs/phases/phase-4.md`: the laundry basket (drag to basket, wash done), lent items with reminders, the dry cleaner, storage and multiple wardrobes. Much of the state logic already exists from phase 2 (`features/items/{actions,mutations,placement}.ts`).

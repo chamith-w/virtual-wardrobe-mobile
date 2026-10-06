@@ -45,6 +45,7 @@ src/db/                  schema.ts, client.ts, migrations/ (generated), Database
 src/lib/                 pure helpers: dates, color, haptics, ids, images
 src/store/               Zustand: preferences (persisted), session (ephemeral)
 src/theme/               tokens.ts (single source of truth), ThemeProvider, motion, fonts
+modules/subject-segmentation/          local Expo module (Swift + Kotlin): on-device garment cutouts; native changes need a rebuild
 docs/                    spec, design notes, prototypes, progress log
 ```
 

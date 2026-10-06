@@ -76,6 +76,19 @@ export function homeWardrobe(wardrobes: WardrobeLite[]): WardrobeLite | undefine
   return [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder).find((w) => !isStorageWardrobe(w));
 }
 
+/**
+ * Where a new piece is hung: the wardrobe on show, unless that's a storage
+ * wardrobe (a new piece is in use, not stored), in which case home.
+ */
+export function wardrobeForNewPiece(
+  wardrobes: readonly WardrobeLite[],
+  activeId: string | null | undefined,
+): WardrobeLite | undefined {
+  const active = byId(wardrobes, activeId);
+  if (active && !isStorageWardrobe(active)) return active;
+  return homeWardrobe([...wardrobes]) ?? [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+}
+
 /** Moves an item to another wardrobe, updating status if it enters or leaves storage. */
 export function moveToWardrobe(
   item: PlacedItem,

@@ -1,4 +1,6 @@
-import { cleanName, planWardrobe, wardrobeNameProblem } from './wardrobes';
+import { cleanName } from '@/lib/text';
+
+import { planWardrobe, wardrobeNameProblem } from './wardrobes';
 
 const existing = [
   { name: 'Home', sortOrder: 0 },

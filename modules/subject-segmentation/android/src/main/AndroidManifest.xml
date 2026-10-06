@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!--
+    No com.google.mlkit.vision.DEPENDENCIES meta-data here: expo-camera already
+    declares it (barcode_ui) and two values would clash in the manifest merge.
+    The model is fetched on demand by prepareAsync instead.
+  -->
+</manifest>
