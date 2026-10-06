@@ -69,6 +69,22 @@ export function BasketGlyph({ width, color, strokeWidth = 1.4 }: GlyphProps) {
   );
 }
 
+/** A dashed shoe outline: the gap left on the shoe rack (viewBox 120×80). */
+export function GhostShoeGlyph({ width, color }: GlyphProps) {
+  return (
+    <Svg width={width} height={(width * 80) / 120} viewBox="0 0 120 80">
+      <Path
+        d="M10 54Q10 42 20 40L42 36Q48 28 58 30L68 38Q76 44 88 46Q110 50 112 62L112 64L10 64Z"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeDasharray="4 4"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /** A dashed garment outline: the ghost left behind on a shelf. */
 export function GhostFoldGlyph({ width, color }: GlyphProps) {
   return (

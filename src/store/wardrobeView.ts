@@ -18,7 +18,10 @@ type WardrobeViewState = {
   setMode: (mode: WardrobeMode) => void;
   setQuery: (query: string) => void;
   setFilters: (update: (filters: WardrobeFilters) => WardrobeFilters) => void;
+  /** Filters only; the search text stays. */
   clearFilters: () => void;
+  /** Filters and search. */
+  clearAll: () => void;
   setSort: (sort: SortKey) => void;
   setBrowseIds: (ids: string[]) => void;
 };
@@ -32,7 +35,8 @@ export const useWardrobeView = create<WardrobeViewState>()((set) => ({
   setMode: (mode) => set({ mode }),
   setQuery: (query) => set({ query }),
   setFilters: (update) => set((s) => ({ filters: update(s.filters) })),
-  clearFilters: () => set({ filters: EMPTY_FILTERS, query: '' }),
+  clearFilters: () => set({ filters: EMPTY_FILTERS }),
+  clearAll: () => set({ filters: EMPTY_FILTERS, query: '' }),
   setSort: (sort) => set({ sort }),
   setBrowseIds: (browseIds) => set({ browseIds }),
 }));

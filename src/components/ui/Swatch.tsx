@@ -55,12 +55,14 @@ export function Swatch({ hex, name, size = 28, selected = false, showLabel = fal
     );
   }
 
+  // Grow the hit area so even small dots meet the 44pt minimum.
+  const slop = Math.max(4, Math.ceil((44 - ring) / 2));
   return (
     <AnimatedPressable
       accessibilityLabel={name}
       accessibilityState={{ selected }}
       onPress={onPress}
-      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+      hitSlop={{ top: slop, bottom: slop, left: slop, right: slop }}
       scaleTo={0.9}
     >
       {content}

@@ -138,6 +138,10 @@ export const springs = {
   bouncy: { damping: 11, stiffness: 220, mass: 0.9 },
   /** Hanger sway settle (prototype: k=170, c=9). */
   sway: { damping: 9, stiffness: 170, mass: 1 },
+  /** Drawers sliding open: a soft overshoot, less wobble than `bouncy`. */
+  drawer: { damping: 15, stiffness: 210, mass: 0.9 },
+  /** The item-detail 3D flip (prototype: 0.9s with overshoot). */
+  flip: { damping: 16, stiffness: 110, mass: 1 },
 } as const;
 
 export const durations = {
