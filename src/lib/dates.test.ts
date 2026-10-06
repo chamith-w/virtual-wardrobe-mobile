@@ -1,4 +1,14 @@
-import { addDays, daysBetween, formatRelativeDay, fromDayKey, greetingFor, toDayKey } from './dates';
+import {
+  addDays,
+  addMonths,
+  daysBetween,
+  formatRelativeDay,
+  fromDayKey,
+  greetingFor,
+  isSameDay,
+  monthGrid,
+  toDayKey,
+} from './dates';
 
 describe('day keys', () => {
   it('uses the local calendar day', () => {
@@ -55,5 +65,34 @@ describe('greetingFor', () => {
     [20, 'Good evening'],
   ])('%i:00 → %s', (hour, expected) => {
     expect(greetingFor(new Date(2026, 9, 5, hour))).toBe(expected);
+  });
+});
+
+describe('monthGrid', () => {
+  it('lays out a month in Monday-first weeks with blanks around it', () => {
+    // October 2026 starts on a Thursday and has 31 days.
+    const rows = monthGrid(2026, 9);
+    expect(rows).toHaveLength(5);
+    expect(rows.every((r) => r.length === 7)).toBe(true);
+    expect(rows[0]?.slice(0, 3)).toEqual([null, null, null]);
+    expect(rows[0]?.[3]).toEqual(new Date(2026, 9, 1));
+    expect(rows[4]?.[5]).toEqual(new Date(2026, 9, 31));
+    expect(rows[4]?.[6]).toBeNull();
+    expect(rows.flat().filter(Boolean)).toHaveLength(31);
+  });
+
+  it('can start on Sunday, and handles leap Februaries', () => {
+    const rows = monthGrid(2028, 1, 0);
+    expect(rows[0]?.[2]).toEqual(new Date(2028, 1, 1)); // a Tuesday
+    expect(rows.flat().filter(Boolean)).toHaveLength(29);
+  });
+});
+
+describe('isSameDay / addMonths', () => {
+  it('compares calendar days and steps months from the first', () => {
+    expect(isSameDay(new Date(2026, 9, 5, 1), new Date(2026, 9, 5, 23))).toBe(true);
+    expect(isSameDay(new Date(2026, 9, 5), new Date(2026, 9, 6))).toBe(false);
+    expect(addMonths(new Date(2026, 0, 31), 1)).toEqual(new Date(2026, 1, 1));
+    expect(addMonths(new Date(2026, 0, 15), -1)).toEqual(new Date(2025, 11, 1));
   });
 });

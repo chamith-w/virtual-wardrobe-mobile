@@ -6,7 +6,9 @@ import { Button, Chip, Cutout, Sheet, Text, type SheetRef } from '@/components/u
 import type { Zone } from '@/db/schema';
 import { changeItemStatus, moveToZone, toggleWearToday } from '@/features/items/actions';
 import { CATEGORY_LABEL } from '@/features/items/catalog';
+import { CleanerDetails } from '@/features/items/components/CleanerDetails';
 import { LentCard } from '@/features/items/components/LentCard';
+import { OutActions } from '@/features/items/components/OutActions';
 import { StatusSwitcher } from '@/features/items/components/StatusSwitcher';
 import { isOut } from '@/features/items/status';
 import { useWornToday } from '@/features/planner/wearLog';
@@ -56,8 +58,13 @@ function QuickSheetBody({
       <Text variant="eyebrow" className="mb-2.5 mt-5">
         Status
       </Text>
-      <StatusSwitcher status={item.status} onChange={(s) => changeItemStatus(item, s)} />
+      <StatusSwitcher item={item} onChange={(s) => changeItemStatus(item, s)} />
       {item.status === 'lent' ? <LentCard key={item.id} item={item} inSheet /> : null}
+      {item.status === 'dry_cleaner' ? (
+        <View className="mt-3 rounded-md bg-surface-tinted p-3.5">
+          <CleanerDetails item={item} onTinted />
+        </View>
+      ) : null}
 
       {otherZones.length > 1 && !isOut(item.status) ? (
         <>
@@ -84,17 +91,30 @@ function QuickSheetBody({
         </>
       ) : null}
 
-      <View className="mt-6 flex-row gap-2.5">
-        <Button label="Open details" className="flex-1" onPress={() => onOpenDetails(item, thumb.current)} />
-        <Button
-          label={wornToday ? 'Worn today' : 'Wear today'}
-          variant="secondary"
-          icon={wornToday ? Check : undefined}
-          className="flex-1"
-          accessibilityHint={wornToday ? 'Takes it off today’s log' : 'Logs it as worn today'}
-          onPress={() => toggleWearToday(item, wornToday)}
-        />
-      </View>
+      {isOut(item.status) ? (
+        <>
+          <OutActions item={item} zoneType={zone?.type} className="mt-6" />
+          <Button
+            label="Open details"
+            variant="ghost"
+            fullWidth
+            className="mt-1.5"
+            onPress={() => onOpenDetails(item, thumb.current)}
+          />
+        </>
+      ) : (
+        <View className="mt-6 flex-row gap-2.5">
+          <Button label="Open details" className="flex-1" onPress={() => onOpenDetails(item, thumb.current)} />
+          <Button
+            label={wornToday ? 'Worn today' : 'Wear today'}
+            variant="secondary"
+            icon={wornToday ? Check : undefined}
+            className="flex-1"
+            accessibilityHint={wornToday ? 'Takes it off today’s log' : 'Logs it as worn today'}
+            onPress={() => toggleWearToday(item, wornToday)}
+          />
+        </View>
+      )}
     </View>
   );
 }

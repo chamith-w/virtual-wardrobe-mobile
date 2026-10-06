@@ -14,14 +14,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarInset } from '@/components/navigation/TabBar';
 import { SectionHeader, Skeleton, Text, type SheetRef } from '@/components/ui';
 import type { Zone } from '@/db/schema';
-import { moveToZone } from '@/features/items/actions';
+import { moveToZone, sendToLaundry } from '@/features/items/actions';
 import type { Rect } from '@/features/items/detail/hero';
 import { measureRect, openItem } from '@/features/items/openItem';
 import type { ClosetItem } from '@/features/wardrobe/useWardrobeData';
+import { useStatusCounts } from '@/features/wardrobe/useWardrobeSummary';
 
 import { groupByZone, resolveDrop, ZONE_SECTION_TITLE, zoneMeta, zoneSections } from '../closet';
 import { ClosetDragProvider, type DragPiece } from './ClosetDrag';
 import { ItemQuickSheet } from './ItemQuickSheet';
+import { LaundryBasket } from './LaundryBasket';
 import { AccessoryTray, DrawerStack, HangingRail, ShelfBand, ShoeRack } from './Zones';
 
 const AnimatedGHScrollView = Animated.createAnimatedComponent(GHScrollView);
@@ -73,6 +75,7 @@ export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, rev
   const [dragging, setDragging] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const sheetRef = useRef<SheetRef>(null);
+  const { laundry } = useStatusCounts();
 
   const byZone = groupByZone(pieces, zones);
   const piecesOf = (zoneId: string) => byZone.get(zoneId) ?? [];
@@ -108,6 +111,8 @@ export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, rev
     if (zone) moveToZone(piece, zone);
   };
 
+  const onDropBasket = (piece: DragPiece) => sendToLaundry(piece, 'drop');
+
   const revealStyle = useAnimatedStyle(() => {
     const r = reveal.get();
     return {
@@ -117,7 +122,13 @@ export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, rev
   });
 
   return (
-    <ClosetDragProvider scrollRef={scrollRef} scrollY={scrollY} onDrop={onDrop} onDraggingChange={setDragging}>
+    <ClosetDragProvider
+      scrollRef={scrollRef}
+      scrollY={scrollY}
+      onDrop={onDrop}
+      onDropBasket={onDropBasket}
+      onDraggingChange={setDragging}
+    >
       <AnimatedGHScrollView
         ref={scrollRef}
         onScroll={onScroll}
@@ -126,7 +137,8 @@ export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, rev
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
         className="flex-1 bg-background"
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabInset + 28 }}
+        // Room at the end for the floating basket.
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabInset + 96 }}
       >
         <Animated.View style={revealStyle}>
           {header}
@@ -185,12 +197,13 @@ export function ClosetView({ header, pieces, zones, matchIds, loaded, empty, rev
                 );
               })}
               <Text variant="caption" className="px-10 pt-6 text-center">
-                Tip: press and hold any piece to move it to another zone.
+                Tip: press and hold a piece to move it to another zone, or drop it on the basket to send it to the wash.
               </Text>
             </>
           )}
         </Animated.View>
       </AnimatedGHScrollView>
+      {loaded && !empty ? <LaundryBasket count={laundry} /> : null}
       <ItemQuickSheet
         ref={sheetRef}
         item={selected}

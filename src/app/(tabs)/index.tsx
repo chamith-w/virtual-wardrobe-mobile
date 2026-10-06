@@ -83,14 +83,14 @@ export default function TodayScreen() {
           label="In laundry"
           tint={colors.accentSecondarySoft}
           icon={<WashingMachine size={19} color={colors.accentSecondary} strokeWidth={1.8} />}
-          onPress={() => router.navigate('/me')}
+          onPress={() => router.push('/laundry')}
         />
         <Tile
           value={counts.lent}
           label="Lent out"
           tint={colors.accentSoft}
           icon={<Repeat2 size={19} color={colors.accentText} strokeWidth={1.8} />}
-          onPress={() => router.navigate('/me')}
+          onPress={() => router.push({ pathname: '/laundry', params: { tab: 'lent' } })}
         />
         <Tile
           value={forgotten}

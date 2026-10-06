@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
-import { ChevronRight, Palette, RotateCcw } from 'lucide-react-native';
+import { ChevronRight, House, Palette, Repeat2, RotateCcw, WashingMachine } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { Button, Card, Screen, Segmented, Sheet, Text, Toggle, type SheetRef } from '@/components/ui';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { clearAllData, createEmptyWardrobes, resetToDemoData } from '@/db/seed';
-import { useStatusCounts } from '@/features/wardrobe/useWardrobeSummary';
+import { HangerIcon } from '@/components/illustrations/Glyphs';
+import { useStatusCounts, useWardrobes } from '@/features/wardrobe/useWardrobeSummary';
 import { haptics } from '@/lib/haptics';
 import { usePreferences, type TemperatureUnit, type ThemePreference } from '@/store/preferences';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -25,6 +26,49 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
+function HubRow({
+  title,
+  hint,
+  count,
+  icon,
+  tint,
+  onPress,
+}: {
+  title: string;
+  hint: string;
+  count?: number;
+  icon: (color: string) => React.ReactNode;
+  tint: 'accentSecondarySoft' | 'accentSoft' | 'surfaceTinted';
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  const iconColor =
+    tint === 'accentSecondarySoft' ? colors.accentSecondary : tint === 'accentSoft' ? colors.accentText : colors.ink;
+  return (
+    <Card
+      onPress={onPress}
+      accessibilityLabel={count !== undefined ? `${title}, ${count}. ${hint}` : `${title}. ${hint}`}
+      className="flex-row items-center gap-3.5"
+    >
+      <View className="h-11 w-11 items-center justify-center rounded-sm" style={{ backgroundColor: colors[tint] }}>
+        {icon(iconColor)}
+      </View>
+      <View className="flex-1">
+        <Text variant="title2">{title}</Text>
+        <Text variant="caption" className="mt-0.5">
+          {hint}
+        </Text>
+      </View>
+      {count !== undefined ? (
+        <Text variant="display3" style={{ fontSize: 24, lineHeight: 28 }}>
+          {count}
+        </Text>
+      ) : null}
+      <ChevronRight size={18} color={colors.muted} />
+    </Card>
+  );
+}
+
 export default function MeScreen() {
   const { colors, preference, setPreference } = useTheme();
   const reduceMotion = usePreferences((s) => s.reduceMotion);
@@ -32,6 +76,7 @@ export default function MeScreen() {
   const unit = usePreferences((s) => s.temperatureUnit);
   const setUnit = usePreferences((s) => s.setTemperatureUnit);
   const counts = useStatusCounts();
+  const wardrobes = useWardrobes();
   const resetSheet = useRef<SheetRef>(null);
   const [busy, setBusy] = useState(false);
 
@@ -58,10 +103,46 @@ export default function MeScreen() {
         {counts.total} pieces · {counts.laundry} in laundry · {counts.lent} lent · {counts.storage} in storage
       </Text>
 
+      <SectionHeader title="Around the house" />
+      <View className="gap-2.5">
+        <HubRow
+          title="Laundry basket"
+          hint={counts.worn > 0 ? `${counts.worn} just worn, waiting to be sorted` : 'Wash done puts it all back'}
+          count={counts.laundry}
+          tint="accentSecondarySoft"
+          icon={(c) => <WashingMachine size={20} color={c} strokeWidth={1.8} />}
+          onPress={() => router.push('/laundry')}
+        />
+        <HubRow
+          title="Lent items"
+          hint="Who has what, with reminders"
+          count={counts.lent}
+          tint="accentSoft"
+          icon={(c) => <Repeat2 size={20} color={c} strokeWidth={1.8} />}
+          onPress={() => router.push({ pathname: '/laundry', params: { tab: 'lent' } })}
+        />
+        <HubRow
+          title="Dry cleaner"
+          hint="Drop-off and ready days"
+          count={counts.dryCleaner}
+          tint="surfaceTinted"
+          icon={(color) => <HangerIcon size={20} color={color} />}
+          onPress={() => router.push({ pathname: '/laundry', params: { tab: 'cleaner' } })}
+        />
+        <HubRow
+          title="Wardrobes"
+          hint="Rename, reorder, storage"
+          count={wardrobes.length}
+          tint="surfaceTinted"
+          icon={(c) => <House size={20} color={c} strokeWidth={1.8} />}
+          onPress={() => router.push('/wardrobes')}
+        />
+      </View>
+
       <SectionHeader title="Coming in phase 7" />
       <Card tone="tinted" className="gap-1">
         <Text variant="bodySm" tone="muted">
-          Insights, laundry basket, lent items, declutter, packing lists, wishlist and seasonal rotation all live here.
+          Insights, declutter, packing lists, wishlist and seasonal rotation all live here.
         </Text>
       </Card>
 

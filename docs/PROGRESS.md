@@ -5,8 +5,8 @@
 | 1     | Setup: project, tokens, fonts, theme, primitives, tab bar, schema + migrations, seed | ✅ Done |
 | 2     | Wardrobe: closet view with zones, grid view, search/filter/sort, item detail         | ✅ Done |
 | 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ✅ Done |
-| 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        | ⏳ Next |
-| 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            |         |
+| 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        | ✅ Done |
+| 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            | ⏳ Next |
 | 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  |         |
 | 7     | Me hub: insights, declutter, packing, wishlist, notifications, backup/export         |         |
 | 8     | Polish: signature animations, empty states, reduce motion, a11y + perf pass          |         |
@@ -77,6 +77,59 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 - **Fly-in (DESIGN.md #4):** the cutout leaves the review stage at 3.1×, lifts (−21px, 3.3×, −2°), overshoots its slot (+10px, 0.9×, 5°) and settles at 1.35s. This happens over a miniature of its zone, alongside the newest neighbours. The hanger pops in, a ring pulses, the landed hanger swings −5° → 3.5° → −1.5°, and the neighbours nudge. Then come "Hung on the rail." (or shelf, drawer, rack, tray), what was filed where, and Add another / View in wardrobe (Next photo while a batch is going).
 - **Tests (235):** LAB conversion, CIEDE2000 against Sharma's published pairs, k-means and cluster filtering on synthetic pixels, palette naming, draft defaults, suggested names, price parsing, validation and the form's round trip, image paths and sizes, the classify fallback, engine choice and bounds, the flow reducer, the new-piece wardrobe rule and the saved copy.
 
+## Phase 4: what exists
+
+- **One status service.** `features/items/statusService.ts` → `setItemStatus(itemId, status, extra?)` is the only public way to change a status (`setItemsStatus` and `moveItemsToWardrobe` are its batch forms). Inside a larger transaction, "Wear today" uses the same planner through `applyItemStatus`.
+  - Every write is planned by `transitions.ts` (pure): the transition table, then the fields that follow, from `status.statusFields`:
+    - a status change stamps `statusChangedAt` (for the dry cleaner, that's the drop-off)
+    - becoming lent stamps `lentAt` and takes the borrower's name; coming back clears the name, date and reminder
+    - the dry cleaner's ready day lives only while the piece is there
+    - archiving records the reason
+    - storage moves the piece to and from the storage wardrobe
+  - Only changed columns are written, and identical patches share one UPDATE.
+  - The service fires the `statusChanged` haptic (`dropSuccess` from the basket) and cancels the lend reminder when a lent piece comes back or is archived.
+  - Refused moves explain themselves (a toast plus the warning haptic), and the switcher dims them.
+- **Schema:** migration `0001_item_states` adds `items.status_changed_at`, `remind_at` and `ready_at`.
+- **Empty hangers everywhere** (the visuals are from phase 2):
+  - Pieces that are out now get a one-tap **Back in wardrobe** in the quick sheet and on detail (plus **Send to laundry** for something worn). The toast says where it went: "Stone trench is back on the rail".
+  - "Wear today" is hidden while a piece is in the wash, at the cleaner or lent.
+  - Detail and the quick sheet show a dry-cleaner card: drop-off, ready day, a progress bar and a ready-day chip.
+- **Laundry basket on the Closet (DESIGN.md #6):**
+  - a floating basket above the tab bar, with the laundry count
+  - dragging a piece over it swells it (1.22) with a green ring and a tick; dropping shrinks the ghost into it, then it squashes (1.25/0.84 → 0.9/1.12 → 1.05/0.97 → spring) with `dropSuccess`, the badge pops and the hanger goes empty
+  - tapping it opens the laundry
+- **Laundry · Lent · Cleaner (`/laundry?tab=`)**, a pushed screen reached from the basket, the Me hub and Today's tiles, with counts on the tabs:
+  - **Laundry:**
+    - a "Just worn" strip: tap a piece to send it, or drag it down (sideways still scrolls)
+    - the wicker basket's heap: the newest piece falls in from −150px on a bouncy spring while the basket bumps
+    - **Wash done:** one batched update; the pile flies out newest-first, 90ms apart, up and to the top right, shrinking to 0.25 over 1s
+  - **Lent:** cards, longest out first, with:
+    - who, since when and days out (highlighted with an accent ring and text from 14 days)
+    - the "Remind me to ask for it back" toggle and its day chip
+    - **Mark as returned**, which slides the card away
+    - **Lend something**: pick a piece, name the borrower
+  - **Cleaner:** drop-off and ready day with progress, and **Picked up**.
+- **Reminders (`lib/notifications.ts`, `items/reminders.ts`):** local notifications only.
+  - The first switch-on asks for permission. If it's blocked, the row offers "Open Settings".
+  - The default is two weeks after lending at 10:00. The day is pickable from a new `DatePickerSheet` primitive (presets plus a month calendar). Development builds add an **In 10 s · dev** chip.
+  - Tapping the notification opens the piece, from a cold start too (`useNotificationResponses` in the root layout).
+  - Renaming the borrower rewords a pending reminder. Returning, archiving or resetting the demo data cancels it.
+- **Multiple wardrobes:**
+  - `/wardrobes` (from Me, or "Rename, reorder or delete" in the switcher) lists every wardrobe with its piece count. Reorder with the drag handle, or with VoiceOver's Move up/down.
+  - Edit: rename, switch between Wardrobe and Storage (its pieces follow), or delete with a choice of where its pieces go.
+  - **Grid multi-select:** long-press a card, tap to add more, then **Move to…** or **Send to laundry** from the bar above the tab bar.
+- **Accessibility:** closet pieces and grid cards carry VoiceOver/TalkBack actions: "Send to laundry", "Back in wardrobe", and "Select" in the grid.
+- **Entry points:** Today's laundry and lent tiles open those tabs. Me has an "Around the house" section: Laundry basket, Lent items, Dry cleaner and Wardrobes, each with its count.
+- **Seed:** pieces that are out carry `statusChangedAt`; the stone trench was dropped at the cleaner 4 days ago and is ready in 3. Existing installs keep nulls (lists fall back to the date added) until Me → Reset demo data.
+- **Tests (290):**
+  - the transition table: allowed and refused moves, and side effects (lent fields, drop-off, storage moves, reminder cancellation)
+  - batch grouping (a basket of laundry is one UPDATE)
+  - re-homing on wardrobe deletion and kind changes, and the deletion rules (not the last wardrobe, nor the last everyday one)
+  - reminder date maths, ids and copy
+  - the calendar grid
+  - the lent, cleaner and pile copy and layout, and wash-done timing
+  - the seed's state dates
+
 ## Decisions
 
 1. **Routes live in `src/app`.** That's the SDK 57 template default and what `AGENTS.md` expects. Everything else follows the spec's feature folders under `src/`.
@@ -118,15 +171,39 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 37. **The flight lands in a miniature of the zone** on the saved screen (as in the prototype), not in the live closet behind the modal. "View in wardrobe" then opens that wardrobe's closet with filters cleared, where the new piece sorts first.
 38. **`SchemeScope`** (in ThemeProvider) renders a subtree in a fixed scheme. The camera uses it to stay dark in light mode without hard-coded colours.
 
+39. **Transition table.** A piece that isn't at hand can't be worn: one in the wash or at the cleaner can't be lent or stored, and a lent one can't be stored. Archived pieces don't change, archiving needs a reason, and "In storage" needs a storage wardrobe. Everything else is allowed, including lent → laundry (it came back dirty). Refused chips are dimmed but still tappable, so they can say why. A wear logged for a piece in the wash keeps the wear and leaves its status alone.
+40. **Storage status ↔ storage wardrobes:** the brief's proposal, as built in phase 2.
+    - Moving a piece into a storage-type wardrobe sets `storage`, and moving it out sets `in_wardrobe`.
+    - "In storage" moves the piece into the first storage wardrobe. Any other status from storage brings it back to _home_, which is now defined as the first everyday wardrobe in the user's order.
+    - Storage-type is still the archive icon (decision 23), so there's no new column.
+41. **`statusChangedAt` is generic** rather than a dry-cleaner-only drop-off date. It also orders "Just worn" and the basket. `remindAt` and `readyAt` are separate, explicit columns.
+42. **Reminder ids are derived, not stored:** `lend-reminder:<itemId>`. Only `remindAt` is persisted (as the toggle's state), and reminders fire at 10:00 local time.
+43. **No exact-alarm permission on Android.** expo-notifications falls back to an inexact alarm (a few minutes' drift), which suits a reminder and avoids a Play policy declaration. `app.json` is unchanged and `withoutPushEntitlement` still sits ahead of expo-notifications.
+44. **The dry cleaner's ready day is optional** and set from a chip (the prototype shows one). The progress bar appears only once there's a ready day.
+45. **The closet basket counts laundry across all wardrobes.** Pieces that are out (empty hangers) can't be dragged. Worn pieces reach the basket from Laundry → Just worn, or from the quick sheet's "Send to laundry".
+46. **Wash done writes first, then animates.** The update runs immediately (so leaving mid-flight loses nothing) while a snapshot of the pile flies out.
+47. **The Laundry screen is a pushed route**, `/laundry?tab=laundry|lent|cleaner`, rather than living inside the Me tab. Then the basket, Today and Me can all open it, and Back returns to wherever you came from.
+48. **"Lend something" shows the first 48 matching pieces plus a search field**, not a virtualised list inside the sheet.
+49. **Wardrobe management:**
+    - The last wardrobe can't be deleted, nor can the last everyday one: stored pieces need somewhere to return to. For the same reason, the last everyday wardrobe can't become storage.
+    - A deleted wardrobe's zones are soft-deleted. Its pieces move to the chosen wardrobe (by default one of the same kind); anything storage refuses goes home.
+50. **Grid multi-select:**
+    - Long-press starts it, taps toggle, and deselecting the last piece ends it.
+    - A selection belongs to one view of one wardrobe, so switching either drops it. Android Back clears it.
+    - Bulk moves skip refused pieces and say how many stayed put.
+51. **New primitives:** `DatePickerSheet`, count badges on `Segmented`, and `Sheet.stackBehavior`. The date picker opens on top of the sheet it came from.
+52. **`wicker`, `wickerShade` and `wickerDeep` tokens** (illustration only, so they have no contrast pairs) colour the basket in both themes.
+
 ## Open questions
 
 1. **Real garment photos:** the owner plans to upload cutouts and photos. They can now go through the add flow, or replace the placeholders in `assets/seed/` (keep the slugs; originals go in `assets/seed/originals/<slug>.jpg`).
-2. **"Remind me to ask for it back"** (the lent card in `ItemDetail.dc.html`) needs scheduled local notifications. Proposal: phase 4, with the lent screen.
-3. **Archived pieces** leave every view. Where should they be listed and restored from? Proposal: Me → Insights or a "Donated & sold" list in phase 7.
-4. **Closet tap:** it opens the quick sheet first (as the prototype does) rather than going straight to detail. Say if you'd rather skip the sheet.
-5. **Android is untested.** This machine has no Android SDK, so the Kotlin side of `modules/subject-segmentation` has never been compiled. The first `npm run android` is its first build; expect a fix or two there.
-6. **A category classifier** could plug into `setGarmentClassifier` later (an on-device image-labelling model, or a server). Worth it?
+2. **Archived pieces** leave every view. Where should they be listed and restored from? Proposal: Me → Insights or a "Donated & sold" list in phase 7.
+3. **Closet tap:** it opens the quick sheet first (as the prototype does) rather than going straight to detail. Say if you'd rather skip the sheet.
+4. **Android is untested.** This machine has no Android SDK, so the Kotlin side of `modules/subject-segmentation` has never been compiled. The first `npm run android` is its first build; expect a fix or two there.
+5. **A category classifier** could plug into `setGarmentClassifier` later (an on-device image-labelling model, or a server). Worth it?
+6. **Strictness of the transition table** (decision 39): for example, a piece in the wash can't be marked as lent. Say if any refusal gets in the way.
+7. **Reminder hour:** lend reminders fire at 10:00. Would you rather pick the time?
 
-## Next: phase 4
+## Next: phase 5
 
-See `docs/phases/phase-4.md`: the laundry basket (drag to basket, wash done), lent items with reminders, the dry cleaner, storage and multiple wardrobes. Much of the state logic already exists from phase 2 (`features/items/{actions,mutations,placement}.ts`).
+See `docs/phases/phase-5.md`: the outfit builder canvas, shuffle, snapshots and the outfits list. The outfits segment and `/outfit/[id]` from phase 2 are the starting point; `/outfit/new` is still a placeholder.

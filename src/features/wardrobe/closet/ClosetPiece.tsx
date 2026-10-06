@@ -4,6 +4,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 
 import { AnimatedPressable, Cutout } from '@/components/ui';
+import { pieceActions, runPieceAction } from '@/features/items/a11y';
 import { StatusTag } from '@/features/items/components/StatusTag';
 import { isOut, statusTagLabel } from '@/features/items/status';
 import type { ClosetItem } from '@/features/wardrobe/useWardrobeData';
@@ -91,7 +92,11 @@ export function ClosetPiece({
     <GestureDetector gesture={drag}>
       <AnimatedPressable
         accessibilityLabel={label}
-        accessibilityHint={out ? 'Opens its status' : 'Opens its status. Long press to move it to another zone.'}
+        accessibilityHint={
+          out ? 'Opens its status' : 'Opens its status. Long press to move it, or drag it onto the laundry basket.'
+        }
+        accessibilityActions={pieceActions(item, { selectable: false })}
+        onAccessibilityAction={(e) => runPieceAction(item, e.nativeEvent.actionName)}
         onPress={() => onPress(item, box.current)}
         scaleTo={0.94}
         style={{ width, height }}

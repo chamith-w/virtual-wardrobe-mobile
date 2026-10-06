@@ -17,7 +17,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { fontFamily } from '@/theme/tokens';
 
 type SheetProps = { ref: RefObject<SheetRef | null> };
-type ItemRef = { id: string; name: string };
+type ItemRef = { id: string; name: string; lentTo?: string | null };
 
 function Row({
   title,
@@ -126,20 +126,32 @@ export function AddToOutfitSheet({ ref, item }: SheetProps & { item: ItemRef }) 
   );
 }
 
-/** "Move to…" another wardrobe. Storage marks the piece as stored. */
+/**
+ * "Move to…" another wardrobe, for one piece (detail) or a selection (grid).
+ * Storage marks pieces as stored; leaving it puts them back in use.
+ */
 export function MoveSheet({
   ref,
-  item,
+  items,
   wardrobeId,
   wardrobes,
   counts,
-}: SheetProps & { item: ItemRef; wardrobeId: string; wardrobes: Wardrobe[]; counts: Record<string, number> }) {
+  onMoved,
+}: SheetProps & {
+  items: readonly ItemRef[];
+  /** The wardrobe the pieces are in now (ticked), if they share one. */
+  wardrobeId: string | null;
+  wardrobes: Wardrobe[];
+  counts: Record<string, number>;
+  onMoved?: () => void;
+}) {
+  const title = items.length === 1 ? 'Move to…' : `Move ${items.length} pieces to…`;
   return (
-    <Sheet ref={ref} title="Move to…">
+    <Sheet ref={ref} title={title}>
       {wardrobes.map((w, i) => {
         const on = w.id === wardrobeId;
         const n = counts[w.id] ?? 0;
-        const hint = `${isStorageWardrobe(w) ? 'Off-season' : 'Wardrobe'} · ${n} ${n === 1 ? 'piece' : 'pieces'}`;
+        const hint = `${isStorageWardrobe(w) ? 'Storage · counts as stored' : 'Wardrobe'} · ${n} ${n === 1 ? 'piece' : 'pieces'}`;
         return (
           <Row
             key={w.id}
@@ -148,7 +160,10 @@ export function MoveSheet({
             last={i === wardrobes.length - 1}
             checked={on}
             onPress={() => {
-              if (!on) moveToWardrobe(item, w);
+              if (!on) {
+                moveToWardrobe(items, w);
+                onMoved?.();
+              }
               ref.current?.dismiss();
             }}
             trailing={on ? <CheckBadge /> : null}

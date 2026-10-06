@@ -71,3 +71,46 @@ export function greetingFor(date: Date): string {
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
 }
+
+export function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/** The first of the month `months` after `date`'s month. */
+export function addMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+/** "Fri 20 Oct" in the device locale. */
+export function formatWeekdayDay(date: Date, locale?: string): string {
+  return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+/** "October 2026" in the device locale. */
+export function formatMonthTitle(date: Date, locale?: string): string {
+  return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+}
+
+/**
+ * A month as calendar rows of seven, Monday first by default. Days from the
+ * neighbouring months are null, so the grid keeps its shape.
+ */
+export function monthGrid(year: number, month: number, weekStartsOn = 1): (Date | null)[][] {
+  const first = new Date(year, month, 1);
+  const length = new Date(year, month + 1, 0).getDate();
+  const lead = (first.getDay() - weekStartsOn + 7) % 7;
+  const cells: (Date | null)[] = Array.from({ length: lead }, () => null);
+  for (let d = 1; d <= length; d++) cells.push(new Date(year, month, d));
+  while (cells.length % 7 !== 0) cells.push(null);
+  const rows: (Date | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  return rows;
+}
+
+/** Weekday initials for the grid header, starting on `weekStartsOn`. */
+export function weekdayInitials(weekStartsOn = 1, locale?: string): string[] {
+  // 4 Jan 1970 was a Sunday.
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(1970, 0, 4 + ((weekStartsOn + i) % 7)).toLocaleDateString(locale, { weekday: 'narrow' }),
+  );
+}

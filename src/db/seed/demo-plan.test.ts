@@ -119,3 +119,30 @@ describe('outfits, plans and trips', () => {
     for (const w of plan.wishlist) expect(w.colorsResolved.length).toBe(w.colors.length);
   });
 });
+
+describe('demo item states', () => {
+  const today = new Date(2026, 9, 5, 9);
+  const states = buildDemoPlan(today);
+
+  it('dates every piece that is out, so the laundry and lent lists can sort them', () => {
+    for (const item of states.items.filter((i) => i.status !== 'in_wardrobe')) {
+      expect(item.statusChangedAt).toBeInstanceOf(Date);
+    }
+    for (const item of states.items.filter((i) => i.status === 'in_wardrobe')) {
+      expect(item.statusChangedAt).toBeNull();
+    }
+  });
+
+  it('drops the trench at the cleaner with a ready day ahead', () => {
+    const trench = states.items.find((i) => i.status === 'dry_cleaner');
+    expect(trench?.readyAt).toEqual(new Date(2026, 9, 8));
+    expect(trench?.statusChangedAt?.getDate()).toBe(1);
+    expect(states.items.filter((i) => i.readyAt !== null)).toHaveLength(1);
+  });
+
+  it('stamps lent pieces on the day they were lent', () => {
+    for (const item of states.items.filter((i) => i.status === 'lent')) {
+      expect(item.statusChangedAt).toEqual(item.lentAt);
+    }
+  });
+});

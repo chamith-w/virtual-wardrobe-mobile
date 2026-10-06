@@ -1,5 +1,5 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { Plus } from 'lucide-react-native';
+import { Plus, Settings2 } from 'lucide-react-native';
 import { useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { View } from 'react-native';
 
@@ -10,7 +10,13 @@ import { isStorageWardrobe } from '@/features/items/placement';
 import { STATUS_TONE } from '@/features/items/status';
 import { SORT_OPTIONS, toggleIn, type Facets } from '@/features/wardrobe/filters';
 import { createWardrobe } from '@/features/wardrobe/mutations';
-import { planWardrobe, WARDROBE_NAME_MAX, wardrobeNameProblem, type WardrobeKind } from '@/features/wardrobe/wardrobes';
+import {
+  planWardrobe,
+  WARDROBE_KIND_ICON,
+  WARDROBE_NAME_MAX,
+  wardrobeNameProblem,
+  type WardrobeKind,
+} from '@/features/wardrobe/wardrobes';
 import { haptics } from '@/lib/haptics';
 import { toast } from '@/store/toast';
 import { useWardrobeView } from '@/store/wardrobeView';
@@ -30,6 +36,7 @@ export function WardrobeSheet({
   activeId,
   onPick,
   onNew,
+  onManage,
 }: {
   ref: Ref<SheetRef>;
   wardrobes: Wardrobe[];
@@ -38,6 +45,7 @@ export function WardrobeSheet({
   activeId: string | undefined;
   onPick: (wardrobe: Wardrobe) => void;
   onNew: () => void;
+  onManage: () => void;
 }) {
   const { colors } = useTheme();
   return (
@@ -92,6 +100,14 @@ export function WardrobeSheet({
           <Text variant="caption">A second home, a holiday place, a storage box</Text>
         </View>
       </AnimatedPressable>
+      <Button
+        label="Rename, reorder or delete"
+        variant="ghost"
+        size="sm"
+        icon={Settings2}
+        className="mt-1 self-center"
+        onPress={onManage}
+      />
     </Sheet>
   );
 }
@@ -100,6 +116,52 @@ const KINDS: { value: WardrobeKind; label: string; hint: string }[] = [
   { value: 'wardrobe', label: 'Wardrobe', hint: 'Rail, shelves, drawers, shoes and a tray' },
   { value: 'storage', label: 'Storage', hint: 'Off-season: pieces here count as stored' },
 ];
+
+/** Wardrobe or Storage, as two large radio rows. A kind that can't be chosen is dimmed. */
+export function KindPicker({
+  value,
+  onChange,
+  disabledKind,
+}: {
+  value: WardrobeKind;
+  onChange: (kind: WardrobeKind) => void;
+  disabledKind?: WardrobeKind | null;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View className="gap-2" accessibilityRole="radiogroup" accessibilityLabel="Kind">
+      {KINDS.map((k) => {
+        const on = k.value === value;
+        const disabled = disabledKind === k.value;
+        return (
+          <AnimatedPressable
+            key={k.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on, disabled }}
+            accessibilityLabel={`${k.label}. ${k.hint}`}
+            disabled={disabled}
+            onPress={() => onChange(k.value)}
+            scaleTo={0.98}
+            className={[
+              'min-h-[64px] flex-row items-center gap-3.5 rounded-md px-3.5 py-2.5',
+              on ? 'border-[1.5px] border-ink bg-surface' : 'border border-line bg-surface-tinted',
+              disabled ? 'opacity-40' : '',
+            ].join(' ')}
+          >
+            <WardrobeIcon icon={WARDROBE_KIND_ICON[k.value]} size={20} color={colors.ink} />
+            <View className="flex-1 gap-0.5">
+              <Text variant="body" weight="semibold">
+                {k.label}
+              </Text>
+              <Text variant="caption">{k.hint}</Text>
+            </View>
+            {on ? <CheckBadge /> : null}
+          </AnimatedPressable>
+        );
+      })}
+    </View>
+  );
+}
 
 /** Name a new wardrobe and choose whether it's a wardrobe or storage. */
 export function NewWardrobeSheet({
@@ -174,34 +236,7 @@ export function NewWardrobeSheet({
       <Text variant="eyebrow" className="mb-2.5 mt-5">
         Kind
       </Text>
-      <View className="gap-2" accessibilityRole="radiogroup" accessibilityLabel="Kind">
-        {KINDS.map((k) => {
-          const on = k.value === kind;
-          return (
-            <AnimatedPressable
-              key={k.value}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              accessibilityLabel={`${k.label}. ${k.hint}`}
-              onPress={() => setKind(k.value)}
-              scaleTo={0.98}
-              className={[
-                'min-h-[64px] flex-row items-center gap-3.5 rounded-md px-3.5 py-2.5',
-                on ? 'border-[1.5px] border-ink bg-surface' : 'border border-line bg-surface-tinted',
-              ].join(' ')}
-            >
-              <WardrobeIcon icon={k.value === 'storage' ? 'archive' : 'home'} size={20} color={colors.ink} />
-              <View className="flex-1 gap-0.5">
-                <Text variant="body" weight="semibold">
-                  {k.label}
-                </Text>
-                <Text variant="caption">{k.hint}</Text>
-              </View>
-              {on ? <CheckBadge /> : null}
-            </AnimatedPressable>
-          );
-        })}
-      </View>
+      <KindPicker value={kind} onChange={setKind} />
       <Button label="Create wardrobe" fullWidth className="mt-6" onPress={create} />
     </Sheet>
   );

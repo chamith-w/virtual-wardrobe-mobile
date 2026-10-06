@@ -1,15 +1,9 @@
 import { ArrowDown } from 'lucide-react-native';
 import { createContext, use, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import {
-  StyleSheet,
-  useWindowDimensions,
-  View,
-  type ScrollView,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { StyleSheet, useWindowDimensions, View, type ScrollView, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
   scrollTo,
   useAnimatedStyle,
   useFrameCallback,
@@ -41,9 +35,18 @@ export type DragPiece = {
 
 type ZoneRect = { id: string; x: number; y: number; w: number; h: number };
 
+/** The basket's hit area reaches half its width beyond its edges (Closet.dc.html). */
+const BASKET_PAD = 0.5;
+
 type ClosetDragValue = {
   /** Drop targets register their view so it can be measured when a drag starts. */
   register: (zoneId: string, view: View | null) => void;
+  /** The floating laundry basket registers the same way. */
+  registerBasket: (view: View | null) => void;
+  /** 1 while the carried piece is over the basket. */
+  hoverBasket: SharedValue<number>;
+  /** Bumped each time a piece lands in the basket (it squashes). */
+  basketDrops: SharedValue<number>;
   begin: (piece: DragPiece) => void;
   end: () => void;
   cancel: () => void;
@@ -64,6 +67,8 @@ export function useClosetDrag(): ClosetDragValue {
 
 const EDGE = 96;
 const MAX_SCROLL_STEP = 16;
+/** How long the ghost takes to drop into the basket. */
+const BASKET_FALL = 300;
 
 type ProviderProps = {
   children: ReactNode;
@@ -71,17 +76,26 @@ type ProviderProps = {
   scrollY: SharedValue<number>;
   /** Called on a drop over a different zone. */
   onDrop: (piece: DragPiece, zoneId: string) => void;
+  /** Called on a drop over the laundry basket; true when the piece went in. */
+  onDropBasket: (piece: DragPiece) => boolean;
   onDraggingChange: (dragging: boolean) => void;
 };
 
 /**
  * Long-press-and-drag for the closet: lift a piece, carry a tilted ghost of it
- * under the finger, and drop it on another zone. Zone rects are measured once
- * when the drag starts and corrected for scroll on the UI thread, and the page
- * auto-scrolls near the top and bottom edges. Phase 4 adds the laundry basket
- * as another drop target.
+ * under the finger, and drop it on another zone or into the floating laundry
+ * basket. Zone rects are measured once when the drag starts and corrected for
+ * scroll on the UI thread (the basket floats, so it needs no correction), and
+ * the page auto-scrolls near the top and bottom edges.
  */
-export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDraggingChange }: ProviderProps) {
+export function ClosetDragProvider({
+  children,
+  scrollRef,
+  scrollY,
+  onDrop,
+  onDropBasket,
+  onDraggingChange,
+}: ProviderProps) {
   const { height: screenH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
@@ -89,10 +103,11 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
 
   const rootRef = useRef<View>(null);
   const zoneViews = useRef(new Map<string, View>());
+  const basketView = useRef<View | null>(null);
   const pieceRef = useRef<DragPiece | null>(null);
-  const callbacks = useRef({ onDrop, onDraggingChange });
+  const callbacks = useRef({ onDrop, onDropBasket, onDraggingChange });
   useLayoutEffect(() => {
-    callbacks.current = { onDrop, onDraggingChange };
+    callbacks.current = { onDrop, onDropBasket, onDraggingChange };
   });
 
   const [ghost, setGhost] = useState<DragPiece | null>(null);
@@ -107,11 +122,28 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
   const hoverZone = useSharedValue('');
   const sourceZone = useSharedValue('');
   const draggingId = useSharedValue('');
+  /** The basket in window coordinates; it floats, so scrolling never moves it. */
+  const basketRect = useSharedValue<ZoneRect | null>(null);
+  const hoverBasket = useSharedValue(0);
+  const basketDrops = useSharedValue(0);
+  /** 0 → 1 as the ghost drops into the basket. */
+  const landing = useSharedValue(0);
 
   const pointer = (x: number, y: number) => {
     'worklet';
     px.set(x);
     py.set(y);
+    const b = basketRect.get();
+    const pad = b ? b.w * BASKET_PAD : 0;
+    const overBasket = !!b && x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad;
+    if (overBasket !== (hoverBasket.get() === 1)) {
+      hoverBasket.set(overBasket ? 1 : 0);
+      if (overBasket) scheduleOnRN(haptics.tap);
+    }
+    if (overBasket) {
+      hoverZone.set('');
+      return;
+    }
     const shift = scrollY.get() - measuredAt.get();
     let hit = '';
     for (const r of rects.get()) {
@@ -154,6 +186,10 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
       rects.set(list);
       pointer(px.get(), py.get());
     });
+    basketRect.set(null);
+    basketView.current?.measureInWindow((x, y, w, h) => {
+      basketRect.set(w > 0 ? { id: 'basket', x, y, w, h } : null);
+    });
   };
 
   const begin = (piece: DragPiece) => {
@@ -161,6 +197,7 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
     sourceZone.set(piece.zoneId ?? '');
     haptics.press();
     setGhost(piece);
+    landing.set(0);
     lift.set(reduced ? withTiming(1, { duration: durations.reducedFade }) : withSpring(1, springs.bouncy));
     measureZones();
     autoScroll.setActive(true);
@@ -173,13 +210,27 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
     pieceRef.current = null;
     autoScroll.setActive(false);
     const zoneId = hoverZone.get();
-    if (commit && zoneId && zoneId !== piece.zoneId) callbacks.current.onDrop(piece, zoneId);
+    const intoBasket = commit && hoverBasket.get() === 1 && callbacks.current.onDropBasket(piece);
+    if (commit && !intoBasket && zoneId && zoneId !== piece.zoneId) callbacks.current.onDrop(piece, zoneId);
     hoverZone.set('');
+    hoverBasket.set(0);
     sourceZone.set('');
     draggingId.set('');
     rects.set([]);
-    lift.set(withTiming(0, { duration: durations.reducedFade }));
-    setTimeout(() => setGhost((g) => (g?.id === piece.id ? null : g)), durations.reducedFade + 20);
+    let exit: number = durations.reducedFade;
+    if (intoBasket) {
+      // The ghost drops into the basket, which squashes as it lands.
+      exit = reduced ? durations.reducedFade : BASKET_FALL;
+      landing.set(
+        reduced
+          ? withTiming(1, { duration: durations.reducedFade })
+          : withTiming(1, { duration: BASKET_FALL, easing: Easing.in(Easing.quad) }),
+      );
+      setTimeout(() => basketDrops.set(basketDrops.get() + 1), reduced ? 0 : BASKET_FALL - 60);
+    } else {
+      lift.set(withTiming(0, { duration: durations.reducedFade }));
+    }
+    setTimeout(() => setGhost((g) => (g?.id === piece.id ? null : g)), exit + 20);
     callbacks.current.onDraggingChange(false);
   };
 
@@ -188,6 +239,11 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
       if (view) zoneViews.current.set(zoneId, view);
       else zoneViews.current.delete(zoneId);
     },
+    registerBasket: (view) => {
+      basketView.current = view;
+    },
+    hoverBasket,
+    basketDrops,
     begin,
     end: () => finish(true),
     cancel: () => finish(false),
@@ -202,7 +258,16 @@ export function ClosetDragProvider({ children, scrollRef, scrollY, onDrop, onDra
       <View ref={rootRef} collapsable={false} style={{ flex: 1 }}>
         {children}
         {ghost ? (
-          <DragOverlay piece={ghost} px={px} py={py} originX={originX} originY={originY} lift={lift} />
+          <DragOverlay
+            piece={ghost}
+            px={px}
+            py={py}
+            originX={originX}
+            originY={originY}
+            lift={lift}
+            landing={landing}
+            basket={basketRect}
+          />
         ) : null}
       </View>
     </ClosetDragContext>
@@ -216,6 +281,8 @@ function DragOverlay({
   originX,
   originY,
   lift,
+  landing,
+  basket,
 }: {
   piece: DragPiece;
   px: SharedValue<number>;
@@ -223,6 +290,8 @@ function DragOverlay({
   originX: SharedValue<number>;
   originY: SharedValue<number>;
   lift: SharedValue<number>;
+  landing: SharedValue<number>;
+  basket: SharedValue<ZoneRect | null>;
 }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -232,21 +301,27 @@ function DragOverlay({
 
   const ghostStyle = useAnimatedStyle(() => {
     const l = lift.get();
-    const base = [
-      { translateX: px.get() - originX.get() - w / 2 },
-      { translateY: py.get() - originY.get() - h * 0.45 },
-    ];
-    if (reduced) return { opacity: l, transform: base };
+    const k = landing.get();
+    const b = basket.get();
+    // Centre of the ghost: under the finger, or on its way into the basket.
+    let cx = px.get();
+    let cy = py.get() - h * 0.45 + h / 2;
+    if (b && k > 0) {
+      cx += (b.x + b.w / 2 - cx) * k;
+      cy += (b.y + b.h * 0.4 - cy) * k;
+    }
+    const base = [{ translateX: cx - originX.get() - w / 2 }, { translateY: cy - originY.get() - h / 2 }];
+    if (reduced) return { opacity: l * (1 - k), transform: base };
     return {
-      opacity: Math.min(1, l * 1.4),
-      transform: [...base, { rotate: `${-7 * l}deg` }, { scale: 0.92 + 0.16 * l }],
+      opacity: Math.min(1, l * 1.4) * (1 - k * k),
+      transform: [...base, { rotate: `${-7 * l + 10 * k}deg` }, { scale: (0.92 + 0.16 * l) * (1 - 0.75 * k) }],
     };
   });
 
-  const hintStyle = useAnimatedStyle(() => ({
-    opacity: lift.get(),
-    transform: reduced ? [] : [{ translateY: (1 - lift.get()) * -24 }],
-  }));
+  const hintStyle = useAnimatedStyle(() => {
+    const shown = lift.get() * (1 - landing.get());
+    return { opacity: shown, transform: reduced ? [] : [{ translateY: (1 - shown) * -24 }] };
+  });
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -268,7 +343,7 @@ function DragOverlay({
         >
           <ArrowDown size={18} color={colors.onAccentSecondary} strokeWidth={2} />
           <Text variant="bodySm" weight="medium" tone="onAccentSecondary">
-            Drop on a zone to move {piece.name.toLowerCase()}
+            Drop on a zone, or in the basket to wash it
           </Text>
         </View>
       </Animated.View>

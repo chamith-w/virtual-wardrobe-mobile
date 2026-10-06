@@ -5,18 +5,18 @@
  * Pure — safe to import from tests.
  */
 import { CATEGORY_DEFAULT_ZONE, type Category, type ItemStatus, type ZoneType } from './catalog';
-import { lendingFor, type LendState } from './status';
+import { statusFields, type StatusExtra, type StatusFields, type StatusState } from './status';
 
 export type WardrobeLite = { id: string; icon: string; sortOrder: number };
 export type ZoneLite = { id: string; wardrobeId: string; type: ZoneType; sortOrder: number };
 
-export type PlacedItem = LendState & {
+export type PlacedItem = StatusState & {
   wardrobeId: string;
   zoneId: string | null;
   category: Category;
 };
 
-export type PlacementPatch = Pick<PlacedItem, 'wardrobeId' | 'zoneId' | 'status' | 'lentTo' | 'lentAt'>;
+export type PlacementPatch = Pick<PlacedItem, 'wardrobeId' | 'zoneId'> & StatusFields;
 
 /** Storage wardrobes are the ones created with the archive icon (Home + Storage by default). */
 export function isStorageWardrobe(wardrobe: Pick<WardrobeLite, 'icon'>): boolean {
@@ -72,7 +72,7 @@ export function zoneAfterCategoryChange(
 }
 
 /** The wardrobe an item returns to when it comes out of storage. */
-export function homeWardrobe(wardrobes: WardrobeLite[]): WardrobeLite | undefined {
+export function homeWardrobe<W extends WardrobeLite>(wardrobes: readonly W[]): W | undefined {
   return [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder).find((w) => !isStorageWardrobe(w));
 }
 
@@ -86,26 +86,28 @@ export function wardrobeForNewPiece(
 ): WardrobeLite | undefined {
   const active = byId(wardrobes, activeId);
   if (active && !isStorageWardrobe(active)) return active;
-  return homeWardrobe([...wardrobes]) ?? [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  return homeWardrobe(wardrobes) ?? [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+}
+
+/** The status a piece takes on when it moves into a wardrobe: stored in storage, back in use out of it. */
+export function statusInWardrobe(current: ItemStatus, target: Pick<WardrobeLite, 'icon'> | undefined): ItemStatus {
+  if (target && isStorageWardrobe(target)) return 'storage';
+  return current === 'storage' ? 'in_wardrobe' : current;
 }
 
 /** Moves an item to another wardrobe, updating status if it enters or leaves storage. */
 export function moveToWardrobe(
   item: PlacedItem,
   targetId: string,
-  wardrobes: WardrobeLite[],
-  zones: ZoneLite[],
+  wardrobes: readonly WardrobeLite[],
+  zones: readonly ZoneLite[],
   now: Date,
 ): PlacementPatch {
   const target = byId(wardrobes, targetId);
   const currentZoneType = byId(zones, item.zoneId)?.type;
   const zoneId = zoneFor(zones, targetId, item.category, currentZoneType);
-
-  let status = item.status;
-  if (target && isStorageWardrobe(target)) status = 'storage';
-  else if (item.status === 'storage') status = 'in_wardrobe';
-
-  return { wardrobeId: targetId, zoneId, status, ...lendingFor(item, status, now) };
+  const status = statusInWardrobe(item.status, target);
+  return { wardrobeId: targetId, zoneId, ...statusFields(item, status, now) };
 }
 
 /**
@@ -115,28 +117,29 @@ export function moveToWardrobe(
 export function applyStatus(
   item: PlacedItem,
   next: ItemStatus,
-  wardrobes: WardrobeLite[],
-  zones: ZoneLite[],
+  wardrobes: readonly WardrobeLite[],
+  zones: readonly ZoneLite[],
   now: Date,
+  extra: StatusExtra = {},
 ): PlacementPatch {
   const current = byId(wardrobes, item.wardrobeId);
   const inStorage = current ? isStorageWardrobe(current) : false;
 
   if (next === 'storage' && !inStorage) {
-    const storage = [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder).find(isStorageWardrobe);
+    const storage = firstStorageWardrobe(wardrobes);
     if (storage) return moveToWardrobe(item, storage.id, wardrobes, zones, now);
   }
   if (next !== 'storage' && inStorage) {
     const home = homeWardrobe(wardrobes);
     if (home) {
       const moved = moveToWardrobe(item, home.id, wardrobes, zones, now);
-      return { ...moved, status: next, ...lendingFor(item, next, now) };
+      return { wardrobeId: moved.wardrobeId, zoneId: moved.zoneId, ...statusFields(item, next, now, extra) };
     }
   }
-  return {
-    wardrobeId: item.wardrobeId,
-    zoneId: item.zoneId,
-    status: next,
-    ...lendingFor(item, next, now),
-  };
+  return { wardrobeId: item.wardrobeId, zoneId: item.zoneId, ...statusFields(item, next, now, extra) };
+}
+
+/** Where "In storage" sends a piece: the first storage wardrobe. */
+export function firstStorageWardrobe<W extends WardrobeLite>(wardrobes: readonly W[]): W | undefined {
+  return [...wardrobes].sort((a, b) => a.sortOrder - b.sortOrder).find(isStorageWardrobe);
 }

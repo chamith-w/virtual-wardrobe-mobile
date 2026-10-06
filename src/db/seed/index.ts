@@ -1,6 +1,7 @@
 import { File } from 'expo-file-system';
 
 import { copyBundledAsset, deleteAllImages, itemDir, wishlistRoot } from '@/lib/images';
+import { cancelAllLocal } from '@/lib/notifications';
 import { newId } from '@/lib/ids';
 
 import { db } from '../client';
@@ -148,8 +149,10 @@ export async function seedDemoWardrobe(today = new Date()): Promise<void> {
             cutoutUri: imageUris.get(i.slug)?.cutout ?? null,
             thumbUri: imageUris.get(i.slug)?.thumb ?? null,
             status: i.status,
+            statusChangedAt: i.statusChangedAt,
             lentTo: i.lentTo,
             lentAt: i.lentAt,
+            readyAt: i.readyAt,
             isFavorite: i.isFavorite,
             wearCount: i.wearCount,
             lastWornAt: i.lastWornAt,
@@ -272,6 +275,8 @@ export async function clearAllData(): Promise<void> {
     }
   });
   deleteAllImages();
+  // Lend reminders pointed at pieces that no longer exist.
+  await cancelAllLocal();
 }
 
 export async function resetToDemoData(): Promise<void> {

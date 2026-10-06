@@ -106,8 +106,14 @@ export const items = sqliteTable(
     thumbUri: text('thumb_uri'),
 
     status: text('status', { enum: ITEM_STATUSES }).notNull().default('in_wardrobe'),
+    /** When the status last changed: the dry-cleaner drop-off, the day it went in the basket… */
+    statusChangedAt: integer('status_changed_at', { mode: 'timestamp_ms' }),
     lentTo: text('lent_to'),
     lentAt: integer('lent_at', { mode: 'timestamp_ms' }),
+    /** "Remind me to ask for it back": when the local notification fires. Null = off. */
+    remindAt: integer('remind_at', { mode: 'timestamp_ms' }),
+    /** Dry cleaner: the day it should be ready to collect (optional). */
+    readyAt: integer('ready_at', { mode: 'timestamp_ms' }),
     archivedReason: text('archived_reason', { enum: ARCHIVE_REASONS }),
     archivedNote: text('archived_note'),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),

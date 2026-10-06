@@ -3,20 +3,25 @@ import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { setLentTo } from '@/features/items/mutations';
+import { renameBorrower } from '@/features/items/statusService';
+import { LENT_TO_MAX } from '@/features/items/status';
+import { lentAge } from '@/features/laundry/copy';
 import { formatShortDay } from '@/lib/dates';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fontFamily } from '@/theme/tokens';
 
+import { LendReminderRow, type LentPiece } from './LendReminder';
+
 /**
- * Who has a lent piece and since when. The name saves when the field loses
- * focus. Key it by item id so paging resets the draft.
+ * Who has a lent piece, since when, and the "ask for it back" reminder. The
+ * name saves when the field loses focus. Key it by item id so paging resets
+ * the draft.
  */
 export function LentCard({
   item,
   inSheet = false,
 }: {
-  item: { id: string; lentTo: string | null; lentAt: Date | null };
+  item: LentPiece;
   /** Inside a bottom sheet the field must be the sheet-aware input for keyboard handling. */
   inSheet?: boolean;
 }) {
@@ -24,8 +29,9 @@ export function LentCard({
   const [name, setName] = useState(item.lentTo ?? '');
   const Input = inSheet ? BottomSheetTextInput : TextInput;
   const save = () => {
-    if (name.trim() !== (item.lentTo ?? '')) setLentTo(item.id, name);
+    if (name.trim() !== (item.lentTo ?? '')) renameBorrower(item, name);
   };
+  const age = lentAge(item.lentAt, null, new Date());
 
   return (
     <View className="mt-3 gap-2.5 rounded-md bg-accent-soft p-3.5">
@@ -43,6 +49,7 @@ export function LentCard({
           selectionColor={colors.accent}
           returnKeyType="done"
           autoCapitalize="words"
+          maxLength={LENT_TO_MAX}
           accessibilityLabel="Lent to"
           maxFontSizeMultiplier={1.5}
           style={{
@@ -58,9 +65,10 @@ export function LentCard({
           }}
         />
       </View>
-      <Text variant="caption" weight="semibold" tone="ink">
-        Since {item.lentAt ? formatShortDay(item.lentAt) : 'today'}
+      <Text variant="caption" weight="semibold" tone={age.overdue ? 'accent' : 'ink'}>
+        {item.lentAt && age.days > 0 ? `Since ${formatShortDay(item.lentAt)} · ${age.line}` : 'Since today'}
       </Text>
+      <LendReminderRow item={item} onSurface />
     </View>
   );
 }

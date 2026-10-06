@@ -16,7 +16,7 @@ import {
   type ZoneType,
 } from '@/features/items/catalog';
 import { paletteColor } from '@/lib/color';
-import { addDays, toDayKey, type DayKey } from '@/lib/dates';
+import { addDays, startOfDay, toDayKey, type DayKey } from '@/lib/dates';
 
 import data from './garments.json';
 
@@ -43,6 +43,9 @@ export type SeedGarment = {
   favorite?: boolean;
   lentTo?: string;
   lentDaysAgo?: number;
+  /** Dry cleaner: dropped off this many days ago, ready in `readyInDays`. */
+  statusDaysAgo?: number;
+  readyInDays?: number;
   wornToday?: boolean;
   wardrobe?: 'home' | 'storage';
 };
@@ -83,8 +86,10 @@ export type PlannedItem = {
   store: string;
   careNotes: string | null;
   status: ItemStatus;
+  statusChangedAt: Date | null;
   lentTo: string | null;
   lentAt: Date | null;
+  readyAt: Date | null;
   isFavorite: boolean;
   wearCount: number;
   lastWornAt: Date | null;
@@ -387,6 +392,24 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
     return t;
   };
 
+  // When each piece took its current status: worn today, washed two days ago…
+  const statusSince = (g: SeedGarment): Date | null => {
+    switch (g.status ?? 'in_wardrobe') {
+      case 'worn':
+        return noonDaysAgo(0);
+      case 'laundry':
+        return noonDaysAgo(2);
+      case 'lent':
+        return noonDaysAgo(g.lentDaysAgo ?? 0);
+      case 'dry_cleaner':
+        return noonDaysAgo(g.statusDaysAgo ?? 3);
+      case 'storage':
+        return noonDaysAgo(Math.min(g.restDays, g.addedDaysAgo));
+      default:
+        return null;
+    }
+  };
+
   const items: PlannedItem[] = garments.map((g) => {
     const wardrobe = g.wardrobe ?? 'home';
     const lastDays = last.get(g.slug);
@@ -414,8 +437,11 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
       store: g.store,
       careNotes: g.careNotes ?? null,
       status: g.status ?? 'in_wardrobe',
+      statusChangedAt: statusSince(g),
       lentTo: g.lentTo ?? null,
       lentAt: g.lentDaysAgo !== undefined ? noonDaysAgo(g.lentDaysAgo) : null,
+      readyAt:
+        g.status === 'dry_cleaner' && g.readyInDays !== undefined ? startOfDay(addDays(today, g.readyInDays)) : null,
       isFavorite: g.favorite ?? false,
       wearCount: counts.get(g.slug) ?? 0,
       lastWornAt: lastDays === undefined ? null : noonDaysAgo(lastDays),

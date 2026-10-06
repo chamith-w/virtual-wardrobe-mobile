@@ -15,14 +15,16 @@ import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, with
 import { AnimatedPressable, Button, Cutout, Text } from '@/components/ui';
 import type { Item } from '@/db/schema';
 import { changeItemStatus, toggleWearToday } from '@/features/items/actions';
+import { CleanerDetails } from '@/features/items/components/CleanerDetails';
 import { LentCard } from '@/features/items/components/LentCard';
+import { OutActions } from '@/features/items/components/OutActions';
 import { StatusSwitcher } from '@/features/items/components/StatusSwitcher';
 import { detailRows, detailStats, itemByline, itemEyebrow } from '@/features/items/describe';
 import { findMatches } from '@/features/items/matches';
 import { OutfitPreview } from '@/features/outfits/OutfitPreview';
 import { useItemOutfits } from '@/features/outfits/useOutfits';
 import { useWornToday } from '@/features/planner/wearLog';
-import { useAllItems, type ClosetItem } from '@/features/wardrobe/useWardrobeData';
+import { useAllItems, useZones, type ClosetItem } from '@/features/wardrobe/useWardrobeData';
 import { useMotionReduced } from '@/theme/motion';
 import { useTheme } from '@/theme/ThemeProvider';
 import { durations, springs } from '@/theme/tokens';
@@ -270,6 +272,8 @@ export function DetailBody({
   onOpenOutfit,
 }: DetailBodyProps) {
   const wornToday = useWornToday(item.id);
+  const { data: zones } = useZones();
+  const zoneType = zones.find((z) => z.id === item.zoneId)?.type;
   const stats = detailStats(item);
   const byline = itemByline(item);
   const rows = detailRows(item);
@@ -301,21 +305,33 @@ export function DetailBody({
       <Text variant="eyebrow" className="mb-2.5 mt-7">
         Status
       </Text>
-      <StatusSwitcher status={item.status} onChange={(s) => changeItemStatus(item, s)} />
+      <StatusSwitcher item={item} onChange={(s) => changeItemStatus(item, s)} />
       {item.status === 'lent' ? (
         <PopIn>
           <LentCard key={item.id} item={item} />
         </PopIn>
       ) : null}
+      {item.status === 'dry_cleaner' ? (
+        <PopIn>
+          <View className="mt-3 rounded-md bg-surface p-3.5">
+            <CleanerDetails key={item.id} item={item} />
+          </View>
+        </PopIn>
+      ) : null}
 
-      <Button
-        label={wornToday ? 'Worn today' : 'Wear today'}
-        icon={wornToday ? Check : Shirt}
-        fullWidth
-        className="mt-6"
-        accessibilityHint={wornToday ? 'Takes it off today’s log' : 'Logs it as worn today'}
-        onPress={() => toggleWearToday(item, wornToday)}
-      />
+      <OutActions item={item} zoneType={zoneType} className="mt-6" />
+      {/* Wearing needs the piece at hand: hidden while it's in the wash, at the cleaner or lent. */}
+      {item.status === 'in_wardrobe' || item.status === 'worn' || item.status === 'storage' ? (
+        <Button
+          label={wornToday ? 'Worn today' : 'Wear today'}
+          icon={wornToday ? Check : Shirt}
+          variant={item.status === 'worn' ? 'secondary' : 'primary'}
+          fullWidth
+          className={item.status === 'worn' ? 'mt-2' : 'mt-6'}
+          accessibilityHint={wornToday ? 'Takes it off today’s log' : 'Logs it as worn today'}
+          onPress={() => toggleWearToday(item, wornToday)}
+        />
+      ) : null}
       <View className="mt-2 gap-2">
         <View className="flex-row gap-2">
           <ActionTile icon={Layers} label="Add to outfit" onPress={onAddToOutfit} />

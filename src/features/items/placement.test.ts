@@ -30,8 +30,11 @@ const coat: PlacedItem = {
   zoneId: 'h-rail',
   category: 'coats',
   status: 'in_wardrobe',
+  statusChangedAt: null,
   lentTo: null,
   lentAt: null,
+  remindAt: null,
+  readyAt: null,
 };
 
 describe('zoneFor', () => {
@@ -88,8 +91,11 @@ describe('applyStatus', () => {
       wardrobeId: 'home',
       zoneId: 'h-rail',
       status: 'lent',
+      statusChangedAt: now,
       lentTo: null,
       lentAt: now,
+      remindAt: null,
+      readyAt: null,
     });
   });
 

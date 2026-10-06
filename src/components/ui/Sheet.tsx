@@ -28,6 +28,11 @@ export type SheetProps = {
   snapPoints?: (string | number)[];
   scrollable?: boolean;
   onDismiss?: () => void;
+  /**
+   * Opening this sheet while another is open: 'switch' (default) tucks the
+   * other away until this one closes; 'push' stacks this one on top.
+   */
+  stackBehavior?: 'push' | 'switch' | 'replace';
 };
 
 function Backdrop(props: BottomSheetBackdropProps) {
@@ -40,7 +45,16 @@ function Backdrop(props: BottomSheetBackdropProps) {
  * Themed bottom sheet. Open with `ref.current?.present()`, close with
  * `ref.current?.dismiss()`. Requires <BottomSheetModalProvider> (root layout).
  */
-export function Sheet({ ref, title, eyebrow, children, snapPoints, scrollable = false, onDismiss }: SheetProps) {
+export function Sheet({
+  ref,
+  title,
+  eyebrow,
+  children,
+  snapPoints,
+  scrollable = false,
+  onDismiss,
+  stackBehavior,
+}: SheetProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useMotionReduced();
@@ -69,6 +83,7 @@ export function Sheet({ ref, title, eyebrow, children, snapPoints, scrollable = 
       animationConfigs={animationConfigs}
       backdropComponent={Backdrop}
       onDismiss={onDismiss}
+      stackBehavior={stackBehavior}
       backgroundStyle={{ backgroundColor: colors.surface, borderRadius: radii.lg }}
       handleIndicatorStyle={{ backgroundColor: colors.faint, width: 40, height: 5 }}
       accessible={false}

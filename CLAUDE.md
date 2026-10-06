@@ -96,3 +96,4 @@ docs/                    spec, design notes, prototypes, progress log
 - Import Google fonts per weight (`@expo-google-fonts/fraunces/500Medium`), or every weight ends up in the bundle.
 - On Android, `expo-blur` needs a `BlurTargetView`, so the tab bar uses an opaque glass fill there.
 - In a network-restricted shell, `npx expo install` needs `EXPO_OFFLINE=1`.
+- NativeWind builds its stylesheet once per platform per Metro process. If that Metro first served a Release bundle (`expo run:ios --configuration Release`), it never watches, so Tailwind classes added afterwards are missing in the dev client. Restart Metro with `npm start` when new classes don't apply.

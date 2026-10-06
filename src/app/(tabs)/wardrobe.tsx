@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useRef, useState } from 'react';
-import { View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { BackHandler, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 import { EmptyState, type SheetRef } from '@/components/ui';
+import { sendManyToLaundry } from '@/features/items/actions';
+import { MoveSheet } from '@/features/items/detail/DetailSheets';
 import { openItem } from '@/features/items/openItem';
 import { OutfitsView } from '@/features/outfits/OutfitsView';
 import { useOutfitPicker } from '@/features/outfits/useOutfits';
@@ -14,7 +16,9 @@ import { WardrobeHeader } from '@/features/wardrobe/components/WardrobeHeader';
 import { FilterSheet, NewWardrobeSheet, SortSheet, WardrobeSheet } from '@/features/wardrobe/components/WardrobeSheets';
 import { activeFilterCount, facetsOf, matchesAll, sortItems } from '@/features/wardrobe/filters';
 import { GridView } from '@/features/wardrobe/grid/GridView';
+import { SelectionBar } from '@/features/wardrobe/grid/SelectionBar';
 import { useActiveWardrobe, useWardrobeCounts, useWardrobeItems, useZones } from '@/features/wardrobe/useWardrobeData';
+import { haptics } from '@/lib/haptics';
 import { useSession } from '@/store/session';
 import { useWardrobeView } from '@/store/wardrobeView';
 
@@ -41,6 +45,30 @@ export default function WardrobeScreen() {
   const newWardrobeSheet = useRef<SheetRef>(null);
   const filterSheet = useRef<SheetRef>(null);
   const sortSheet = useRef<SheetRef>(null);
+  const moveSheet = useRef<SheetRef>(null);
+
+  // Grid multi-select: long-press a card to start, tap to add or remove. A
+  // selection belongs to one view of one wardrobe; switching either drops it.
+  const activeId = active?.id;
+  const selectionKey = `${mode}:${activeId ?? ''}`;
+  const [picked, setPicked] = useState<{ key: string; ids: ReadonlySet<string> } | null>(null);
+  const selection = picked?.key === selectionKey ? picked.ids : null;
+  const setSelection = (ids: ReadonlySet<string> | null) => setPicked(ids ? { key: selectionKey, ids } : null);
+  useEffect(() => {
+    if (!selection) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setPicked(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [selection]);
+  const toggleSelected = (id: string) => {
+    if (!selection) haptics.press();
+    const next = new Set(selection ?? []);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelection(next.size > 0 ? next : null);
+  };
 
   // Doors play on the first visit of the session; the header button replays them.
   const doorsPlayed = useSession((s) => s.wardrobeDoorsPlayed);
@@ -113,7 +141,9 @@ export default function WardrobeScreen() {
               />
             )
           }
+          selection={selection}
           onOpenItem={(item, view) => openItem(item, { from: view, browseIds: matching.map((p) => p.id) })}
+          onSelectItem={(item) => toggleSelected(item.id)}
         />
       ) : (
         <OutfitsView header={header} />
@@ -146,6 +176,10 @@ export default function WardrobeScreen() {
           wardrobeSheet.current?.dismiss();
           newWardrobeSheet.current?.present();
         }}
+        onManage={() => {
+          wardrobeSheet.current?.dismiss();
+          router.push('/wardrobes');
+        }}
       />
       <NewWardrobeSheet
         ref={newWardrobeSheet}
@@ -154,6 +188,25 @@ export default function WardrobeScreen() {
           setActive(id);
           clearFilters();
         }}
+      />
+      {mode === 'grid' && selection ? (
+        <SelectionBar
+          count={selection.size}
+          onDone={() => setSelection(null)}
+          onLaundry={() => {
+            sendManyToLaundry(pieces.filter((p) => selection.has(p.id)));
+            setSelection(null);
+          }}
+          onMove={() => moveSheet.current?.present()}
+        />
+      ) : null}
+      <MoveSheet
+        ref={moveSheet}
+        items={selection ? pieces.filter((p) => selection.has(p.id)) : []}
+        wardrobeId={activeId ?? null}
+        wardrobes={wardrobes}
+        counts={counts}
+        onMoved={() => setSelection(null)}
       />
       <FilterSheet ref={filterSheet} facets={facets} matching={matching.length} />
       <SortSheet ref={sortSheet} />

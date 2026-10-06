@@ -20,7 +20,8 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import { AnimatedPressable, Cutout, IconButton, useCutoutImage, type SheetRef } from '@/components/ui';
 import { ARCHIVE_REASON_LABEL } from '@/features/items/catalog';
-import { archiveItem, setFavorite } from '@/features/items/mutations';
+import { setFavorite } from '@/features/items/mutations';
+import { archiveItem } from '@/features/items/statusService';
 import { useItem } from '@/features/items/useItem';
 import { useActiveWardrobe, useWardrobeCounts } from '@/features/wardrobe/useWardrobeData';
 import { mixHex } from '@/lib/color';
@@ -412,12 +413,17 @@ function ItemDetail({ initialId }: { initialId: string }) {
       {item ? (
         <>
           <AddToOutfitSheet ref={addSheet} item={item} />
-          <MoveSheet ref={moveSheet} item={item} wardrobeId={item.wardrobeId} wardrobes={wardrobes} counts={counts} />
+          <MoveSheet
+            ref={moveSheet}
+            items={[item]}
+            wardrobeId={item.wardrobeId}
+            wardrobes={wardrobes}
+            counts={counts}
+          />
           <ArchiveSheet
             ref={archiveSheet}
             onArchive={(reason, note) => {
-              archiveItem(item.id, reason, note);
-              haptics.statusChanged();
+              if (!archiveItem(item.id, reason, note)?.ok) return;
               toast(`Archived as ${ARCHIVE_REASON_LABEL[reason].toLowerCase()} · history kept`);
               archiveSheet.current?.dismiss();
               close('fade');

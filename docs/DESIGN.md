@@ -19,6 +19,7 @@ Direction: **Editorial Boutique**, a fashion magazine meets a boutique dressing 
 | muted                      | #6E6860                     | #9C958C                     | secondary text (**contrast fix**, see below) |
 | faint                      | #8A847C                     | #6F6962                     | icons, hanger glyph, hairline art, disabled  |
 | rail                       | #B9AE9F                     | #4E4740                     | rail line, shoe rack bars                    |
+| wicker / Shade / Deep      | #C8B08C / #A88E69 / #8C7455 | #9C8664 / #7D6A4F / #62523D | laundry basket weave (illustration only)     |
 | accent                     | #E2553F                     | #FF7A5C                     | dots, rings, focus, the "+" button           |
 | accentStrong               | #C2412C                     | #FF7A5C                     | filled buttons with text                     |
 | accentText                 | #B23A26                     | #FF8F75                     | accent-coloured text                         |

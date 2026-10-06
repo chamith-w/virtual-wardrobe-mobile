@@ -3,6 +3,7 @@ export { Button, type ButtonProps, type ButtonVariant } from './Button';
 export { Card, type CardTone } from './Card';
 export { CheckBadge } from './CheckBadge';
 export { Chip, type ChipProps } from './Chip';
+export { DatePickerSheet, DEFAULT_DATE_PRESETS, type DatePickerSheetProps, type DatePreset } from './DatePickerSheet';
 export { Cutout, loadCutout, useCutoutImage, type CutoutProps, type CutoutShadow } from './Cutout';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { IconButton, type IconButtonProps } from './IconButton';

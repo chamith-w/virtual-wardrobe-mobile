@@ -3,8 +3,9 @@
  * changes that go with a status switch. Pure — safe to import from tests.
  */
 import type { ColorToken } from '@/theme/tokens';
+import { cleanName } from '@/lib/text';
 
-import { OUT_STATUSES, type ItemStatus } from './catalog';
+import { OUT_STATUSES, type ArchiveReason, type ItemStatus } from './catalog';
 
 /** Dot / tag colour per status (docs/DESIGN.md → "Empty hangers"). */
 export const STATUS_TONE: Record<ItemStatus, ColorToken> = {
@@ -49,16 +50,68 @@ export function isOut(status: ItemStatus): boolean {
   return OUT_STATUSES.includes(status);
 }
 
-export type LendState = { status: ItemStatus; lentTo: string | null; lentAt: Date | null };
+/** The status-related columns of an item. */
+export type StatusState = {
+  status: ItemStatus;
+  statusChangedAt: Date | null;
+  lentTo: string | null;
+  lentAt: Date | null;
+  remindAt: Date | null;
+  readyAt: Date | null;
+};
+
+/** What a caller can pass along with a status: who borrowed it, when it's ready, why it left. */
+export type StatusExtra = {
+  lentTo?: string | null;
+  readyAt?: Date | null;
+  archivedReason?: ArchiveReason;
+  archivedNote?: string | null;
+};
+
+export type StatusFields = StatusState & {
+  archivedReason?: ArchiveReason | null;
+  archivedNote?: string | null;
+};
+
+export const LENT_TO_MAX = 40;
+
+function lendFields(
+  current: StatusState,
+  next: ItemStatus,
+  now: Date,
+  extra: StatusExtra,
+): Pick<StatusState, 'lentTo' | 'lentAt' | 'remindAt'> {
+  if (next !== 'lent') return { lentTo: null, lentAt: null, remindAt: null };
+  const name = extra.lentTo === undefined ? current.lentTo : cleanName(extra.lentTo ?? '', LENT_TO_MAX);
+  if (current.status !== 'lent') return { lentTo: name, lentAt: now, remindAt: null };
+  return { lentTo: name, lentAt: current.lentAt ?? now, remindAt: current.remindAt };
+}
+
+function readyFor(current: StatusState, next: ItemStatus, extra: StatusExtra): Date | null {
+  if (next !== 'dry_cleaner') return null;
+  if (extra.readyAt !== undefined) return extra.readyAt;
+  return current.status === 'dry_cleaner' ? current.readyAt : null;
+}
 
 /**
- * Lending fields that follow a status change: becoming "lent" stamps the date
- * (keeping any name already entered); leaving "lent" clears both.
+ * Every column that follows a status change:
+ *  - any change stamps `statusChangedAt` (for the dry cleaner, the drop-off);
+ *  - becoming lent stamps `lentAt` and takes the borrower's name (keeping one
+ *    already entered); leaving lent clears the name, date and reminder;
+ *  - the dry cleaner's ready date lives only while it's there;
+ *  - archiving records the reason.
+ * Staying in the same status keeps everything (a move between wardrobes).
  */
-export function lendingFor(current: LendState, next: ItemStatus, now: Date): Pick<LendState, 'lentTo' | 'lentAt'> {
-  if (next === 'lent') {
-    if (current.status === 'lent') return { lentTo: current.lentTo, lentAt: current.lentAt ?? now };
-    return { lentTo: current.lentTo, lentAt: now };
+export function statusFields(current: StatusState, next: ItemStatus, now: Date, extra: StatusExtra = {}): StatusFields {
+  const fields: StatusFields = {
+    status: next,
+    statusChangedAt: next === current.status ? current.statusChangedAt : now,
+    ...lendFields(current, next, now, extra),
+    readyAt: readyFor(current, next, extra),
+  };
+  if (next === 'archived') {
+    fields.archivedReason = extra.archivedReason ?? null;
+    fields.archivedNote = extra.archivedNote?.trim() || null;
   }
-  return { lentTo: null, lentAt: null };
+  return fields;
 }

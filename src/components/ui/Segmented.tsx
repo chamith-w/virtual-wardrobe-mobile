@@ -9,7 +9,12 @@ import { durations, radii, springs } from '@/theme/tokens';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Text } from './Text';
 
-export type SegmentedOption<T extends string> = { value: T; label: string };
+export type SegmentedOption<T extends string> = {
+  value: T;
+  label: string;
+  /** A small count badge after the label ("Laundry 4"). */
+  count?: number;
+};
 
 export type SegmentedProps<T extends string> = {
   options: SegmentedOption<T>[];
@@ -84,14 +89,24 @@ export function Segmented<T extends string>({
             key={o.value}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            accessibilityLabel={o.label}
+            accessibilityLabel={o.count !== undefined ? `${o.label}, ${o.count}` : o.label}
             onPress={() => onChange(o.value)}
             scaleTo={0.97}
-            className="flex-1 items-center justify-center rounded-pill"
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-pill"
           >
             <Text variant={size === 'md' ? 'bodySm' : 'caption'} weight="semibold" tone={selected ? 'ink' : 'muted'}>
               {o.label}
             </Text>
+            {o.count !== undefined ? (
+              <View
+                className="items-center justify-center rounded-pill bg-surface-tinted-strong"
+                style={{ height: 18, minWidth: 18, paddingHorizontal: 5 }}
+              >
+                <Text variant="caption" weight="bold" tone="ink" style={{ fontSize: 11, lineHeight: 14 }}>
+                  {o.count}
+                </Text>
+              </View>
+            ) : null}
           </AnimatedPressable>
         );
       })}
