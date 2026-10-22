@@ -13,7 +13,7 @@ type Piece = { category: Category; colors: ItemColor[]; occasions: Occasion[]; s
 const ROLE_ORDER = ['one_piece', 'top', 'layer', 'bottom', 'shoes', 'accessory', 'basic'] as const;
 
 /** "Ecru & navy" from the two leading colours (main pieces first), "Head-to-toe black" when there's one. */
-export function suggestOutfitName(pieces: readonly Piece[]): string {
+export function suggestOutfitName(pieces: readonly Pick<Piece, 'category' | 'colors'>[]): string {
   const ordered = [...pieces].sort(
     (a, b) => ROLE_ORDER.indexOf(CATEGORY_ROLE[a.category]) - ROLE_ORDER.indexOf(CATEGORY_ROLE[b.category]),
   );

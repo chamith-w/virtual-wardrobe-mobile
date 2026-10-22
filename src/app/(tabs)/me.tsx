@@ -1,15 +1,21 @@
 import { router } from 'expo-router';
-import { ChevronRight, House, Palette, Repeat2, RotateCcw, WashingMachine } from 'lucide-react-native';
+import { ChevronRight, House, MapPin, Palette, Repeat2, RotateCcw, WashingMachine } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 
 import { Button, Card, Screen, Segmented, Sheet, Text, Toggle, type SheetRef } from '@/components/ui';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { clearAllData, createEmptyWardrobes, resetToDemoData } from '@/db/seed';
 import { HangerIcon } from '@/components/illustrations/Glyphs';
+import { overridesSummary } from '@/features/planner/autoLaundry';
+import { AutoLaundrySheet } from '@/features/planner/AutoLaundrySheet';
+import { PLAN_REMINDER_HOUR } from '@/features/planner/planReminder';
 import { useStatusCounts, useWardrobes } from '@/features/wardrobe/useWardrobeSummary';
+import { WeatherPlaceSheet } from '@/features/weather/WeatherPlaceSheet';
 import { haptics } from '@/lib/haptics';
+import { ensureNotificationPermission } from '@/lib/notifications';
 import { usePreferences, type TemperatureUnit, type ThemePreference } from '@/store/preferences';
+import { toast } from '@/store/toast';
 import { useTheme } from '@/theme/ThemeProvider';
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -75,10 +81,34 @@ export default function MeScreen() {
   const setReduceMotion = usePreferences((s) => s.setReduceMotion);
   const unit = usePreferences((s) => s.temperatureUnit);
   const setUnit = usePreferences((s) => s.setTemperatureUnit);
+  const weatherPlace = usePreferences((s) => s.weatherPlace);
+  const autoLaundry = usePreferences((s) => s.autoLaundry);
+  const planReminder = usePreferences((s) => s.planReminder);
+  const setPlanReminder = usePreferences((s) => s.setPlanReminder);
+  const placeSheet = useRef<SheetRef>(null);
+  const laundrySheet = useRef<SheetRef>(null);
   const counts = useStatusCounts();
   const wardrobes = useWardrobes();
   const resetSheet = useRef<SheetRef>(null);
   const [busy, setBusy] = useState(false);
+
+  const togglePlanReminder = async (on: boolean) => {
+    if (!on) {
+      setPlanReminder(false);
+      return;
+    }
+    const permission = await ensureNotificationPermission();
+    if (permission === 'granted') {
+      setPlanReminder(true);
+      toast('A nudge at 8pm when tomorrow has nothing planned');
+      return;
+    }
+    haptics.warning();
+    if (permission === 'blocked') {
+      toast('Notifications are off for My Closet in Settings', 'info');
+      void Linking.openSettings();
+    } else toast('Notifications weren’t allowed', 'info');
+  };
 
   const run = async (task: () => Promise<void>) => {
     setBusy(true);
@@ -194,6 +224,28 @@ export default function MeScreen() {
           />
         </View>
       </Row>
+      <Row
+        label="Weather"
+        hint={weatherPlace?.kind === 'city' ? weatherPlace.name : weatherPlace ? 'Where you are' : 'Not set yet'}
+      >
+        <Button
+          label="Change"
+          size="sm"
+          variant="secondary"
+          icon={MapPin}
+          onPress={() => placeSheet.current?.present()}
+        />
+      </Row>
+      <Row label="Auto-laundry" hint={overridesSummary(autoLaundry)}>
+        <Button label="Edit" size="sm" variant="secondary" onPress={() => laundrySheet.current?.present()} />
+      </Row>
+      <Row label="Plan reminder" hint={`At ${PLAN_REMINDER_HOUR}:00 when tomorrow has nothing planned`}>
+        <Toggle
+          value={planReminder}
+          onValueChange={(on) => void togglePlanReminder(on)}
+          accessibilityLabel="Plan reminder"
+        />
+      </Row>
       <Row label="Reduce motion" hint="Fades instead of springs and 3D">
         <Toggle value={reduceMotion} onValueChange={setReduceMotion} accessibilityLabel="Reduce motion" />
       </Row>
@@ -207,6 +259,8 @@ export default function MeScreen() {
         />
       </Row>
 
+      <WeatherPlaceSheet ref={placeSheet} />
+      <AutoLaundrySheet ref={laundrySheet} />
       <Sheet ref={resetSheet} eyebrow="Demo data" title="Reset your closet?">
         <Text variant="bodySm" tone="muted">
           This deletes every piece, outfit, log and photo on this device.

@@ -114,6 +114,8 @@ export const items = sqliteTable(
     remindAt: integer('remind_at', { mode: 'timestamp_ms' }),
     /** Dry cleaner: the day it should be ready to collect (optional). */
     readyAt: integer('ready_at', { mode: 'timestamp_ms' }),
+    /** When it last went into the wash or to the cleaner. Auto-laundry counts wears since this day. */
+    washedAt: integer('washed_at', { mode: 'timestamp_ms' }),
     archivedReason: text('archived_reason', { enum: ARCHIVE_REASONS }),
     archivedNote: text('archived_note'),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),

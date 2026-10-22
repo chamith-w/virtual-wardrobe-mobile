@@ -15,6 +15,20 @@
       "when": 1791289085907,
       "tag": "0001_item_states",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792675187139,
+      "tag": "0002_items_washed_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792678205158,
+      "tag": "0003_backfill_washed_at",
+      "breakpoints": true
     }
   ]
 }

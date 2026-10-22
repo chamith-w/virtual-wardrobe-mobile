@@ -5,6 +5,8 @@
  */
 import { backLine, washedLine } from '@/features/laundry/copy';
 import { logWearToday, unlogWearToday } from '@/features/planner/wearLog';
+import { weatherSnapshotFor } from '@/features/weather/store';
+import { toDayKey } from '@/lib/dates';
 import { haptics } from '@/lib/haptics';
 import { toast } from '@/store/toast';
 
@@ -120,8 +122,10 @@ export function toggleWearToday(item: Named & { wearCount: number }, wornToday: 
     toast('Taken off today’s log', 'info');
     return;
   }
-  const result = logWearToday(item.id);
-  toast(result === 'already' ? 'Already logged for today' : `Logged for today · worn ${item.wearCount + 1}×`);
+  const result = logWearToday(item.id, weatherSnapshotFor(toDayKey(new Date())));
+  if (result === 'already') toast('Already logged for today');
+  else if (result === 'laundry') toast(`Logged · worn ${item.wearCount + 1}× · it’s in the basket`);
+  else toast(`Logged for today · worn ${item.wearCount + 1}×`);
 }
 
 export function moveToZone(item: Named, zone: { id: string; name: string }) {

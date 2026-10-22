@@ -7,7 +7,7 @@ import { items, outfitItems, outfits, type ItemColor } from '@/db/schema';
 import type { Category, ItemStatus, Occasion, Season } from '@/features/items/catalog';
 
 import type { BoardPiece } from '../board';
-import { placeNewPiece } from '../canvas';
+import { placeLook } from '../canvas';
 
 /** What the builder needs to know about a garment: drawing, the tray, shuffle and save defaults. */
 export type BuilderItem = {
@@ -118,11 +118,7 @@ export function readPreload(ids: readonly string[]): BoardPiece[] {
     .from(items)
     .where(and(inArray(items.id, [...ids]), isNull(items.deletedAt)))
     .all();
-  const pieces: BoardPiece[] = [];
-  for (const id of ids) {
-    const row = rows.find((r) => r.id === id);
-    if (!row || pieces.some((p) => p.itemId === id)) continue;
-    pieces.push({ itemId: id, ...placeNewPiece(row.category, pieces), z: pieces.length, locked: false });
-  }
-  return pieces;
+  const found = ids.filter((id, i) => ids.indexOf(id) === i).flatMap((id) => rows.find((r) => r.id === id) ?? []);
+  const poses = placeLook(found.map((r) => r.category));
+  return found.map((r, i): BoardPiece => ({ itemId: r.id, ...poses[i]!, z: i, locked: false }));
 }

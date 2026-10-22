@@ -153,6 +153,7 @@ export async function seedDemoWardrobe(today = new Date()): Promise<void> {
             lentTo: i.lentTo,
             lentAt: i.lentAt,
             readyAt: i.readyAt,
+            washedAt: i.washedAt,
             isFavorite: i.isFavorite,
             wearCount: i.wearCount,
             lastWornAt: i.lastWornAt,
@@ -200,6 +201,7 @@ export async function seedDemoWardrobe(today = new Date()): Promise<void> {
             date: l.date,
             outfitId: l.outfitKey ? id(outfitId, l.outfitKey) : null,
             notes: l.notes,
+            weather: l.weather,
           })),
         )
         .run();

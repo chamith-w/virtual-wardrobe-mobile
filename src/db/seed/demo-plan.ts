@@ -16,6 +16,7 @@ import {
   type ZoneType,
 } from '@/features/items/catalog';
 import { ROLE_POSE } from '@/features/outfits/canvas';
+import { describeWeather } from '@/features/weather/wmo';
 import { paletteColor } from '@/lib/color';
 import { addDays, startOfDay, toDayKey, type DayKey } from '@/lib/dates';
 
@@ -91,6 +92,8 @@ export type PlannedItem = {
   lentTo: string | null;
   lentAt: Date | null;
   readyAt: Date | null;
+  /** The last wash: auto-laundry counts wears after it. */
+  washedAt: Date | null;
   isFavorite: boolean;
   wearCount: number;
   lastWornAt: Date | null;
@@ -112,7 +115,26 @@ export type PlannedWearLog = {
   slugs: string[];
   outfitKey: string | null;
   notes: string | null;
+  weather: { tempC: number; feelsLikeC: number; code: number; summary: string; precipitationProbability: number };
 };
+
+/** Typical daytime highs by month (°C), northern mid-latitudes. */
+const MONTH_HIGHS = [9, 10, 13, 16, 20, 24, 27, 27, 23, 18, 12, 9];
+const SKY = [0, 1, 2, 2, 3, 3, 61, 80, 63, 1];
+
+/** A plausible day's weather for the journal, from its own random stream. */
+function demoWeather(date: Date, rand: () => number): PlannedWearLog['weather'] {
+  const tempC = Math.round((MONTH_HIGHS[date.getMonth()]! + (rand() - 0.5) * 7) * 10) / 10;
+  const code = SKY[Math.floor(rand() * SKY.length)]!;
+  const wet = describeWeather(code).wet;
+  return {
+    tempC,
+    feelsLikeC: Math.round((tempC - rand() * 2.5) * 10) / 10,
+    code,
+    summary: describeWeather(code).summary,
+    precipitationProbability: wet ? 60 + Math.round(rand() * 35) : Math.round(rand() * 25),
+  };
+}
 
 export type DemoPlan = {
   wardrobes: { key: WardrobeKey; name: string; icon: string; sortOrder: number }[];
@@ -286,6 +308,7 @@ const NOTES = [
 
 export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
   const rand = prng(seed);
+  const sky = prng(seed + 101);
   const garments = SEED_GARMENTS;
   const bySlug = new Map(garments.map((g) => [g.slug, g]));
 
@@ -356,6 +379,7 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
       slugs,
       outfitKey: outfitKeyFor(slugs),
       notes: rand() < 0.08 ? (NOTES[Math.floor(rand() * NOTES.length)] ?? null) : null,
+      weather: demoWeather(date, sky),
     });
   }
 
@@ -374,6 +398,7 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
       slugs: wornToday,
       outfitKey: outfitKeyFor(wornToday),
       notes: null,
+      weather: demoWeather(today, sky),
     });
   }
 
@@ -412,6 +437,20 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
     }
   };
 
+  // Washed after each piece's last wear: what's in the basket went in when it
+  // did, and what's worn today was clean yesterday.
+  const washedOn = (g: SeedGarment, lastDays: number | undefined): Date | null => {
+    switch (g.status ?? 'in_wardrobe') {
+      case 'laundry':
+      case 'dry_cleaner':
+        return statusSince(g);
+      case 'worn':
+        return noonDaysAgo(1);
+      default:
+        return lastDays === undefined ? null : noonDaysAgo(lastDays);
+    }
+  };
+
   const items: PlannedItem[] = garments.map((g) => {
     const wardrobe = g.wardrobe ?? 'home';
     const lastDays = last.get(g.slug);
@@ -444,6 +483,7 @@ export function buildDemoPlan(today: Date, seed = 7): DemoPlan {
       lentAt: g.lentDaysAgo !== undefined ? noonDaysAgo(g.lentDaysAgo) : null,
       readyAt:
         g.status === 'dry_cleaner' && g.readyInDays !== undefined ? startOfDay(addDays(today, g.readyInDays)) : null,
+      washedAt: washedOn(g, lastDays),
       isFavorite: g.favorite ?? false,
       wearCount: counts.get(g.slug) ?? 0,
       lastWornAt: lastDays === undefined ? null : noonDaysAgo(lastDays),

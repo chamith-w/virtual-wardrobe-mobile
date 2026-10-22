@@ -14,6 +14,7 @@ import {
   normaliseRotation,
   PIECE_BASE,
   pieceBounds,
+  placeLook,
   placeNewPiece,
   ROLE_POSE,
   snapAxis,
@@ -238,5 +239,18 @@ describe('content frame', () => {
       expect(p.y * BOARD_ASPECT).toBeGreaterThan(f.y);
       expect(p.y * BOARD_ASPECT).toBeLessThan(f.y + f.height);
     }
+  });
+});
+
+describe('placeLook', () => {
+  it('hangs knitwear worn over a dress or top in the layer spot', () => {
+    const [dress, cardigan] = placeLook(['dresses', 'knitwear']);
+    expect(dress).toEqual(ROLE_POSE.one_piece);
+    expect(cardigan).toEqual(ROLE_POSE.layer);
+    expect(placeLook(['shirts', 'jeans', 'knitwear'])[2]).toEqual(ROLE_POSE.layer);
+  });
+
+  it('keeps a knit that is the top itself in the top spot', () => {
+    expect(placeLook(['knitwear', 'jeans', 'shoes'])[0]).toEqual(ROLE_POSE.top);
   });
 });

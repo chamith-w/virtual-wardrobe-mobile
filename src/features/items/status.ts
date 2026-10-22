@@ -71,7 +71,12 @@ export type StatusExtra = {
 export type StatusFields = StatusState & {
   archivedReason?: ArchiveReason | null;
   archivedNote?: string | null;
+  /** Stamped only when the piece goes into the wash or to the cleaner. */
+  washedAt?: Date;
 };
+
+/** Statuses that clean a piece: auto-laundry counts wears from the last one. */
+export const WASH_STATUSES: readonly ItemStatus[] = ['laundry', 'dry_cleaner'];
 
 export const LENT_TO_MAX = 40;
 
@@ -99,6 +104,7 @@ function readyFor(current: StatusState, next: ItemStatus, extra: StatusExtra): D
  *  - becoming lent stamps `lentAt` and takes the borrower's name (keeping one
  *    already entered); leaving lent clears the name, date and reminder;
  *  - the dry cleaner's ready date lives only while it's there;
+ *  - going into the wash or to the cleaner stamps `washedAt`;
  *  - archiving records the reason.
  * Staying in the same status keeps everything (a move between wardrobes).
  */
@@ -109,6 +115,7 @@ export function statusFields(current: StatusState, next: ItemStatus, now: Date, 
     ...lendFields(current, next, now, extra),
     readyAt: readyFor(current, next, extra),
   };
+  if (next !== current.status && WASH_STATUSES.includes(next)) fields.washedAt = now;
   if (next === 'archived') {
     fields.archivedReason = extra.archivedReason ?? null;
     fields.archivedNote = extra.archivedNote?.trim() || null;

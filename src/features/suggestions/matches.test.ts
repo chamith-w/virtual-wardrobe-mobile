@@ -1,6 +1,6 @@
 import { paletteColor } from '@/lib/color';
 
-import type { Category, Season } from './catalog';
+import type { Category, Season } from '@/features/items/catalog';
 import { colorHarmony, findMatches, type MatchCandidate } from './matches';
 
 const c = (name: string) => {

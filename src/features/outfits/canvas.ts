@@ -275,8 +275,12 @@ export const ROLE_POSE: Record<Role, NormalisedPose> = {
  * A spot for a new piece of `category`: its role's spot, nudged down and
  * across (and tilted the other way) for each piece already sitting there.
  */
-export function placeNewPiece(category: Category, existing: readonly NormalisedPose[]): NormalisedPose {
-  const base = ROLE_POSE[CATEGORY_ROLE[category]];
+export function placeNewPiece(
+  category: Category,
+  existing: readonly NormalisedPose[],
+  role: Role = CATEGORY_ROLE[category],
+): NormalisedPose {
+  const base = ROLE_POSE[role];
   let pose = base;
   for (let n = 1; n <= 6; n++) {
     const crowded = existing.some((p) => Math.abs(p.x - pose.x) < 0.06 && Math.abs(p.y - pose.y) < 0.05);
@@ -290,6 +294,22 @@ export function placeNewPiece(category: Category, existing: readonly NormalisedP
     };
   }
   return pose;
+}
+
+/**
+ * Spots for a whole look laid out at once, in order (main pieces first).
+ * Knitwear worn over a dress or another top takes the layer's spot, so it
+ * hangs beside what it's worn over instead of hiding it.
+ */
+export function placeLook(categories: readonly Category[]): NormalisedPose[] {
+  const placed: NormalisedPose[] = [];
+  let main = false;
+  for (const category of categories) {
+    const role = CATEGORY_ROLE[category];
+    placed.push(placeNewPiece(category, placed, category === 'knitwear' && main ? 'layer' : role));
+    if (role === 'top' || role === 'one_piece') main = true;
+  }
+  return placed;
 }
 
 // ------------------------------------------------------------------- frame --

@@ -3,12 +3,14 @@ import { alias } from 'drizzle-orm/sqlite-core';
 
 import { db } from '@/db/client';
 import { useLiveData } from '@/db/live';
-import { items, outfitItems, outfits } from '@/db/schema';
-import type { Occasion, Season } from '@/features/items/catalog';
+import { items, outfitItems, outfits, type ItemColor } from '@/db/schema';
+import type { Category, Occasion, Season } from '@/features/items/catalog';
 
 export type OutfitPiece = {
   itemId: string;
   name: string;
+  category: Category;
+  colors: ItemColor[];
   thumbUri: string | null;
   cutoutUri: string | null;
   x: number;
@@ -54,10 +56,12 @@ function groupOutfits(rows: PieceRow[]): OutfitSummary[] {
     };
     byId.set(r.outfitId, outfit);
     // No piece row, or its item was deleted.
-    if (r.itemId === null || r.name === null || r.x === null || r.y === null) continue;
+    if (r.itemId === null || r.name === null || r.category === null || r.x === null || r.y === null) continue;
     outfit.pieces.push({
       itemId: r.itemId,
       name: r.name,
+      category: r.category,
+      colors: r.colors ?? [],
       thumbUri: r.thumbUri,
       cutoutUri: r.cutoutUri,
       x: r.x,
@@ -79,6 +83,8 @@ const pieceColumns = {
   snapshotUri: outfits.snapshotUri,
   itemId: outfitItems.itemId,
   name: items.name,
+  category: items.category,
+  colors: items.colors,
   thumbUri: items.thumbUri,
   cutoutUri: items.cutoutUri,
   x: outfitItems.x,

@@ -7,8 +7,8 @@
 | 3     | Add item: capture, background removal, colour extraction, details sheet, fly-in      | ✅ Done |
 | 4     | Item states: laundry basket, lent, storage, empty hangers, multiple wardrobes        | ✅ Done |
 | 5     | Outfits: builder canvas, shuffle, snapshots, outfits list                            | ✅ Done |
-| 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  | ⏳ Next |
-| 7     | Me hub: insights, declutter, packing, wishlist, notifications, backup/export         |         |
+| 6     | Today + Planner: weather, suggestion engine, calendar, wear logging                  | ✅ Done |
+| 7     | Me hub: insights, declutter, packing, wishlist, notifications, backup/export         | ⏳ Next |
 | 8     | Polish: signature animations, empty states, reduce motion, a11y + perf pass          |         |
 
 ## Phase 1: what exists
@@ -155,6 +155,69 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 - **Tests (349):** normalised ↔ canvas round trips, hit testing (rotation, 44pt minimum), the handle, rotation settling, snap detection (centre lines, centres, edges, nearest wins), placement, the content frame, z-order (renumbering, one step, the ends, add and remove), the undo stack, shuffle (locks, availability, roles, no duplicates, harmony, starter outfits), opaque bounds, save defaults and copy names, list filters and plan copy.
 - **Checked in the iOS Simulator** (iPhone 17 Pro, deep links): a new board, an empty board, a preloaded board and a seeded outfit reopened with its layout all render. Item detail rendered three seeded snapshots in the background and wrote them (600 × 703, transparent). Touch couldn't be driven in the headless Simulator, so **drags, pinch, rotate, snapping, the trash, tray drag, shuffle, saving, the list's cards and the long-press menu were not exercised by hand.** Android is still unbuilt.
 
+## Phase 6: what exists
+
+**Audit at the start:** `wearCache.ts` was done and is reused. `wearLog.ts` was partial: it logged or unlogged one piece for today, with no past days, outfit, selfie, weather, note or auto-laundry. `items/matches.ts` was partial, with hard-coded weights. Weather, the engine, Today's carousel and nudges, the calendar, the dock, the log sheet, auto-laundry and the reminder were missing.
+
+- **Weather (`features/weather`):**
+  - **Where:** the first time weather shows, the Today card explains why location helps and offers **Use my location** (the only place permission is asked) or **Choose a city**. The city sheet searches Open-Meteo geocoding. The choice is a preference (`weatherPlace`: device or a city) and can be changed by tapping the card or from Me → Settings → Weather. If location is refused, the card offers a city instead, plus Open Settings once it's blocked.
+  - **Forecast:** Open-Meteo, no key. One request gets current temperature, feels-like, WMO code, chance of rain and day/night, plus daily highs, lows, feels-like and rain chance from 7 days back to 16 ahead, in the place's own days. `fetchDailyRange()` is exposed for phase 7's trips.
+  - **Cache:** the last forecast is kept in the kv-store and shown at once and offline. It refreshes when a screen comes into view or the app returns, if it's over 30 minutes old. After an hour the card says "Updated 3h ago", plus "offline" when a refresh failed. A Skeleton shows while there's nothing yet.
+  - **Units:** everything is °C inside; `formatTemp` applies the °C/°F preference on screen. WMO codes map to a summary and a lucide icon (`wmo.ts`), with the moon at night.
+- **Suggestion engine (`features/suggestions`, pure, every weight in `config.ts`):**
+  1. **Layers from the weather:** hot (feels-like ≥ 25°) adds none; mild adds a light layer (a light jacket, trench or cardigan); cold (< 12°) adds outerwear (warm coats first) plus knitwear, as the top or over it. Rain (a wet WMO code or ≥ 50%) favours waterproof layers and shoes and marks down suede, canvas or knit shoes. In hot rain, a light waterproof layer is optional.
+  2. **Candidates:** top + bottoms + shoes, or dress + shoes, plus the layers and an accessory, from pieces in the wardrobe only (never basics). The best few per slot go into the combinations, so 500 garments stay fast; the demo wardrobe takes 5–15 ms.
+  3. **Scores:**
+     - colour harmony in HSL: neutrals pair with everything; analogous and complementary hues score up; saturated hues a third of the wheel apart clash; more than two accent hues is marked down
+     - season (flipped south of the equator) and occasion: a given one, or agreement between the pieces
+     - freshness: a penalty that fades over the 7 days after a wear, and a boost from 21 to 90 idle days plus a nudge for below-median wear counts
+     - a favourites bonus
+     - weather fit: knitwear sits out hot days, boots lose points in the heat, summer-only pieces lose points in the cold
+  4. **Diverse picks:** no two outfits shown together share more than one piece, and each card leads with a different dress or top when the wardrobe allows.
+
+  It's deterministic: the seed is the day, and each piece's small nudge is keyed by its id, so input order doesn't matter. Shuffle takes the next-best look that's diverse against the other cards and not yet shown on that card, then cycles.
+
+- **Find matches** (item detail) now runs on the engine's harmony and config (`suggestions/matches.ts`), with a small bonus for a shared occasion. The builder's Shuffle uses the same harmony.
+- **Today (`features/today`, Today.dc.html):**
+  - the italic date, greeting, theme toggle and the weather card
+  - **three outfit cards** in a snapping carousel: a tinted board drawn live with Skia, tags ("Fits 18°", then Rain-ready, Under-worn, Favourite, Fresh picks or Light layer), "Pick 1 of 3", a name (the saved outfit's, or one from its colours) and a line such as "Work · light layer for 24°"
+    - **Wear this** logs the pieces with today's weather. Its toast counts what went to the basket. The board gets a "Worn today" badge and the button becomes **Logged**; tapping that undoes the log exactly.
+    - **Shuffle** pops a new look in.
+    - **Edit** opens the builder: the saved outfit, or `/outfit/new?items=…`.
+  - Today's plan, if any, leads the carousel as "Planned for today". A card whose pieces go out elsewhere (into the wash, lent) is replaced on its own; a worn one stays.
+  - **Tiles:** laundry, lent and forgotten. Forgotten opens the Wardrobe grid sorted least-worn until Declutter exists.
+  - **Wear it again:** one idle piece that suits the day (not one already on the cards), the engine's pairings, and **Plan for tomorrow**, which turns into "Planned · Fri 23" and back.
+  - **Upcoming trip:** "Lisbon · in 11 days" with packing progress. It opens the Planner on the trip's first day until packing lists exist.
+- **Planner (`features/planner`, Planner.dc.html):**
+  - **Calendar:** a week strip that springs open into the month (drawer spring), keeping the selected week in place. Days show worn ticks, up to three colour dots for a plan (top to toe), a trip bar, a today ring and the selected day inverted. Arrows step weeks when folded and months when open.
+  - **The selected day:** an eyebrow (Today, Planned, Free day, Past, Outfit journal or Worn today), the date, and the weather: the log's for a logged day, otherwise the forecast. During a trip it shows "Lisbon trip · Day 2 of 5".
+    - **Planned:** the outfit's board. Today offers **Log as worn** and Swap; a future day **Swap outfit** and Clear; a past day Log as worn and Clear.
+    - **Free:** **Suggest one** (the engine with that day's forecast) or **Pick an outfit**.
+    - **Past and empty:** **Log an outfit** (pick one, or "Pick pieces instead").
+    - **Journal:** an arched frame with the mirror selfie (or the pieces), what it was, the note, the pieces and **Edit log**.
+  - **Dock:** the saved outfits on frosted glass above the tab bar, favourites first. Tap one to plan it on the selected day, or drag it up onto any day. The day under the finger swells with an accent ring and a tick; dropping plans it with `dropSuccess`. Past days refuse with "That day has passed".
+  - **Log sheet:** tick the outfit's pieces, **Add a piece** (a picker stacked on top), a mirror selfie (camera; photos where there's no camera), a note and the day's weather. A caption says which pieces will go straight to the laundry. Editing a log can also delete it, after a confirmation.
+- **Wear logging (`planner/wearLog.ts`):** one log per day. `writeWearLog` can add pieces (Today, Wear today on detail), remove them, or replace the whole set (the log sheet), and returns a receipt that `undoWearLog` reverses exactly. Every change recomputes `wearCount` and `lastWornAt`.
+  - **Statuses:** only today's log moves pieces: to worn, or straight to the basket when auto-laundry says so, always through the transition table. Logging a past day counts the wear only.
+  - **Un-logging today:** a worn piece goes back on its hanger; one in the basket stays there. Deleting a log also deletes its selfie.
+- **Auto-laundry:** a piece goes to the basket once its wear days since its last wash reach the category's setting. `items.washed_at` is stamped whenever a piece goes into the wash or to the cleaner (migration `0002_items_washed_at`; `0003_backfill_washed_at` gives existing pieces a last wash from their state and last wear, so their old history doesn't count). Me → Settings → **Auto-laundry** has a stepper per category (never, or 1–8 wears) and a reset.
+- **Plan reminder (optional):** Me → Settings → **Plan reminder** (asks for notification permission the first time). It fires at 20:00 on evenings when the next day has nothing planned. A week is scheduled ahead and resynced whenever plans change; tapping it opens the Planner on that day.
+- **Dev:** a thermometer button on Today, or holding the weather card, overrides the feels-like temperature (−2° to 33°) and rain for the session (development builds only).
+- **Seed:** wear logs carry generated weather from a separate random stream, so the history is unchanged, which was checked against the committed version. `washedAt` is set so clean pieces start at zero wears. Existing installs get the weather after Me → Reset demo data.
+- **Shared pieces:** a `PopIn` primitive, `SearchField inSheet`, and `OutfitPiece` now carries category and colours. `placeLook` lays out a whole look (knitwear worn over a dress or top takes the layer spot) for the cards, the journal, the builder's preload and saved suggestions. `LookBoard` draws a look that isn't a saved outfit.
+- **Tests (416):**
+  - **engine:** a test for each rule: bands, rain, harmony, season, occasion, freshness, favourites, diversity, Shuffle, determinism, input order and Wear it again
+  - **weather:** WMO mapping, units, Open-Meteo parsing, cache age, day snapshots and matching the cache to the place
+  - **wear logging:** the auto-laundry rule, wash stamps, log effects, cache maths on log and undo, and the copy
+  - **Today and Planner:** the carousel, calendar rows, week stepping, day kinds, dots, labels and trips, and reminder timing
+  - **layout and seed:** `placeLook`, and seed weather and wash dates
+- **Checked in the iOS Simulator** (iPhone 17 Pro, light and dark):
+  - **Today:** the explainer; live Lisbon weather (20°, mainly clear; the city was set in the app's storage because the location prompt can't be answered headless); three diverse cards; the tiles; Wear it again; the trip card
+  - **Planner:** today's journal, a planned day and a free day with its forecast
+  - **Migration:** `0002` ran on launch
+
+  Taps, drags and sheets couldn't be driven headless, so **Wear this, Shuffle, Edit, the dock drag, Suggest, the log sheet, the selfie camera, the location prompt and the reminder were not exercised by hand.**
+
 ## Decisions
 
 1. **Routes live in `src/app`.** That's the SDK 57 template default and what `AGENTS.md` expects. Everything else follows the spec's feature folders under `src/`.
@@ -234,6 +297,35 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 66. **One outfit per planned day:** planning replaces what was there and says what it replaced. Deleting an outfit removes its upcoming plans but leaves wear logs alone.
 67. **The builder draws full cutouts** (crisp when scaled up), with the thumbnail standing in while the cutout decodes. Snapshots and live thumbnails use the 400px thumbnails.
 
+68. **Weather is °C inside.** Only the display converts, so the engine's bands and the cache don't depend on the unit.
+69. **The weather place is a preference.** It's the device or a chosen city, and stays empty until the explainer is answered. Permission is asked only from "Use my location"; the city search is Open-Meteo geocoding.
+70. **One forecast request** covers current conditions plus 7 days back and 16 ahead, in the place's own days. It's cached in the kv-store, refreshed when shown if it's over 30 minutes old, and its age shows after an hour.
+71. **Bands:** hot from 25° feels-like, cold below 12°, mild between. The prototype puts a light layer at 24°, hence 25. Rain means a wet WMO code or at least a 50% chance.
+72. **Which temperature:** Today uses the current feels-like, which is what the card shows, with the day's highest chance of rain. Other days use a daytime feel of 0.65 × the high + 0.35 × the low.
+73. **Garments are read by their words.** Warmth, waterproofing and rain-shy shoes come from the category plus kind, material, name and tags ("trench", "gabardine", "boots", "suede", "down"). Wool alone doesn't make a jacket warm: a wool blazer is still tailoring.
+74. **Knitwear sits out hot days** unless it's the only top. A cardigan counts as a light layer; in the cold, any knitwear is the warm layer.
+75. **Candidate limits:** the best 6 tops, 6 bottoms, 4 dresses, 4 shoes, 3 layers, 2 knits and 3 accessories; then the best 60 cores; at most 400 ranked looks are kept for Shuffle. Each look is also kept without its accessory, so the diverse pick can drop a shared bag.
+76. **Diversity:** no two cards share more than one piece (the spec). Each card also leads with a different dress or top whenever the wardrobe allows.
+77. **Seeded by the day.** Suggestions hold all day and change tomorrow, or when the weather band or today's plan changes.
+78. **Today's plan leads the carousel** ("Planned for today"), and the engine's picks are diverse against it.
+79. **A worn card stays put.** A card whose pieces go out elsewhere is replaced. **Logged** is tappable and undoes exactly: statuses, wash dates and the log's fields.
+80. **One wear log per day.** Today and Wear today add to it; the Planner's log sheet replaces its pieces.
+81. **Only today's log moves statuses.** Logging last Tuesday counts the wear and updates the cache but leaves pieces where they are now. Un-logging today puts worn pieces back; pieces in the basket stay there.
+82. **Auto-laundry counts wear days after `washedAt`**, stamped whenever a piece goes into the wash or to the cleaner. That's the one new column (migration 0002), backfilled for existing pieces (0003). The brief's defaults stand. Categories it didn't list: tops, dresses and shorts after 2; skirts and trousers after 3; outerwear, shoes and accessories never. An undo restores the old wash date.
+83. **Planning a suggestion saves it as an outfit**, named from its colours, because plans always point at an outfit. An identical saved outfit is reused. Taking back "Wear it again" deletes an outfit it created.
+84. **Suggesting for a future day** treats pieces that are worn or in the wash as available (they'll be clean by then). Plans within 3 days count as wear, so a planned week doesn't repeat itself.
+85. **The dock drag starts with an upward pan**, like the builder's tray, so sideways swipes scroll. Hit testing runs on the UI thread from the calendar's measured rect.
+86. **Past days can't be planned.** A past day with a plan offers Log as worn; one without offers Log an outfit (pick one, or pieces).
+87. **The calendar keeps the whole month grid** and springs its height and offset, so the selected week stays put as it opens. The arrows stay visible when open and step months (the prototype hides them in month view).
+88. **The journal's arched frame** shows the selfie, or the pieces laid out when there isn't one. Logs are edited and deleted from the journal; a deleted log's selfie file goes too.
+89. **Selfies** are taken with the camera, falling back to photos where there's no camera, and saved as 1400px JPEGs in `documents/logs/`. Ones taken but not kept are deleted when the sheet closes.
+90. **The plan reminder is opt-in**, at 20:00, only on evenings before an unplanned day. A week is scheduled at a time and resynced on every plan change.
+91. **Interim links:** the Forgotten tile opens the Wardrobe grid sorted least-worn, and the trip card opens the Planner on the trip's first day. Phase 7's Declutter and packing lists will take these over.
+92. **Wear it again** prefers a piece that isn't already on Today's cards.
+93. **Seed weather comes from its own random stream**, so the generated wear history stays exactly as it was.
+94. **`placeLook`** lays out a whole look at once. Knitwear worn over a dress or another top takes the layer's spot instead of covering it. The cards, the journal, the builder's preload and saved suggestions all use it.
+95. **Metro's cache is keyed on the migration SQL** (`cacheVersion` in `metro.config.js`). Babel inlines each `.sql` file into `migrations.js`, so without this Metro kept serving drizzle-kit's empty placeholder for 0003 even after restarts, and the app crashed at launch. Now a restart picks up any new or edited migration.
+
 ## Open questions
 
 1. **Real garment photos:** the owner plans to upload cutouts and photos. They can now go through the add flow, or replace the placeholders in `assets/seed/` (keep the slugs; originals go in `assets/seed/originals/<slug>.jpg`).
@@ -242,11 +334,24 @@ Built across `1083fb1` (closet flow and item actions), `ef60baa` (AnimatedPressa
 4. **Android is untested.** This machine has no Android SDK, so the Kotlin side of `modules/subject-segmentation` has never been compiled. The first `npm run android` is its first build; expect a fix or two there.
 5. **A category classifier** could plug into `setGarmentClassifier` later (an on-device image-labelling model, or a server). Worth it?
 6. **Strictness of the transition table** (decision 39): for example, a piece in the wash can't be marked as lent. Say if any refusal gets in the way.
-7. **Reminder hour:** lend reminders fire at 10:00. Would you rather pick the time?
-8. **Today's "Edit"** (brief, phase 5) needs Today's outfit carousel, which arrives in phase 6. The builder already accepts `/outfit/new?items=<id>,<id>` for it.
-9. **Gestures need a hand test.** Drag, pinch, rotate, the handle, snapping, the trash, dragging from the tray and the save flow have only been checked in code and unit tests. Please try them on a phone, and on Android when it's built (the "smooth on mid-range Android" check is still open).
-10. **Snapshot shadows in dark mode:** they carry the light theme's warm shadow, which is subtle on the dark tint. Rendering a second, dark version is easy if you'd rather have it.
+7. **Reminder hours:** lend reminders fire at 10:00 and the plan reminder at 20:00. Would you rather pick the times?
+8. **Gestures need a hand test.**
+   - **Phase 5:** drag, pinch, rotate, the handle, snapping, the trash, dragging from the tray and the save flow.
+   - **Phase 6:** Wear this, Logged (undo), Shuffle, Edit, the carousel snapping, the Planner dock drag onto days, Suggest, the log sheet and its piece picker, and the selfie camera.
 
-## Next: phase 6
+   These have only been checked in code and unit tests. Please try them on a phone, and on Android when it's built (the "smooth on mid-range Android" check is still open).
 
-See `docs/phases/phase-6.md`: Today and the Planner, with weather, the suggestion engine, the calendar and wear logging. Shuffle (`outfits/shuffle.ts`) is the engine's starting point; planning already writes `planned_outfits` (`planOutfit`); suggestion cards can open the builder with `/outfit/new?items=…`.
+9. **Snapshot shadows in dark mode:** they carry the light theme's warm shadow, which is subtle on the dark tint. Rendering a second, dark version is easy if you'd rather have it.
+10. **Suggestion feel:** the bands (hot from 25°, cold below 12°) and the weights in `suggestions/config.ts` are tuned on the demo wardrobe. With your own clothes, say if a look feels off (too many forgotten pieces, layers when it's warm), and it's a config change.
+11. **Planned suggestions become saved outfits** (decision 83), so planning a few weeks of suggestions adds outfits to the Outfits tab. Keep that, or hide them as "planned looks" until you save one?
+12. **Occasion on Today:** the engine takes an occasion, but Today has no picker; it uses the pieces' agreement instead. Add Work / Weekend / Evening chips above the cards?
+13. **Location prompt:** the explainer → system prompt → forecast path hasn't been tried on a device (the Simulator check used a city). The first run on your phone is its first real test.
+14. **Auto-laundry defaults** for categories the brief didn't list (decision 82). Adjust in Me → Settings, or say and I'll change the defaults.
+
+## Next: phase 7
+
+See `docs/phases/phase-7.md`: the Me hub, with insights, declutter, packing lists, seasonal rotation, the wishlist, notifications, settings and backup. Ready to build on:
+
+- The weather service: `fetchDailyRange()` gives a trip's forecast, and `suggestions/engine.ts` with `suggestForDay` can suggest outfits per trip day.
+- The Settings rows for weather, auto-laundry and the plan reminder.
+- Interim links that should move to their new screens: Today's Forgotten tile (to Declutter) and trip card (to the packing list).

@@ -1,4 +1,6 @@
 import { CATEGORIES, ITEM_STATUSES } from '@/features/items/catalog';
+import { wearsSinceWash } from '@/features/planner/autoLaundry';
+import { describeWeather } from '@/features/weather/wmo';
 import { daysBetween, toDayKey } from '@/lib/dates';
 
 import { buildDemoPlan, HISTORY_DAYS, SEED_GARMENTS, SEED_WISHLIST } from './demo-plan';
@@ -144,5 +146,29 @@ describe('demo item states', () => {
     for (const item of states.items.filter((i) => i.status === 'lent')) {
       expect(item.statusChangedAt).toEqual(item.lentAt);
     }
+  });
+});
+
+describe('demo journal and washes', () => {
+  const today = new Date(2026, 9, 5, 9);
+  const demo = buildDemoPlan(today);
+  const daysFor = (slug: string) => demo.wearLogs.filter((l) => l.slugs.includes(slug)).map((l) => l.date);
+
+  it('gives every logged day its weather, in WMO terms', () => {
+    for (const log of demo.wearLogs) {
+      expect(log.weather.summary).toBe(describeWeather(log.weather.code).summary);
+      expect(log.weather.tempC).toBeGreaterThan(-5);
+      expect(log.weather.tempC).toBeLessThan(35);
+    }
+  });
+
+  it('dates washes so clean pieces start at zero wears and today’s pieces at one', () => {
+    for (const item of demo.items) {
+      const wears = wearsSinceWash(daysFor(item.slug), item.washedAt);
+      if (item.status === 'worn') expect(wears).toBe(1);
+      else expect(wears).toBe(0);
+    }
+    for (const item of demo.items.filter((i) => i.status === 'laundry' || i.status === 'dry_cleaner'))
+      expect(item.washedAt).toEqual(item.statusChangedAt);
   });
 });

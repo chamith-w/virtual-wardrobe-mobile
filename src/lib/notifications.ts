@@ -28,7 +28,7 @@ function ensureChannel(): Promise<unknown> {
   if (Platform.OS !== 'android') return Promise.resolve();
   channelReady ??= Notifications.setNotificationChannelAsync(CHANNEL_ID, {
     name: 'Reminders',
-    description: 'Lent pieces you asked to be reminded about',
+    description: 'Lent pieces to ask back for, and evenings to plan tomorrow',
     importance: Notifications.AndroidImportance.DEFAULT,
   }).catch(() => null);
   return channelReady;
@@ -79,6 +79,12 @@ export async function scheduleLocal(id: string, at: Date, content: LocalNotifica
 
 export function cancelLocal(id: string): Promise<void> {
   return Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+}
+
+/** Cancels every scheduled notification whose id starts with `prefix`. */
+export async function cancelLocalWithPrefix(prefix: string): Promise<void> {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync().catch(() => []);
+  await Promise.all(scheduled.filter((n) => n.identifier.startsWith(prefix)).map((n) => cancelLocal(n.identifier)));
 }
 
 export function cancelAllLocal(): Promise<void> {

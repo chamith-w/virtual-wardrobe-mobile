@@ -2,7 +2,7 @@ import '@/global.css';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
@@ -13,6 +13,7 @@ import { FullWindowOverlay } from 'react-native-screens';
 import { ToastHost } from '@/components/ui';
 import { DatabaseGate } from '@/db/DatabaseGate';
 import { openItem } from '@/features/items/openItem';
+import { usePlanReminderSync } from '@/features/planner/usePlanReminderSync';
 import { configureNotifications, useNotificationResponses } from '@/lib/notifications';
 import { appFonts } from '@/theme/fonts';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
@@ -21,16 +22,22 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 SplashScreen.setOptions({ duration: 350, fade: true });
 configureNotifications();
 
-/** A tapped lend reminder opens its piece (also when the tap launched the app). */
+/**
+ * A tapped reminder opens what it's about (also when the tap launched the
+ * app): a lend reminder its piece, an evening reminder the Planner on that day.
+ */
 function openFromNotification(data: Record<string, unknown>) {
   const itemId = data.itemId;
   if (typeof itemId === 'string')
     void openItem({ id: itemId, wardrobeId: null, thumbUri: null }, { browseIds: [itemId] });
+  if (data.kind === 'plan' && typeof data.day === 'string')
+    router.navigate({ pathname: '/planner', params: { day: data.day } });
 }
 
 function AppStack() {
   const { colors, isDark } = useTheme();
   useNotificationResponses(openFromNotification);
+  usePlanReminderSync();
   const base = isDark ? DarkTheme : DefaultTheme;
   const navigationTheme = {
     ...base,

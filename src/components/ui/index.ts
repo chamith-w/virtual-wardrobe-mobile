@@ -7,6 +7,7 @@ export { DatePickerSheet, DEFAULT_DATE_PRESETS, type DatePickerSheetProps, type 
 export { Cutout, loadCutout, useCutoutImage, type CutoutProps, type CutoutShadow } from './Cutout';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { IconButton, type IconButtonProps } from './IconButton';
+export { PopIn } from './PopIn';
 export { Screen, type ScreenProps } from './Screen';
 export { SearchField, type SearchFieldProps } from './SearchField';
 export { SectionHeader } from './SectionHeader';

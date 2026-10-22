@@ -77,6 +77,8 @@ function toOutfitPieces(pieces: readonly BoardPiece[], items: ReadonlyMap<string
       {
         itemId: p.itemId,
         name: item.name,
+        category: item.category,
+        colors: item.colors,
         thumbUri: item.thumbUri,
         cutoutUri: item.cutoutUri,
         x: p.x,

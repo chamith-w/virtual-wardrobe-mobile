@@ -1,3 +1,4 @@
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Search, X } from 'lucide-react-native';
 import { TextInput, View, type TextInputProps } from 'react-native';
 
@@ -11,11 +12,21 @@ export type SearchFieldProps = Omit<TextInputProps, 'value' | 'onChangeText' | '
   onChangeText: (text: string) => void;
   accessibilityLabel: string;
   className?: string;
+  /** Inside a bottom sheet: the sheet then moves with the keyboard. */
+  inSheet?: boolean;
 };
 
 /** Pill search input with a leading magnifier and a clear button once there is text. */
-export function SearchField({ value, onChangeText, accessibilityLabel, className, ...rest }: SearchFieldProps) {
+export function SearchField({
+  value,
+  onChangeText,
+  accessibilityLabel,
+  className,
+  inSheet = false,
+  ...rest
+}: SearchFieldProps) {
   const { colors } = useTheme();
+  const Input = inSheet ? BottomSheetTextInput : TextInput;
   return (
     <View
       className={['h-11 flex-row items-center gap-2 rounded-pill border border-line bg-surface pl-3.5', className]
@@ -23,7 +34,7 @@ export function SearchField({ value, onChangeText, accessibilityLabel, className
         .join(' ')}
     >
       <Search size={18} color={colors.muted} strokeWidth={1.9} />
-      <TextInput
+      <Input
         value={value}
         onChangeText={onChangeText}
         accessibilityLabel={accessibilityLabel}

@@ -1,0 +1,1 @@
+ALTER TABLE `items` ADD `washed_at` integer;

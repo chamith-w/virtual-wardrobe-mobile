@@ -1,12 +1,12 @@
 /**
  * The builder's tray tabs and Shuffle. Shuffle swaps every unlocked piece for
  * another available garment in the same role, choosing ones whose colours sit
- * well with what stays (reusing `colorHarmony` from Find matches). Phase 6's
- * suggestion engine can take this over. Pure — safe to import from tests.
+ * well with what stays (the suggestion engine's `colorHarmony`). Pure — safe
+ * to import from tests.
  */
 import type { ItemColor } from '@/db/schema';
 import { CATEGORY_ROLE, type Category, type ItemStatus, type Season } from '@/features/items/catalog';
-import { colorHarmony } from '@/features/items/matches';
+import { colorHarmony } from '@/features/suggestions/harmony';
 
 export type Role = (typeof CATEGORY_ROLE)[Category];
 

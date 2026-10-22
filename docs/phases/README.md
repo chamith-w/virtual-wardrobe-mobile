@@ -2,16 +2,16 @@
 
 One prompt per phase of `docs/SPEC.md`. Each brief is self-contained, so you can paste it straight into Claude Code from the project root, or run `/phase <n>`, which reads the matching file.
 
-| Phase | Brief                    | Builds                                                                                    |
-| ----- | ------------------------ | ----------------------------------------------------------------------------------------- |
-| 1     | [phase-1.md](phase-1.md) | Setup: tokens, theme, primitives, tab bar, schema, seed. ✅ Done                          |
-| 2     | [phase-2.md](phase-2.md) | Wardrobe: closet, grid, search/filter/sort, item detail. **In progress**                  |
-| 3     | [phase-3.md](phase-3.md) | Add item: camera, background removal, colours, details sheet, fly-in                      |
-| 4     | [phase-4.md](phase-4.md) | Item states: laundry basket, lent and reminders, dry cleaner, storage, multiple wardrobes |
-| 5     | [phase-5.md](phase-5.md) | Outfits: builder canvas, shuffle, snapshots, outfits list                                 |
-| 6     | [phase-6.md](phase-6.md) | Today and Planner: weather, suggestion engine, calendar, wear logging                     |
-| 7     | [phase-7.md](phase-7.md) | Me hub: insights, declutter, packing, seasonal rotation, wishlist, backup                 |
-| 8     | [phase-8.md](phase-8.md) | Polish: onboarding, signature-motion audit, reduce motion, a11y, performance              |
+| Phase | Brief                    | Builds                                                                                            |
+| ----- | ------------------------ | ------------------------------------------------------------------------------------------------- |
+| 1     | [phase-1.md](phase-1.md) | Setup: tokens, theme, primitives, tab bar, schema, seed. ✅ Done                                  |
+| 2     | [phase-2.md](phase-2.md) | Wardrobe: closet, grid, search/filter/sort, item detail. ✅ Done                                  |
+| 3     | [phase-3.md](phase-3.md) | Add item: camera, background removal, colours, details sheet, fly-in ✅ Done                      |
+| 4     | [phase-4.md](phase-4.md) | Item states: laundry basket, lent and reminders, dry cleaner, storage, multiple wardrobes ✅ Done |
+| 5     | [phase-5.md](phase-5.md) | Outfits: builder canvas, shuffle, snapshots, outfits list ✅ Done                                 |
+| 6     | [phase-6.md](phase-6.md) | Today and Planner: weather, suggestion engine, calendar, wear logging ✅ Done                     |
+| 7     | [phase-7.md](phase-7.md) | Me hub: insights, declutter, packing, seasonal rotation, wishlist, backup                         |
+| 8     | [phase-8.md](phase-8.md) | Polish: onboarding, signature-motion audit, reduce motion, a11y, performance                      |
 
 ## How to use them
 

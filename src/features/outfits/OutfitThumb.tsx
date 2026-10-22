@@ -16,15 +16,15 @@ import { requestSnapshot } from './snapshots';
 import type { OutfitPiece } from './useOutfits';
 
 /** The frame fitted inside a box: its drawn size and offset. */
-function fit(frame: Rect, width: number, height: number) {
+export function fit(frame: Rect, width: number, height: number) {
   const aspect = frame.height / frame.width;
   const w = Math.min(width, height / aspect);
   const h = w * aspect;
   return { width: w, height: h, left: (width - w) / 2, top: (height - h) / 2 };
 }
 
-/** The board drawn live while its snapshot is being made; it fades in once every piece has loaded. */
-function LiveScene({
+/** The board drawn live (while its snapshot is being made, or for a look that isn't saved); it fades in once every piece has loaded. */
+export function LiveScene({
   pieces,
   frame,
   width,

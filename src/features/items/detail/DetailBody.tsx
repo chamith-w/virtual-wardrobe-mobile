@@ -20,7 +20,7 @@ import { LentCard } from '@/features/items/components/LentCard';
 import { OutActions } from '@/features/items/components/OutActions';
 import { StatusSwitcher } from '@/features/items/components/StatusSwitcher';
 import { detailRows, detailStats, itemByline, itemEyebrow } from '@/features/items/describe';
-import { findMatches } from '@/features/items/matches';
+import { findMatches } from '@/features/suggestions/matches';
 import { OutfitThumb } from '@/features/outfits/OutfitThumb';
 import { useItemOutfits } from '@/features/outfits/useOutfits';
 import { useWornToday } from '@/features/planner/wearLog';
